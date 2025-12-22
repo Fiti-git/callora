@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  password       String
+  name           String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Organization {
+  id        String      @id @default(cuid())
+  name      String
+  apiKeys   ApiKey?
+  users     User[]
+  campaigns Campaign[]
+  leads     Lead[]
+  blacklist Blacklist[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  googleMapsKey  String?
+  geminiKey      String?
+  vapiKey        String?
+  vapiPhoneId    String?
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Campaign {
+  id             String       @id @default(cuid())
+  name           String
+  prompt         String
+  status         String       @default("DRAFT") // DRAFT, RUNNING, COMPLETED
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  leads          Lead[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Lead {
+  id             String       @id @default(cuid())
+  businessName   String
+  address        String?
+  phone          String?
+  status         String       @default("NEW") // NEW, CALLED, QUALIFIED, DISQUALIFIED
+  interestScore  Int          @default(0)
+  campaignId     String
+  campaign       Campaign     @relation(fields: [campaignId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  calls          CallLog[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model CallLog {
+  id        String   @id @default(cuid())
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  duration  Int
+  status    String
+  transcript String?
+  summary   String?
+  createdAt DateTime @default(now())
+}
+
+model Blacklist {
+  id             String       @id @default(cuid())
+  phoneNumber    String
+  reason         String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+}
