@@ -127,7 +127,7 @@ router.post("/:id/run", async (req: Request, res: Response) => {
         },
       });
 
-      const callResult = await vapi.makeCall(lead.phone, lead.businessName);
+      const callResult = await vapi.makeCall(lead.phone!, lead.businessName);
 
       let analysis: any = {
         interestScore: 0,

@@ -18,7 +18,7 @@ async function main() {
 
   try {
     // We pass "Test User" as the name
-    const result = await vapi.makeCall(phoneNumber, "Test User");
+    const result = await vapi.makeCall(phoneNumber, "Namesh");
 
     console.log("\n✅ Call Completed.");
     console.log(`Status: ${result.status}`);

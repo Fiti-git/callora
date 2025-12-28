@@ -4,6 +4,8 @@ import { createCampaign } from "@/app/actions/campaign";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import toast from "react-hot-toast";
+
 export default function NewCampaignPage() {
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -15,9 +17,10 @@ export default function NewCampaignPage() {
     setLoading(true);
     try {
       const campaign = await createCampaign(prompt, name);
+      toast.success("Campaign created successfully!");
       router.push(`/campaigns/${campaign.id}`);
     } catch (error) {
-      alert("Error creating campaign. Ensure you are logged in.");
+      toast.error("Failed to create campaign.");
       console.error(error);
     } finally {
       setLoading(false);

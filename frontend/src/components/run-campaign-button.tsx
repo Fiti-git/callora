@@ -4,6 +4,8 @@ import { runCampaign } from "@/app/actions/campaign";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+import toast from "react-hot-toast";
+
 export function RunCampaignButton({ campaignId }: { campaignId: string }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -16,9 +18,9 @@ export function RunCampaignButton({ campaignId }: { campaignId: string }) {
     try {
       await runCampaign(campaignId);
       router.refresh();
-      alert("Campaign Finished!");
+      toast.success("Campaign finished successfully!");
     } catch (error: any) {
-      alert("Campaign Failed: " + error.message);
+      toast.error("Campaign Failed: " + error.message);
     } finally {
       setLoading(false);
     }
