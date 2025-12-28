@@ -17,10 +17,28 @@ export default function NewCampaignPage() {
     setLoading(true);
     try {
       const campaign = await createCampaign(prompt, name);
-      toast.success("Campaign created successfully!");
-      router.push(`/campaigns/${campaign.id}`);
-    } catch (error) {
-      toast.error("Failed to create campaign.");
+      console.log("Client Received:", campaign);
+
+      if (!campaign) {
+        toast.error("Campaign object is null/undefined");
+        return;
+      }
+
+      if (!campaign.id || campaign.id === "undefined") {
+        toast.error(
+          "Campaign ID is missing or invalid: " + JSON.stringify(campaign)
+        );
+        return;
+      }
+
+      toast.success("Campaign created! Redirecting to " + campaign.id);
+
+      // Delay to ensure user sees success
+      setTimeout(() => {
+        router.push(`/campaigns/${campaign.id}`);
+      }, 1000);
+    } catch (error: any) {
+      toast.error("Failed to create campaign: " + error.message);
       console.error(error);
     } finally {
       setLoading(false);

@@ -38,6 +38,7 @@ router.post("/", async (req: Request, res: Response) => {
         status: "DRAFT",
       },
     });
+    console.log("Created Campaign:", campaign);
     res.status(201).json(campaign);
   } catch (error: any) {
     res.status(500).json({ error: error.message });

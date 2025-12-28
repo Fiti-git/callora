@@ -7,11 +7,12 @@ import { notFound } from "next/navigation";
 export default async function CampaignDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   let campaign;
   try {
-    campaign = await fetchWithAuth(`/campaigns/${params.id}`);
+    campaign = await fetchWithAuth(`/campaigns/${id}`);
   } catch (error) {
     console.error("Fetch Error:", error);
     notFound();

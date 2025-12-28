@@ -10,6 +10,7 @@ COPY prisma ./prisma/
 RUN npx prisma generate
 
 COPY tsconfig.json ./
+ENV CACHE_BUST=1
 COPY src ./src
 
 RUN npm run build

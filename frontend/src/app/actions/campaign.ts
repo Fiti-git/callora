@@ -8,6 +8,7 @@ export async function createCampaign(prompt: string, name: string) {
     method: "POST",
     body: JSON.stringify({ prompt, name }),
   });
+  console.log("Server Action Result:", result);
   revalidatePath("/campaigns");
   return result; // returns campaign object
 }
