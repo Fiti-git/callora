@@ -1,5 +1,5 @@
 import { fetchWithAuth } from "@/lib/api";
-import { RunCampaignButton } from "@/components/run-campaign-button";
+import { CampaignControls } from "@/components/campaign-controls";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,7 +45,9 @@ export default async function CampaignDetailPage({
             className={`px-3 py-1 rounded-full text-sm font-semibold ${
               campaign.status === "COMPLETED"
                 ? "bg-green-100 text-green-800"
-                : campaign.status === "RUNNING"
+                : campaign.status === "RUNNING" ||
+                  campaign.status === "CALLING" ||
+                  campaign.status === "SCRAPING"
                 ? "bg-blue-100 text-blue-800"
                 : campaign.status === "FAILED"
                 ? "bg-red-100 text-red-800"
@@ -54,9 +56,11 @@ export default async function CampaignDetailPage({
           >
             {campaign.status}
           </div>
-          {campaign.status !== "RUNNING" && (
-            <RunCampaignButton campaignId={campaign.id} />
-          )}
+          <CampaignControls
+            campaignId={campaign.id}
+            status={campaign.status}
+            leadsCount={campaign.leads?.length || 0}
+          />
         </div>
       </div>
 

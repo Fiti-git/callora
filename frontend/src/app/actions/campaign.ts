@@ -13,12 +13,19 @@ export async function createCampaign(prompt: string, name: string) {
   return result; // returns campaign object
 }
 
-export async function runCampaign(campaignId: string) {
-  // Use long-timeout? OR Just async trigger.
-  // We'll wait.
-  await fetchWithAuth(`/campaigns/${campaignId}/run`, {
+export async function findLeads(campaignId: string, limit: number = 20) {
+  const result = await fetchWithAuth(`/campaigns/${campaignId}/scrape`, {
+    method: "POST",
+    body: JSON.stringify({ limit }),
+  });
+  revalidatePath(`/campaigns/${campaignId}`);
+  return result;
+}
+
+export async function startCalls(campaignId: string) {
+  const result = await fetchWithAuth(`/campaigns/${campaignId}/call`, {
     method: "POST",
   });
   revalidatePath(`/campaigns/${campaignId}`);
-  return { success: true };
+  return result;
 }

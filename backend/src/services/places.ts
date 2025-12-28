@@ -33,7 +33,7 @@ export class PlacesService {
             "Content-Type": "application/json",
             "X-Goog-Api-Key": this.apiKey,
             "X-Goog-FieldMask":
-              "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating,places.id,places.currentOpeningHours",
+              "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating,places.userRatingCount,places.id,places.currentOpeningHours,places.types",
           },
         }
       );
@@ -44,6 +44,8 @@ export class PlacesService {
         address: place.formattedAddress,
         phone: place.nationalPhoneNumber,
         rating: place.rating,
+        userRatingCount: place.userRatingCount,
+        types: place.types,
         openNow: place.currentOpeningHours?.openNow,
       }));
     } catch (error: any) {
