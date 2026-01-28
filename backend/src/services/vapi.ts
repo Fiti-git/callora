@@ -25,12 +25,27 @@ export class VapiService {
     }
 
     try {
+      // E.164 Formatting Logic
+      let formattedPhone = businessPhone.replace(/[^0-9+]/g, ""); // Keep only digits and +
+
+      // If missing + but has 10/11 chars, assume US/Canada and fix
+      if (!formattedPhone.startsWith("+")) {
+        if (formattedPhone.length === 10) {
+          formattedPhone = "+1" + formattedPhone;
+        } else if (
+          formattedPhone.length === 11 &&
+          formattedPhone.startsWith("1")
+        ) {
+          formattedPhone = "+" + formattedPhone;
+        }
+      }
+
       const response = await axios.post(
         `${this.baseUrl}/call`,
         {
           phoneNumberId: this.phoneNumberId,
           customer: {
-            number: businessPhone,
+            number: formattedPhone,
             name: businessName,
           },
           assistant: {

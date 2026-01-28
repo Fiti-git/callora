@@ -20,6 +20,8 @@ interface CampaignControlsProps {
   leadsCount: number;
 }
 
+import { ConfirmationModal } from "./confirmation-modal";
+
 export function CampaignControls({
   campaignId,
   status,
@@ -27,6 +29,7 @@ export function CampaignControls({
 }: CampaignControlsProps) {
   const [loading, setLoading] = useState(false);
   const [limit, setLimit] = useState(20);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); // State for modal
   const router = useRouter();
 
   async function handleFindLeads() {
@@ -42,16 +45,24 @@ export function CampaignControls({
     }
   }
 
-  async function handleStartCalls() {
-    if (!confirm(`Are you sure you want to call ${leadsCount} leads?`)) return;
+  // Open the modal instead of window.confirm
+  function handleStartCallsClick() {
+    setIsConfirmOpen(true);
+  }
 
-    setLoading(true);
+  // Actual execution logic, passed to modal
+  async function executeStartCalls() {
+    setLoading(true); // Shows loading in modal button too since we pass it
     try {
       await startCalls(campaignId);
       toast.success("Calls initiated!");
+      setIsConfirmOpen(false); // Close on success
       router.refresh();
     } catch (error: any) {
       toast.error("Calling Failed: " + error.message);
+      // We keep modal open on error? Or close?
+      // Usually close on error to let user try again or read toast.
+      setIsConfirmOpen(false);
     } finally {
       setLoading(false);
     }
@@ -84,51 +95,63 @@ export function CampaignControls({
     status === "COMPLETED";
 
   return (
-    <div className="flex gap-2 items-center">
-      {/* Show Find Leads if Draft, Ready (to add more?), or Failed */}
-      {showFindLeads && (
-        <div className="flex items-center gap-2">
-          <div className="flex items-center border rounded-md overflow-hidden bg-white">
-            <span className="bg-gray-100 px-2 py-2 text-xs text-gray-500 border-r">
-              Limit
-            </span>
-            <input
-              type="number"
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-              className="w-16 px-2 py-1 text-sm outline-none"
-              min={1}
-              max={100}
-            />
-          </div>
-          <button
-            onClick={handleFindLeads}
-            disabled={loading}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 text-sm"
-          >
-            {loading
-              ? "Working..."
-              : leadsCount > 0
-              ? "Find More Leads"
-              : "Find Leads"}
-          </button>
-        </div>
-      )}
+    <>
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={executeStartCalls}
+        title="Start Calls?"
+        message={`Are you sure you want to start calling ${leadsCount} leads? This action cannot be undone.`}
+        confirmText="Yes, Start Calls"
+        isLoading={loading}
+      />
 
-      {/* Show Call Leads only if we have leads */}
-      {leadsCount > 0 &&
-        (status === "READY" ||
-          status === "DRAFT" ||
-          status === "FAILED" ||
-          status === "COMPLETED") && (
-          <button
-            onClick={handleStartCalls}
-            disabled={loading}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
-          >
-            {loading ? "Starting..." : "Start Calls"}
-          </button>
+      <div className="flex gap-2 items-center">
+        {/* Show Find Leads if Draft, Ready (to add more?), or Failed */}
+        {showFindLeads && (
+          <div className="flex items-center gap-2">
+            <div className="flex items-center border rounded-md overflow-hidden bg-white">
+              <span className="bg-gray-100 px-2 py-2 text-xs text-gray-500 border-r">
+                Limit
+              </span>
+              <input
+                type="number"
+                value={limit}
+                onChange={(e) => setLimit(Number(e.target.value))}
+                className="w-16 px-2 py-1 text-sm outline-none"
+                min={1}
+                max={100}
+              />
+            </div>
+            <button
+              onClick={handleFindLeads}
+              disabled={loading}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover://bg-indigo-700 disabled:opacity-50 text-sm"
+            >
+              {loading
+                ? "Working..."
+                : leadsCount > 0
+                ? "Find More Leads"
+                : "Find Leads"}
+            </button>
+          </div>
         )}
-    </div>
+
+        {/* Show Call Leads only if we have leads */}
+        {leadsCount > 0 &&
+          (status === "READY" ||
+            status === "DRAFT" ||
+            status === "FAILED" ||
+            status === "COMPLETED") && (
+            <button
+              onClick={handleStartCallsClick}
+              disabled={loading}
+              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
+            >
+              {loading ? "Starting..." : "Start Calls"}
+            </button>
+          )}
+      </div>
+    </>
   );
 }
