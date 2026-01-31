@@ -22,7 +22,9 @@ export class GeminiService {
         "⚠️ GEMINI_API_KEY is missing! Using Mock fallbacks for LLM."
       );
     }
-    this.model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite-preview-09-2025" });
+    this.model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash-lite"
+    });   
   }
 
   async generateSearchQueries(userPrompt: string): Promise<string[]> {

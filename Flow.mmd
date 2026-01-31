@@ -1,0 +1,64 @@
+flowchart TD
+    A[CLI Input User Prompt]
+    B[Gemini Generate Search Queries]
+    C[Search Query List]
+    D[Find Leads from Google Places]
+    E[Merge All Leads]
+    F[Remove Duplicate Leads]
+    G[Filter Leads With Phone]
+    H{Any Callable Leads}
+    I[Exit No Leads Found]
+    J[Select Leads To Call]
+    K[Format Phone E164]
+    L{Phone Valid}
+    M[Skip Lead]
+    N[Select Call Service]
+    O{VAPI Key Exists}
+    P[Real Vapi Call]
+    Q[Mock Vapi Call]
+    R{Call Completed With Transcript}
+    S[Store Call Only]
+    T[Gemini Qualify Lead]
+    U[Store Lead Report]
+    V{More Leads}
+    W[Generate Markdown Report]
+    X[Group High Medium Low Priority]
+    Y[Save leads-report.md]
+    Z[Done]
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+
+    H -- No --> I
+    H -- Yes --> J
+
+    J --> K
+    K --> L
+    L -- No --> M
+    L -- Yes --> N
+
+    N --> O
+    O -- Yes --> P
+    O -- No --> Q
+
+    P --> R
+    Q --> R
+
+    R -- No --> S
+    R -- Yes --> T
+
+    T --> U
+    S --> V
+    U --> V
+
+    V -- Yes --> K
+    V -- No --> W
+
+    W --> X
+    X --> Y
+    Y --> Z

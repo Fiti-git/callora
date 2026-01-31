@@ -50,6 +50,7 @@ export class VapiService {
             model: {
               provider: "openai",
               model: "gpt-4o-mini", // Cost effective, fast
+              temperature: 0.7,
               messages: [
                 {
                   role: "system",
