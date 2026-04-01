@@ -18,6 +18,7 @@ interface CampaignControlsProps {
   campaignId: string;
   status: string;
   leadsCount: number;
+  campaignType?: string;
 }
 
 import { ConfirmationModal } from "./confirmation-modal";
@@ -26,6 +27,7 @@ export function CampaignControls({
   campaignId,
   status,
   leadsCount,
+  campaignType = "AI",
 }: CampaignControlsProps) {
   const [loading, setLoading] = useState(false);
   const [limit, setLimit] = useState(20);
@@ -107,8 +109,8 @@ export function CampaignControls({
       />
 
       <div className="flex gap-2 items-center">
-        {/* Show Find Leads if Draft, Ready (to add more?), or Failed */}
-        {showFindLeads && (
+        {/* AI: Find Leads button */}
+        {campaignType === "AI" && showFindLeads && (
           <div className="flex items-center gap-2">
             <div className="flex items-center border rounded-md overflow-hidden bg-white">
               <span className="bg-gray-100 px-2 py-2 text-xs text-gray-500 border-r">
@@ -126,13 +128,9 @@ export function CampaignControls({
             <button
               onClick={handleFindLeads}
               disabled={loading}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover://bg-indigo-700 disabled:opacity-50 text-sm"
+              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 text-sm"
             >
-              {loading
-                ? "Working..."
-                : leadsCount > 0
-                ? "Find More Leads"
-                : "Find Leads"}
+              {loading ? "Working..." : leadsCount > 0 ? "Find More Leads" : "Find Leads"}
             </button>
           </div>
         )}

@@ -58,7 +58,16 @@ export default async function CampaignsPage() {
               campaigns.map((campaign) => (
                 <tr key={campaign.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {campaign.name}
+                    <div className="flex items-center gap-2">
+                      {campaign.name}
+                      <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${
+                        campaign.type === "CSV"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-indigo-100 text-indigo-700"
+                      }`}>
+                        {campaign.type === "CSV" ? "CSV" : "AI"}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span

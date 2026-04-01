@@ -3,14 +3,14 @@
 import { fetchWithAuth } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 
-export async function createCampaign(prompt: string, name: string) {
+export async function createCampaign(name: string, type: "AI" | "CSV", prompt?: string) {
   const result = await fetchWithAuth("/campaigns", {
     method: "POST",
-    body: JSON.stringify({ prompt, name }),
+    body: JSON.stringify({ name, type, prompt }),
   });
   console.log("Server Action Result:", result);
   revalidatePath("/campaigns");
-  return result; // returns campaign object
+  return result;
 }
 
 export async function findLeads(campaignId: string, limit: number = 20) {

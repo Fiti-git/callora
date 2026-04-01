@@ -27,13 +27,14 @@ router.get("/", async (req: Request, res: Response) => {
 // POST /campaigns
 router.post("/", async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
-  const { name, prompt } = req.body;
+  const { name, prompt, type } = req.body;
 
   try {
     const campaign = await prisma.campaign.create({
       data: {
         name,
-        prompt,
+        type: type || "AI",
+        prompt: prompt || null,
         organizationId,
         status: "DRAFT",
       },
