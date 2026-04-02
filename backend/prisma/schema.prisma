@@ -57,6 +57,7 @@ model Lead {
   businessName   String
   address        String?
   phone          String?
+  notes          String?
   status         String       @default("NEW") // NEW, CALLED, QUALIFIED, DISQUALIFIED
   interestScore  Int          @default(0)
   campaignId     String

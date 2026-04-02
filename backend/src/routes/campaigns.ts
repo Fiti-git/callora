@@ -65,6 +65,64 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
+// POST /campaigns/:id/import  — manual CSV upload
+router.post("/:id/import", async (req: Request, res: Response) => {
+  const { organizationId } = (req as AuthRequest).user!;
+  const campaignId = req.params.id;
+  const { leads } = req.body as {
+    leads: { name: string; number: string; company?: string; designation?: string; discussionArea?: string }[];
+  };
+
+  if (!Array.isArray(leads) || leads.length === 0) {
+    return res.status(400).json({ error: "No leads provided" });
+  }
+
+  try {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: campaignId, organizationId },
+    });
+    if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+
+    let count = 0;
+    for (const row of leads) {
+      if (!row.number) continue;
+
+      const existing = await prisma.lead.findFirst({
+        where: { campaignId, phone: row.number },
+      });
+      if (existing) continue;
+
+      const notes = [
+        row.designation ? `Designation: ${row.designation}` : null,
+        row.discussionArea ? `Discussion: ${row.discussionArea}` : null,
+      ]
+        .filter(Boolean)
+        .join(" | ");
+
+      await prisma.lead.create({
+        data: {
+          businessName: row.company || row.name || "Unknown",
+          phone: row.number,
+          notes: notes || null,
+          campaignId,
+          organizationId,
+          status: "NEW",
+        },
+      });
+      count++;
+    }
+
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: { status: "READY" },
+    });
+
+    res.json({ success: true, count });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /campaigns/:id/scrape
 router.post("/:id/scrape", async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;

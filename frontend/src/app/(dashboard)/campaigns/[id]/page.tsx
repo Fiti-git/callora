@@ -1,5 +1,7 @@
 import { fetchWithAuth } from "@/lib/api";
 import { CampaignControls } from "@/components/campaign-controls";
+import { LeadCallDetails } from "@/components/lead-call-details";
+import { CsvImport } from "@/components/csv-import";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -56,6 +58,7 @@ export default async function CampaignDetailPage({
           >
             {campaign.status}
           </div>
+          <CsvImport campaignId={campaign.id} />
           <CampaignControls
             campaignId={campaign.id}
             status={campaign.status}
@@ -134,6 +137,8 @@ export default async function CampaignDetailPage({
           </tbody>
         </table>
       </div>
+
+      <LeadCallDetails leads={campaign.leads || []} />
     </div>
   );
 }

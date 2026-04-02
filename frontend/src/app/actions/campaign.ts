@@ -29,3 +29,12 @@ export async function startCalls(campaignId: string) {
   revalidatePath(`/campaigns/${campaignId}`);
   return result;
 }
+
+export async function importLeads(campaignId: string, leads: object[]) {
+  const result = await fetchWithAuth(`/campaigns/${campaignId}/import`, {
+    method: "POST",
+    body: JSON.stringify({ leads }),
+  });
+  revalidatePath(`/campaigns/${campaignId}`);
+  return result;
+}

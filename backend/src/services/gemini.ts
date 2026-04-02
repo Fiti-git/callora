@@ -18,7 +18,7 @@ export class GeminiService {
       const genAI = new GoogleGenerativeAI(this.apiKey);
       // Use the specific model version to avoid regional issues if possible, or handling logic
       this.model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite-preview-09-2025",
+        model: "gemini-2.5-flash-lite",
       });
     }
   }
