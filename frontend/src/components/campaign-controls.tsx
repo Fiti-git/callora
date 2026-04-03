@@ -4,15 +4,7 @@ import { findLeads, startCalls } from "@/app/actions/campaign";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-
-type CampaignStatus =
-  | "DRAFT"
-  | "SCRAPING"
-  | "READY"
-  | "CALLING"
-  | "COMPLETED"
-  | "FAILED"
-  | "RUNNING";
+import { ConfirmationModal } from "./confirmation-modal";
 
 interface CampaignControlsProps {
   campaignId: string;
@@ -20,8 +12,6 @@ interface CampaignControlsProps {
   leadsCount: number;
   campaignType?: string;
 }
-
-import { ConfirmationModal } from "./confirmation-modal";
 
 export function CampaignControls({
   campaignId,
@@ -31,39 +21,31 @@ export function CampaignControls({
 }: CampaignControlsProps) {
   const [loading, setLoading] = useState(false);
   const [limit, setLimit] = useState(20);
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false); // State for modal
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const router = useRouter();
 
   async function handleFindLeads() {
     setLoading(true);
     try {
       const res = await findLeads(campaignId, limit);
-      toast.success(`Found ${res.count || 0} leads!`);
+      toast.success(`Found ${res.count || 0} leads.`);
       router.refresh();
     } catch (error: any) {
-      toast.error("Scraping Failed: " + error.message);
+      toast.error("Failed to find leads: " + error.message);
     } finally {
       setLoading(false);
     }
   }
 
-  // Open the modal instead of window.confirm
-  function handleStartCallsClick() {
-    setIsConfirmOpen(true);
-  }
-
-  // Actual execution logic, passed to modal
   async function executeStartCalls() {
-    setLoading(true); // Shows loading in modal button too since we pass it
+    setLoading(true);
     try {
       await startCalls(campaignId);
-      toast.success("Calls initiated!");
-      setIsConfirmOpen(false); // Close on success
+      toast.success("Calls initiated.");
+      setIsConfirmOpen(false);
       router.refresh();
     } catch (error: any) {
-      toast.error("Calling Failed: " + error.message);
-      // We keep modal open on error? Or close?
-      // Usually close on error to let user try again or read toast.
+      toast.error("Failed to start calls: " + error.message);
       setIsConfirmOpen(false);
     } finally {
       setLoading(false);
@@ -71,26 +53,33 @@ export function CampaignControls({
   }
 
   const isScraping = status === "SCRAPING";
-  const isCalling = status === "CALLING";
-  const isRunning = status === "RUNNING"; // Handling legacy status just in case
+  const isCalling = status === "CALLING" || status === "RUNNING";
 
   if (isScraping) {
     return (
-      <div className="text-sm text-indigo-600 font-medium animate-pulse">
-        Finding Leads...
+      <div className="inline-flex items-center gap-2 text-sm text-blue-600 font-medium">
+        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Finding leads...
       </div>
     );
   }
 
-  if (isCalling || isRunning) {
+  if (isCalling) {
     return (
-      <div className="text-sm text-green-600 font-medium animate-pulse">
-        Calling Leads...
+      <div className="inline-flex items-center gap-2 text-sm text-green-600 font-medium">
+        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Calling leads...
       </div>
     );
   }
 
-  const showFindLeads =
+  const canAction =
     status === "DRAFT" ||
     status === "READY" ||
     status === "FAILED" ||
@@ -102,53 +91,56 @@ export function CampaignControls({
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={executeStartCalls}
-        title="Start Calls?"
-        message={`Are you sure you want to start calling ${leadsCount} leads? This action cannot be undone.`}
-        confirmText="Yes, Start Calls"
+        title="Start Calls"
+        message={`This will initiate calls to ${leadsCount} lead${leadsCount !== 1 ? "s" : ""}. Proceed?`}
+        confirmText="Start Calls"
         isLoading={loading}
       />
 
-      <div className="flex gap-2 items-center">
-        {/* AI: Find Leads button */}
-        {campaignType === "AI" && showFindLeads && (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border rounded-md overflow-hidden bg-white">
-              <span className="bg-gray-100 px-2 py-2 text-xs text-gray-500 border-r">
-                Limit
-              </span>
-              <input
-                type="number"
-                value={limit}
-                onChange={(e) => setLimit(Number(e.target.value))}
-                className="w-16 px-2 py-1 text-sm outline-none"
-                min={1}
-                max={100}
-              />
-            </div>
-            <button
-              onClick={handleFindLeads}
-              disabled={loading}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-50 text-sm"
-            >
-              {loading ? "Working..." : leadsCount > 0 ? "Find More Leads" : "Find Leads"}
-            </button>
+      <div className="flex items-center gap-2">
+        {/* AI only: Find Leads */}
+        {campaignType === "AI" && canAction && (
+          <div className="flex items-center rounded-lg border border-gray-300 overflow-hidden bg-white">
+            <span className="px-2.5 py-2 text-xs text-gray-500 bg-gray-50 border-r border-gray-300">
+              Limit
+            </span>
+            <input
+              type="number"
+              value={limit}
+              onChange={(e) => setLimit(Number(e.target.value))}
+              className="w-14 px-2 py-2 text-sm text-gray-900 focus:outline-none"
+              min={1}
+              max={100}
+            />
           </div>
         )}
 
-        {/* Show Call Leads only if we have leads */}
-        {leadsCount > 0 &&
-          (status === "READY" ||
-            status === "DRAFT" ||
-            status === "FAILED" ||
-            status === "COMPLETED") && (
-            <button
-              onClick={handleStartCallsClick}
-              disabled={loading}
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
-            >
-              {loading ? "Starting..." : "Start Calls"}
-            </button>
-          )}
+        {campaignType === "AI" && canAction && (
+          <button
+            onClick={handleFindLeads}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          >
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            {loading ? "Searching..." : leadsCount > 0 ? "Find More Leads" : "Find Leads"}
+          </button>
+        )}
+
+        {/* Start Calls — visible when leads exist */}
+        {leadsCount > 0 && canAction && (
+          <button
+            onClick={() => setIsConfirmOpen(true)}
+            disabled={loading}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+            </svg>
+            Start Calls
+          </button>
+        )}
       </div>
     </>
   );

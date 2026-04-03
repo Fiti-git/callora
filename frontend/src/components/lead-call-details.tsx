@@ -19,110 +19,92 @@ interface Lead {
   calls: CallLog[];
 }
 
+const STATUS_STYLES: Record<string, string> = {
+  QUALIFIED: "bg-green-50 text-green-700 ring-1 ring-green-200",
+  CALLED: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+  DISQUALIFIED: "bg-red-50 text-red-700 ring-1 ring-red-200",
+  NEW: "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
+};
+
 export function LeadCallDetails({ leads }: { leads: Lead[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
-
   const calledLeads = leads.filter((l) => l.calls && l.calls.length > 0);
 
   if (calledLeads.length === 0) return null;
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">Call Details</h2>
-      <div className="space-y-3">
+      <h2 className="text-sm font-semibold text-gray-900">
+        Call Details <span className="text-gray-400 font-normal">({calledLeads.length})</span>
+      </h2>
+      <div className="space-y-2">
         {calledLeads.map((lead) => {
           const call = lead.calls[0];
           const isOpen = openId === lead.id;
 
           return (
-            <div
-              key={lead.id}
-              className="bg-white shadow rounded-lg overflow-hidden"
-            >
-              {/* Header row - always visible */}
+            <div key={lead.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              {/* Row */}
               <button
                 onClick={() => setOpenId(isOpen ? null : lead.id)}
-                className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors text-left"
+                className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors text-left gap-4"
               >
-                <div className="flex items-center gap-4">
-                  <div>
-                    <div className="font-medium text-gray-900">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">
                       {lead.businessName}
                     </div>
-                    <div className="text-sm text-gray-500">{lead.phone}</div>
+                    <div className="text-xs text-gray-400 mt-0.5 font-mono">{lead.phone}</div>
                   </div>
-                  <span
-                    className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                      lead.status === "QUALIFIED"
-                        ? "bg-green-100 text-green-800"
-                        : lead.status === "CALLED"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
+                  <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium flex-shrink-0 ${
+                    STATUS_STYLES[lead.status] || STATUS_STYLES.NEW
+                  }`}>
                     {lead.status}
                   </span>
                   {lead.interestScore > 0 && (
-                    <span className="text-sm text-gray-600 font-medium">
+                    <span className="text-xs font-semibold text-gray-600 flex-shrink-0">
                       {lead.interestScore}/10
                     </span>
                   )}
                   {call.duration != null && (
-                    <span className="text-sm text-gray-400">
+                    <span className="text-xs text-gray-400 flex-shrink-0">
                       {call.duration}s
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-shrink-0">
                   {call.summary && (
-                    <p className="text-sm text-gray-500 max-w-md truncate hidden md:block">
+                    <p className="text-xs text-gray-400 max-w-xs truncate hidden md:block">
                       {call.summary}
                     </p>
                   )}
                   <svg
-                    className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
+                    className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
+                    strokeWidth={2}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </button>
 
-              {/* Expanded content */}
+              {/* Expanded */}
               {isOpen && (
-                <div className="border-t divide-y divide-gray-100">
-                  {/* Summary */}
+                <div className="border-t border-gray-100 divide-y divide-gray-100">
                   {call.summary && (
-                    <div className="px-6 py-4">
-                      <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2">
-                        Summary
-                      </h4>
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {call.summary}
-                      </p>
+                    <div className="px-5 py-4">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Summary</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{call.summary}</p>
                     </div>
                   )}
-
-                  {/* Full Transcript */}
-                  <div className="px-6 py-4">
-                    <h4 className="text-xs font-semibold text-gray-400 uppercase mb-2">
-                      Full Conversation
-                    </h4>
+                  <div className="px-5 py-4">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Transcript</p>
                     {call.transcript ? (
                       <TranscriptView raw={call.transcript} />
                     ) : (
-                      <p className="text-sm text-gray-400 italic">
-                        No transcript available.
-                      </p>
+                      <p className="text-sm text-gray-400 italic">No transcript available.</p>
                     )}
                   </div>
                 </div>
@@ -136,32 +118,24 @@ export function LeadCallDetails({ leads }: { leads: Lead[] }) {
 }
 
 function TranscriptView({ raw }: { raw: string }) {
-  // Try to parse structured transcript (array of {role, message} objects)
   try {
     const parsed = JSON.parse(raw);
-
     if (Array.isArray(parsed)) {
       return (
-        <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
+        <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
           {parsed.map((turn: any, i: number) => {
             const role = turn.role || turn.speaker || "unknown";
             const text = turn.message || turn.text || turn.content || "";
-            const isAssistant =
-              role === "assistant" || role === "bot" || role === "agent";
+            const isAgent = role === "assistant" || role === "bot" || role === "agent";
 
             return (
-              <div
-                key={i}
-                className={`flex ${isAssistant ? "justify-start" : "justify-end"}`}
-              >
-                <div
-                  className={`max-w-[75%] rounded-lg px-4 py-2 text-sm ${
-                    isAssistant
-                      ? "bg-blue-50 text-blue-900"
-                      : "bg-gray-100 text-gray-800"
-                  }`}
-                >
-                  <span className="block text-xs font-semibold mb-1 opacity-60 capitalize">
+              <div key={i} className={`flex ${isAgent ? "justify-start" : "justify-end"}`}>
+                <div className={`max-w-[75%] rounded-lg px-3.5 py-2.5 text-sm ${
+                  isAgent
+                    ? "bg-gray-100 text-gray-800"
+                    : "bg-blue-600 text-white"
+                }`}>
+                  <span className="block text-[10px] font-semibold mb-1 opacity-60 uppercase tracking-wide">
                     {role}
                   </span>
                   {text}
@@ -172,17 +146,14 @@ function TranscriptView({ raw }: { raw: string }) {
         </div>
       );
     }
-
-    // If parsed but not an array, show as plain text
     return (
-      <pre className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded p-3 max-h-96 overflow-y-auto">
+      <pre className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 rounded-lg p-3 max-h-80 overflow-y-auto border border-gray-200">
         {typeof parsed === "string" ? parsed : JSON.stringify(parsed, null, 2)}
       </pre>
     );
   } catch {
-    // Not JSON — plain text transcript
     return (
-      <pre className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded p-3 max-h-96 overflow-y-auto font-sans">
+      <pre className="text-sm text-gray-600 whitespace-pre-wrap bg-gray-50 rounded-lg p-3 max-h-80 overflow-y-auto border border-gray-200 font-sans leading-relaxed">
         {raw}
       </pre>
     );

@@ -78,9 +78,9 @@ export default function NewCampaignPage() {
 
       if (type === "CSV") {
         const result = await importLeads(campaign.id, csvLeads);
-        toast.success(`Campaign created with ${result.count || 0} leads!`);
+        toast.success(`Campaign created with ${result.count || 0} leads.`);
       } else {
-        toast.success("Campaign created!");
+        toast.success("Campaign created.");
       }
 
       setTimeout(() => router.push(`/campaigns/${campaign.id}`), 800);
@@ -91,194 +91,217 @@ export default function NewCampaignPage() {
     }
   }
 
-  // Step 1 — pick type
+  // Step 1: pick type
   if (!type) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">New Campaign</h2>
-        <p className="text-gray-500 mb-8">How do you want to find your leads?</p>
+      <div className="max-w-2xl">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold text-gray-900">New Campaign</h1>
+          <p className="mt-1 text-sm text-gray-500">Select how you want to source your leads.</p>
+        </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          {/* AI Leads */}
+        <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setType("AI")}
-            className="group text-left bg-white border-2 border-gray-200 hover:border-indigo-500 rounded-xl p-6 shadow-sm hover:shadow-md transition-all"
+            className="group text-left bg-white border border-gray-200 hover:border-blue-400 rounded-xl p-6 transition-all hover:shadow-sm"
           >
-            <div className="text-3xl mb-3">🤖</div>
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 mb-2">
+            <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 mb-1.5">
               AI Leads
             </h3>
-            <p className="text-sm text-gray-500">
-              Describe your target and AI will find businesses from Google Maps, filter them, and call them automatically.
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Describe your target market and AI will find businesses from Google Maps, filter them, and prepare them for calls.
             </p>
-            <div className="mt-4 text-xs text-indigo-600 font-medium">
-              Powered by Gemini + Google Maps →
-            </div>
+            <p className="mt-3 text-xs text-violet-600 font-medium">Gemini + Google Maps</p>
           </button>
 
-          {/* CSV Upload */}
           <button
             onClick={() => setType("CSV")}
-            className="group text-left bg-white border-2 border-gray-200 hover:border-green-500 rounded-xl p-6 shadow-sm hover:shadow-md transition-all"
+            className="group text-left bg-white border border-gray-200 hover:border-blue-400 rounded-xl p-6 transition-all hover:shadow-sm"
           >
-            <div className="text-3xl mb-3">📋</div>
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 mb-2">
+            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 mb-1.5">
               CSV Import
             </h3>
-            <p className="text-sm text-gray-500">
-              Upload your own contact list from a CSV file. Supports Name, Number, Company, Designation, and Discussion Area.
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Upload your own contact list. Supports Name, Number, Company, Designation, and Discussion Area columns.
             </p>
-            <div className="mt-4 text-xs text-green-600 font-medium">
-              Your own leads list →
-            </div>
+            <p className="mt-3 text-xs text-emerald-600 font-medium">Your own list</p>
           </button>
         </div>
       </div>
     );
   }
 
-  // Step 2 — fill details
+  // Step 2: fill details
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow">
-      {/* Header with back */}
-      <div className="flex items-center gap-3 mb-6">
+    <div className="max-w-2xl">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => { setType(null); setName(""); setPrompt(""); setCsvLeads([]); }}
-          className="text-gray-400 hover:text-gray-600 text-sm"
+          className="text-gray-400 hover:text-gray-600 transition-colors"
         >
-          ← Back
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
         </button>
-        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-          type === "AI" ? "bg-indigo-100 text-indigo-700" : "bg-green-100 text-green-700"
-        }`}>
-          {type === "AI" ? "🤖 AI Leads" : "📋 CSV Import"}
-        </span>
-        <h2 className="text-xl font-bold text-gray-900">
-          {type === "AI" ? "Create AI Campaign" : "Create CSV Campaign"}
-        </h2>
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {type === "AI" ? "AI Campaign" : "CSV Campaign"}
+            </h1>
+            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ${
+              type === "AI"
+                ? "bg-violet-50 text-violet-700 ring-violet-200"
+                : "bg-emerald-50 text-emerald-700 ring-emerald-200"
+            }`}>
+              {type === "AI" ? "AI Leads" : "CSV Import"}
+            </span>
+          </div>
+          <p className="text-sm text-gray-500 mt-0.5">Fill in the details below to create your campaign.</p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Campaign name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Campaign Name
-          </label>
-          <input
-            type="text"
-            required
-            className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-            placeholder={type === "AI" ? "e.g. Q1 Outreach - NY Spice Shops" : "e.g. Imported Contacts - April"}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
-        {/* AI: targeting prompt */}
-        {type === "AI" && (
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Campaign name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Targeting Prompt
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              Campaign name
             </label>
-            <p className="text-xs text-gray-500 mb-2">
-              Describe the businesses you want to find and contact.
-            </p>
-            <textarea
+            <input
+              type="text"
               required
-              rows={4}
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-              placeholder="e.g. Find spice importers in New York with fewer than 100 reviews."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder={type === "AI" ? "e.g. Q1 Outreach — New York Restaurants" : "e.g. Imported Contacts — April 2026"}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
-        )}
 
-        {/* CSV: file upload */}
-        {type === "CSV" && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Upload CSV File
-            </label>
-            <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-4">
-              <p className="text-xs text-gray-400 mb-3">
-                Required columns: <strong>Name, Number</strong> &nbsp;|&nbsp; Optional: Company, Designation, DiscussionArea
+          {/* AI: targeting prompt */}
+          {type === "AI" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Targeting prompt
+              </label>
+              <p className="text-xs text-gray-400 mb-2">
+                Describe the businesses you want to find and contact.
               </p>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".csv,text/csv"
-                onChange={onFileChange}
-                className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+              <textarea
+                required
+                rows={4}
+                className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                placeholder="e.g. Find spice importers in New York with fewer than 100 reviews."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
               />
             </div>
+          )}
 
-            {csvError && (
-              <p className="mt-2 text-sm text-red-600">{csvError}</p>
-            )}
-
-            {csvLeads.length > 0 && (
-              <div className="mt-3">
-                <p className="text-sm text-green-700 font-medium mb-2">
-                  ✓ {csvLeads.length} leads ready to import
+          {/* CSV: file upload */}
+          {type === "CSV" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                CSV file
+              </label>
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
+                <p className="text-xs text-gray-400 mb-3">
+                  Required columns: <span className="font-medium text-gray-600">Name, Number</span>
+                  <span className="mx-1.5 text-gray-300">|</span>
+                  Optional: Company, Designation, DiscussionArea
                 </p>
-                <div className="overflow-auto max-h-40 rounded-lg border text-xs">
-                  <table className="min-w-full">
-                    <thead className="bg-gray-50 sticky top-0">
-                      <tr>
-                        <th className="px-3 py-2 text-left text-gray-500">Name</th>
-                        <th className="px-3 py-2 text-left text-gray-500">Number</th>
-                        <th className="px-3 py-2 text-left text-gray-500">Company</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {csvLeads.slice(0, 5).map((r, i) => (
-                        <tr key={i}>
-                          <td className="px-3 py-1.5 text-gray-700">{r.name}</td>
-                          <td className="px-3 py-1.5 text-gray-500">{r.number}</td>
-                          <td className="px-3 py-1.5 text-gray-500">{r.company || "-"}</td>
-                        </tr>
-                      ))}
-                      {csvLeads.length > 5 && (
-                        <tr>
-                          <td colSpan={3} className="px-3 py-1.5 text-gray-400 italic">
-                            +{csvLeads.length - 5} more rows...
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={onFileChange}
+                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-gray-300 file:text-xs file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 cursor-pointer"
+                />
               </div>
-            )}
-          </div>
-        )}
 
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => router.push("/campaigns")}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading || (type === "CSV" && csvLeads.length === 0)}
-            className={`px-6 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 transition-colors ${
-              type === "AI"
-                ? "bg-indigo-600 hover:bg-indigo-700"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-          >
-            {loading
-              ? "Creating..."
-              : type === "CSV"
-              ? `Create Campaign & Import ${csvLeads.length} Leads`
-              : "Create Campaign"}
-          </button>
-        </div>
-      </form>
+              {csvError && (
+                <div className="mt-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+                  {csvError}
+                </div>
+              )}
+
+              {csvLeads.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-gray-700 mb-2">
+                    {csvLeads.length} leads ready to import
+                  </p>
+                  <div className="overflow-auto max-h-40 rounded-lg border border-gray-200 text-xs">
+                    <table className="min-w-full">
+                      <thead className="bg-gray-50 sticky top-0">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-gray-500 font-semibold">Name</th>
+                          <th className="px-3 py-2 text-left text-gray-500 font-semibold">Number</th>
+                          <th className="px-3 py-2 text-left text-gray-500 font-semibold">Company</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {csvLeads.slice(0, 5).map((r, i) => (
+                          <tr key={i} className="hover:bg-gray-50">
+                            <td className="px-3 py-1.5 text-gray-700">{r.name}</td>
+                            <td className="px-3 py-1.5 text-gray-500">{r.number}</td>
+                            <td className="px-3 py-1.5 text-gray-400">{r.company || "—"}</td>
+                          </tr>
+                        ))}
+                        {csvLeads.length > 5 && (
+                          <tr>
+                            <td colSpan={3} className="px-3 py-1.5 text-gray-400 italic">
+                              +{csvLeads.length - 5} more rows
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => router.push("/campaigns")}
+              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading || (type === "CSV" && csvLeads.length === 0)}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50 transition-colors bg-blue-600 hover:bg-blue-700"
+            >
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Creating...
+                </>
+              ) : type === "CSV" ? (
+                `Create Campaign${csvLeads.length > 0 ? ` & Import ${csvLeads.length} Leads` : ""}`
+              ) : (
+                "Create Campaign"
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

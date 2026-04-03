@@ -5,13 +5,27 @@ export default async function SettingsPage() {
   const keys = await getApiKeys();
 
   return (
-    <div className="max-w-2xl bg-white p-8 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6">Organization Settings</h2>
-      <p className="mb-4 text-sm text-gray-500">
-        Configure your API keys to enable the agent capabilities.
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900">Settings</h1>
+        <p className="mt-1 text-sm text-gray-500">
+          Configure API keys to enable AI lead generation and outbound calling.
+        </p>
+      </div>
 
-      <SettingsForm keys={keys} />
+      <div className="max-w-2xl">
+        <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+          <div className="px-6 py-5">
+            <h2 className="text-sm font-semibold text-gray-900">API Configuration</h2>
+            <p className="mt-0.5 text-xs text-gray-500">
+              Keys are stored securely per organisation and never exposed in the UI.
+            </p>
+          </div>
+          <div className="px-6 py-5">
+            <SettingsForm keys={keys} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
