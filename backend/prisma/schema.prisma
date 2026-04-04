@@ -51,6 +51,11 @@ model Campaign {
   leads          Lead[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+
+  // Follow-up automation config
+  maxRetryAttempts  Int @default(3)  // max retries for NO_ANSWER/VOICEMAIL
+  retryDelayHours   Int @default(24) // hours to wait before retry
+  followUpDelayDays Int @default(3)  // days to wait before qualified follow-up
 }
 
 model Lead {
@@ -59,7 +64,7 @@ model Lead {
   address        String?
   phone          String?
   notes          String?
-  status         String       @default("NEW") // NEW, CALLED, QUALIFIED, DISQUALIFIED
+  status         String       @default("NEW") // NEW, CALLED, QUALIFIED, DISQUALIFIED, PENDING_RETRY, PENDING_FOLLOWUP
   interestScore  Int          @default(0)
   campaignId     String
   campaign       Campaign     @relation(fields: [campaignId], references: [id])
@@ -68,6 +73,11 @@ model Lead {
   calls          CallLog[]
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+
+  // Follow-up automation state
+  callAttempts Int       @default(0) // total dial attempts made
+  nextCallAt   DateTime?             // when to retry (PENDING_RETRY)
+  followUpAt   DateTime?             // when to call back (PENDING_FOLLOWUP)
 }
 
 model CallLog {

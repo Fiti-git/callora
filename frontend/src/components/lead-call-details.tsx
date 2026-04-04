@@ -24,6 +24,8 @@ const STATUS_STYLES: Record<string, string> = {
   CALLED: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
   DISQUALIFIED: "bg-red-50 text-red-700 ring-1 ring-red-200",
   NEW: "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
+  PENDING_RETRY: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  PENDING_FOLLOWUP: "bg-violet-50 text-violet-700 ring-1 ring-violet-200",
 };
 
 export function LeadCallDetails({ leads }: { leads: Lead[] }) {

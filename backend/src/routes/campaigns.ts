@@ -7,6 +7,49 @@ import { VapiService } from "../services/vapi.js";
 
 const router = express.Router();
 
+// --- Follow-up automation helpers ---
+
+function addHours(date: Date, hours: number): Date {
+  return new Date(date.getTime() + hours * 60 * 60 * 1000);
+}
+
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+function computeNextLeadState(
+  callStatus: string,
+  isQualified: boolean,
+  attemptNumber: number,
+  campaign: { maxRetryAttempts: number; retryDelayHours: number; followUpDelayDays: number }
+): { status: string; nextCallAt: Date | null; followUpAt: Date | null } {
+  const now = new Date();
+
+  if (callStatus === "COMPLETED") {
+    if (isQualified) {
+      return {
+        status: "PENDING_FOLLOWUP",
+        nextCallAt: null,
+        followUpAt: addDays(now, campaign.followUpDelayDays),
+      };
+    }
+    return { status: "CALLED", nextCallAt: null, followUpAt: null };
+  }
+
+  if (
+    (callStatus === "NO_ANSWER" || callStatus === "VOICEMAIL") &&
+    attemptNumber < campaign.maxRetryAttempts
+  ) {
+    return {
+      status: "PENDING_RETRY",
+      nextCallAt: addHours(now, campaign.retryDelayHours),
+      followUpAt: null,
+    };
+  }
+
+  return { status: "CALLED", nextCallAt: null, followUpAt: null };
+}
+
 router.use(authenticate);
 
 // GET /campaigns
@@ -271,6 +314,7 @@ router.post("/:id/call", async (req: Request, res: Response) => {
 
       let analysis: any = {
         interestScore: 0,
+        isQualified: false,
         sentiment: "NEUTRAL",
         summary: "Call Failed",
       };
@@ -292,11 +336,20 @@ router.post("/:id/call", async (req: Request, res: Response) => {
         },
       });
 
+      const attemptNumber = lead.callAttempts + 1;
+      const nextState = computeNextLeadState(
+        callResult.status,
+        analysis.isQualified,
+        attemptNumber,
+        campaign
+      );
+
       await prisma.lead.update({
         where: { id: lead.id },
         data: {
-          status: analysis.isQualified ? "QUALIFIED" : "CALLED",
+          ...nextState,
           interestScore: analysis.interestScore,
+          callAttempts: attemptNumber,
         },
       });
     }
@@ -313,6 +366,119 @@ router.post("/:id/call", async (req: Request, res: Response) => {
       where: { id: campaignId },
       data: { status: "FAILED" },
     });
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /campaigns/:id/followups/pending — count leads due for retry/follow-up
+router.get("/:id/followups/pending", async (req: Request, res: Response) => {
+  const { organizationId } = (req as AuthRequest).user!;
+  const campaignId = req.params.id;
+  const now = new Date();
+
+  try {
+    const [retryCount, followUpCount] = await Promise.all([
+      prisma.lead.count({
+        where: { campaignId, organizationId, status: "PENDING_RETRY", nextCallAt: { lte: now } },
+      }),
+      prisma.lead.count({
+        where: { campaignId, organizationId, status: "PENDING_FOLLOWUP", followUpAt: { lte: now } },
+      }),
+    ]);
+
+    res.json({ retryCount, followUpCount, total: retryCount + followUpCount });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST /campaigns/:id/followups — process due retries and follow-up calls
+router.post("/:id/followups", async (req: Request, res: Response) => {
+  const { organizationId } = (req as AuthRequest).user!;
+  const campaignId = req.params.id;
+  const now = new Date();
+
+  try {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: campaignId, organizationId },
+      include: { organization: { include: { apiKeys: true } } },
+    });
+
+    if (!campaign || !campaign.organization.apiKeys) {
+      return res.status(404).json({ error: "Campaign not found or missing keys" });
+    }
+
+    const keys = campaign.organization.apiKeys;
+    if (!keys.vapiKey || !keys.vapiPhoneId || !keys.geminiKey) {
+      return res.status(400).json({ error: "Missing Vapi/Gemini Keys" });
+    }
+
+    const retryLeads = await prisma.lead.findMany({
+      where: { campaignId, status: "PENDING_RETRY", nextCallAt: { lte: now } },
+    });
+
+    const followUpLeads = await prisma.lead.findMany({
+      where: { campaignId, status: "PENDING_FOLLOWUP", followUpAt: { lte: now } },
+    });
+
+    const allLeads = [...retryLeads, ...followUpLeads];
+
+    if (allLeads.length === 0) {
+      return res.json({ success: true, processed: 0, message: "No follow-ups due" });
+    }
+
+    const vapi = new VapiService(keys.vapiKey, keys.vapiPhoneId);
+    const gemini = new GeminiService(keys.geminiKey);
+
+    let processed = 0;
+
+    for (const lead of allLeads) {
+      const callResult = await vapi.makeCall(lead.phone!, lead.businessName);
+
+      let analysis: any = {
+        interestScore: lead.interestScore,
+        isQualified: false,
+        sentiment: "NEUTRAL",
+        summary: "No answer",
+      };
+
+      if (callResult.status === "COMPLETED" && callResult.transcript) {
+        analysis = await gemini.qualifyLead(callResult.transcript, lead.businessName);
+      }
+
+      await prisma.callLog.create({
+        data: {
+          leadId: lead.id,
+          duration: callResult.durationSeconds,
+          status: callResult.status,
+          transcript: callResult.transcript,
+          summary: analysis.summary,
+        },
+      });
+
+      const attemptNumber = lead.callAttempts + 1;
+      const nextState = computeNextLeadState(
+        callResult.status,
+        analysis.isQualified,
+        attemptNumber,
+        campaign
+      );
+
+      await prisma.lead.update({
+        where: { id: lead.id },
+        data: {
+          ...nextState,
+          interestScore: analysis.interestScore,
+          callAttempts: attemptNumber,
+        },
+      });
+
+      processed++;
+    }
+
+    res.json({ success: true, processed });
+  } catch (error: any) {
+    console.error("Follow-up Error:", error);
     res.status(500).json({ error: error.message });
   }
 });

@@ -15,15 +15,17 @@ export class PlacesService {
                 headers: {
                     "Content-Type": "application/json",
                     "X-Goog-Api-Key": this.apiKey,
-                    "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating,places.id,places.currentOpeningHours",
+                    "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.internationalPhoneNumber,places.rating,places.userRatingCount,places.id,places.currentOpeningHours,places.types",
                 },
             });
             return (response.data.places || []).map((place) => ({
                 id: place.id,
                 name: place.displayName?.text,
                 address: place.formattedAddress,
-                phone: place.nationalPhoneNumber,
+                phone: place.internationalPhoneNumber,
                 rating: place.rating,
+                userRatingCount: place.userRatingCount,
+                types: place.types,
                 openNow: place.currentOpeningHours?.openNow,
             }));
         }

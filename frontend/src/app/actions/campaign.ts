@@ -38,3 +38,15 @@ export async function importLeads(campaignId: string, leads: object[]) {
   revalidatePath(`/campaigns/${campaignId}`);
   return result;
 }
+
+export async function runFollowUps(campaignId: string) {
+  const result = await fetchWithAuth(`/campaigns/${campaignId}/followups`, {
+    method: "POST",
+  });
+  revalidatePath(`/campaigns/${campaignId}`);
+  return result;
+}
+
+export async function getPendingFollowUps(campaignId: string) {
+  return await fetchWithAuth(`/campaigns/${campaignId}/followups/pending`);
+}

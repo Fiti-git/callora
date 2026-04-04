@@ -24,16 +24,18 @@ router.get("/", async (req, res) => {
 // POST /campaigns
 router.post("/", async (req, res) => {
     const { organizationId } = req.user;
-    const { name, prompt } = req.body;
+    const { name, prompt, type } = req.body;
     try {
         const campaign = await prisma.campaign.create({
             data: {
                 name,
-                prompt,
+                type: type || "AI",
+                prompt: prompt || null,
                 organizationId,
                 status: "DRAFT",
             },
         });
+        console.log("Created Campaign:", campaign);
         res.status(201).json(campaign);
     }
     catch (error) {
@@ -61,8 +63,59 @@ router.get("/:id", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// POST /campaigns/:id/run
-router.post("/:id/run", async (req, res) => {
+// POST /campaigns/:id/import  — manual CSV upload
+router.post("/:id/import", async (req, res) => {
+    const { organizationId } = req.user;
+    const campaignId = req.params.id;
+    const { leads } = req.body;
+    if (!Array.isArray(leads) || leads.length === 0) {
+        return res.status(400).json({ error: "No leads provided" });
+    }
+    try {
+        const campaign = await prisma.campaign.findUnique({
+            where: { id: campaignId, organizationId },
+        });
+        if (!campaign)
+            return res.status(404).json({ error: "Campaign not found" });
+        let count = 0;
+        for (const row of leads) {
+            if (!row.number)
+                continue;
+            const existing = await prisma.lead.findFirst({
+                where: { campaignId, phone: row.number },
+            });
+            if (existing)
+                continue;
+            const notes = [
+                row.designation ? `Designation: ${row.designation}` : null,
+                row.discussionArea ? `Discussion: ${row.discussionArea}` : null,
+            ]
+                .filter(Boolean)
+                .join(" | ");
+            await prisma.lead.create({
+                data: {
+                    businessName: row.company || row.name || "Unknown",
+                    phone: row.number,
+                    notes: notes || null,
+                    campaignId,
+                    organizationId,
+                    status: "NEW",
+                },
+            });
+            count++;
+        }
+        await prisma.campaign.update({
+            where: { id: campaignId },
+            data: { status: "READY" },
+        });
+        res.json({ success: true, count });
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+// POST /campaigns/:id/scrape
+router.post("/:id/scrape", async (req, res) => {
     const { organizationId } = req.user;
     const campaignId = req.params.id;
     try {
@@ -71,25 +124,20 @@ router.post("/:id/run", async (req, res) => {
             include: { organization: { include: { apiKeys: true } } },
         });
         if (!campaign || !campaign.organization.apiKeys) {
-            return res.status(404).json({ error: "Campaign/Keys not found" });
+            return res
+                .status(404)
+                .json({ error: "Campaign not found or missing keys" });
         }
         const keys = campaign.organization.apiKeys;
-        if (!keys.googleMapsKey ||
-            !keys.geminiKey ||
-            !keys.vapiKey ||
-            !keys.vapiPhoneId) {
-            return res.status(400).json({ error: "Missing API Keys" });
+        if (!keys.googleMapsKey || !keys.geminiKey) {
+            return res.status(400).json({ error: "Missing Google/Gemini API Keys" });
         }
-        // Acknowledge receipt immediately (Async processing? No, keeping synchronous for MVP simplicity but separating concerns)
-        // Actually, user expects a response. Long polling used before.
-        // Express default timeout is long. We'll run it and return when done.
-        const gemini = new GeminiService(keys.geminiKey);
-        const places = new PlacesService(keys.googleMapsKey);
-        const vapi = new VapiService(keys.vapiKey, keys.vapiPhoneId);
         await prisma.campaign.update({
             where: { id: campaignId },
-            data: { status: "RUNNING" },
+            data: { status: "SCRAPING" },
         });
+        const gemini = new GeminiService(keys.geminiKey);
+        const places = new PlacesService(keys.googleMapsKey);
         const queries = await gemini.generateSearchQueries(campaign.prompt);
         let leadsData = [];
         for (const q of queries) {
@@ -97,18 +145,92 @@ router.post("/:id/run", async (req, res) => {
             leadsData = [...leadsData, ...results];
         }
         const uniqueLeads = Array.from(new Map(leadsData.map((item) => [item.id, item])).values());
-        for (const leadData of uniqueLeads) {
+        // AI POST-FILTERING
+        // We send the leads to Gemini to filter based on the user's prompt logic (e.g. "less than 50 reviews")
+        const filteredIds = await gemini.filterLeads(uniqueLeads, campaign.prompt);
+        // Filter the leads data by the matching IDs
+        const finalLeads = uniqueLeads.filter((l) => filteredIds.includes(l.id));
+        const limit = req.body.limit || 20;
+        let count = 0;
+        for (const leadData of finalLeads) {
+            if (count >= limit)
+                break; // Respect the user-defined limit for NEW leads
             if (!leadData.phone)
                 continue;
-            const lead = await prisma.lead.create({
-                data: {
-                    businessName: leadData.name || "Unknown",
-                    address: leadData.address,
-                    phone: leadData.phone,
-                    campaignId: campaign.id,
-                    organizationId,
-                },
+            // Check if lead already exists for this campaign to avoid duplicates on re-scrape
+            const existing = await prisma.lead.findFirst({
+                where: { campaignId, phone: leadData.phone },
             });
+            if (!existing) {
+                await prisma.lead.create({
+                    data: {
+                        businessName: leadData.name || "Unknown",
+                        address: leadData.address,
+                        phone: leadData.phone,
+                        campaignId: campaign.id,
+                        organizationId,
+                        status: "NEW", // Explicitly NEW
+                    },
+                });
+                count++;
+            }
+        }
+        await prisma.campaign.update({
+            where: { id: campaignId },
+            data: { status: "READY" }, // Ready for calling
+        });
+        res.json({ success: true, count });
+    }
+    catch (error) {
+        console.error("Scrape Error:", error);
+        await prisma.campaign.update({
+            where: { id: campaignId },
+            data: { status: "FAILED" },
+        });
+        res.status(500).json({ error: error.message });
+    }
+});
+// POST /campaigns/:id/call
+router.post("/:id/call", async (req, res) => {
+    const { organizationId } = req.user;
+    const campaignId = req.params.id;
+    try {
+        const campaign = await prisma.campaign.findUnique({
+            where: { id: campaignId, organizationId },
+            include: { organization: { include: { apiKeys: true } } },
+        });
+        if (!campaign || !campaign.organization.apiKeys) {
+            return res
+                .status(404)
+                .json({ error: "Campaign not found or missing keys" });
+        }
+        const keys = campaign.organization.apiKeys;
+        if (!keys.vapiKey || !keys.vapiPhoneId || !keys.geminiKey) {
+            return res.status(400).json({ error: "Missing Vapi/Gemini Keys" });
+        }
+        // Only start if ready or scraping (allow retry)
+        if (campaign.status === "RUNNING" || campaign.status === "CALLING") {
+            return res.status(400).json({ error: "Campaign already running" });
+        }
+        await prisma.campaign.update({
+            where: { id: campaignId },
+            data: { status: "CALLING" },
+        });
+        // Find leads that are NEW (scraped but not called)
+        const leads = await prisma.lead.findMany({
+            where: { campaignId, status: "NEW" },
+        });
+        if (leads.length === 0) {
+            await prisma.campaign.update({
+                where: { id: campaignId },
+                data: { status: "COMPLETED" },
+            });
+            return res.json({ success: true, message: "No new leads to call" });
+        }
+        const vapi = new VapiService(keys.vapiKey, keys.vapiPhoneId);
+        const gemini = new GeminiService(keys.geminiKey);
+        // simple loop (async for now, in production use background job)
+        for (const lead of leads) {
             const callResult = await vapi.makeCall(lead.phone, lead.businessName);
             let analysis = {
                 interestScore: 0,
@@ -142,7 +264,7 @@ router.post("/:id/run", async (req, res) => {
         res.json({ success: true });
     }
     catch (error) {
-        console.error("Campaign Run Error:", error);
+        console.error("Call Error:", error);
         await prisma.campaign.update({
             where: { id: campaignId },
             data: { status: "FAILED" },

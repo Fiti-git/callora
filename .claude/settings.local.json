@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(docker restart:*)"
+      "Bash(docker restart:*)",
+      "Bash(cmd /c \"dir f:\\\\Work\\\\RDG\\\\EzLeadsAI\\\\backend\\\\node_modules\")",
+      "Bash(cmd /c \"dir f:\\\\Work\\\\RDG\\\\EzLeadsAI\\\\backend\\\\node_modules\\\\.bin\\\\prisma* 2>&1\")"
     ]
   }
 }

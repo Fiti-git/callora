@@ -5,7 +5,9 @@ export class GeminiService {
         if (this.apiKey) {
             const genAI = new GoogleGenerativeAI(this.apiKey);
             // Use the specific model version to avoid regional issues if possible, or handling logic
-            this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-001" });
+            this.model = genAI.getGenerativeModel({
+                model: "gemini-2.5-flash-lite",
+            });
         }
     }
     async generateSearchQueries(userPrompt) {
@@ -25,12 +27,56 @@ export class GeminiService {
                 .replace(/```json/g, "")
                 .replace(/```/g, "")
                 .trim();
-            return JSON.parse(cleanText);
+            const jsonMatch = cleanText.match(/\[.*\]/s);
+            const jsonStr = jsonMatch ? jsonMatch[0] : cleanText;
+            return JSON.parse(jsonStr);
         }
         catch (error) {
             console.error("Gemini Search Query Error:", error.message);
-            // Fallback
             return [userPrompt];
+        }
+    }
+    async filterLeads(leads, userPrompt) {
+        if (!this.apiKey || leads.length === 0)
+            return leads.map((l) => l.id);
+        // Minimize token usage by sending only relevant fields
+        const minimalLeads = leads.map((l) => ({
+            id: l.id,
+            name: l.name,
+            rating: l.rating,
+            reviews: l.userRatingCount,
+            types: l.types,
+            address: l.address,
+        }));
+        const prompt = `
+      You are a Data Filter.
+      User Criteria: "${userPrompt}"
+      
+      Input Data:
+      ${JSON.stringify(minimalLeads)}
+      
+      Task:
+      Return a JSON array of IDs for the items that match the user's criteria.
+      If the criteria matches (e.g. review count, rating, type, location), keep it.
+      If the criteria is vague or impossible to check, keep it.
+      
+      Return format: ["id1", "id2"]
+    `;
+        try {
+            const result = await this.model.generateContent(prompt);
+            const text = result.response.text();
+            const cleanText = text
+                .replace(/```json/g, "")
+                .replace(/```/g, "")
+                .trim();
+            const jsonMatch = cleanText.match(/\[.*\]/s);
+            const jsonStr = jsonMatch ? jsonMatch[0] : cleanText;
+            return JSON.parse(jsonStr);
+        }
+        catch (error) {
+            console.error("Gemini Filtering Error:", error.message);
+            // Fallback: return all
+            return leads.map((l) => l.id);
         }
     }
     async qualifyLead(transcript, businessName) {
