@@ -3,6 +3,19 @@
 import { fetchWithAuth } from "@/lib/api";
 import { revalidatePath } from "next/cache";
 
+export async function scheduleFollowUp(
+  leadId: string,
+  type: "PENDING_RETRY" | "PENDING_FOLLOWUP",
+  scheduledAt: string
+) {
+  const result = await fetchWithAuth(`/leads/${leadId}/schedule-followup`, {
+    method: "PATCH",
+    body: JSON.stringify({ type, scheduledAt }),
+  });
+  revalidatePath("/follow-ups");
+  return result;
+}
+
 export async function createCampaign(name: string, type: "AI" | "CSV", prompt?: string) {
   const result = await fetchWithAuth("/campaigns", {
     method: "POST",
@@ -49,4 +62,16 @@ export async function runFollowUps(campaignId: string) {
 
 export async function getPendingFollowUps(campaignId: string) {
   return await fetchWithAuth(`/campaigns/${campaignId}/followups/pending`);
+}
+
+export async function updateFollowUpSettings(
+  campaignId: string,
+  settings: { maxRetryAttempts: number; retryDelayHours: number; followUpDelayDays: number }
+) {
+  const result = await fetchWithAuth(`/campaigns/${campaignId}/followup-settings`, {
+    method: "PATCH",
+    body: JSON.stringify(settings),
+  });
+  revalidatePath("/follow-ups/settings");
+  return result;
 }

@@ -89,6 +89,39 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /campaigns/:id/followup-settings
+router.patch("/:id/followup-settings", async (req: Request, res: Response) => {
+  const { organizationId } = (req as AuthRequest).user!;
+  const { maxRetryAttempts, retryDelayHours, followUpDelayDays } = req.body;
+
+  try {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: req.params.id, organizationId },
+    });
+    if (!campaign) return res.status(404).json({ error: "Campaign not found" });
+
+    const updated = await prisma.campaign.update({
+      where: { id: req.params.id },
+      data: {
+        ...(maxRetryAttempts !== undefined && { maxRetryAttempts: Number(maxRetryAttempts) }),
+        ...(retryDelayHours !== undefined && { retryDelayHours: Number(retryDelayHours) }),
+        ...(followUpDelayDays !== undefined && { followUpDelayDays: Number(followUpDelayDays) }),
+      },
+      select: {
+        id: true,
+        name: true,
+        maxRetryAttempts: true,
+        retryDelayHours: true,
+        followUpDelayDays: true,
+      },
+    });
+
+    res.json(updated);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /campaigns/:id
 router.get("/:id", async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
