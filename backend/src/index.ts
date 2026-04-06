@@ -7,6 +7,7 @@ import campaignsRoutes from "./routes/campaigns.js";
 import leadsRoutes from "./routes/leads.js";
 import statsRoutes from "./routes/stats.js";
 import blacklistRoutes from "./routes/blacklist.js";
+import analyticsRoutes from "./routes/analytics.js";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use("/api/campaigns", campaignsRoutes);
 app.use("/api/leads", leadsRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/blacklist", blacklistRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // Health Check
 app.get("/health", (req, res) => {

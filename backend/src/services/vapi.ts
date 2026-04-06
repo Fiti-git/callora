@@ -1,9 +1,21 @@
 import axios from "axios";
 
+export interface CostBreakdown {
+  transport?: number;
+  stt?: number;
+  llm?: number;
+  tts?: number;
+  vapi?: number;
+  total?: number;
+}
+
 export interface CallResult {
   status: "COMPLETED" | "NO_ANSWER" | "VOICEMAIL" | "FAILED";
   durationSeconds: number;
   transcript?: string;
+  vapiCallId?: string;
+  cost?: number;
+  costBreakdown?: CostBreakdown;
 }
 
 export class VapiService {
@@ -115,6 +127,9 @@ export class VapiService {
             status,
             durationSeconds: call.durationSeconds || 0,
             transcript: JSON.stringify(transcript || "No transcript available"),
+            vapiCallId: callId,
+            cost: call.cost ?? undefined,
+            costBreakdown: call.costBreakdown ?? undefined,
           };
         }
       } catch (err) {

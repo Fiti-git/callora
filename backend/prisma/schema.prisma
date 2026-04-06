@@ -89,6 +89,10 @@ model CallLog {
   transcript String?
   summary   String?
   createdAt DateTime @default(now())
+
+  vapiCallId    String?  // Vapi's own call ID for traceability
+  cost          Float?   // total USD cost from Vapi
+  costBreakdown Json?    // { transport, stt, llm, tts, vapi, total }
 }
 
 model Blacklist {

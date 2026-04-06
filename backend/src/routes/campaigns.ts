@@ -230,7 +230,7 @@ router.post("/:id/scrape", async (req: Request, res: Response) => {
     const gemini = new GeminiService(keys.geminiKey);
     const places = new PlacesService(keys.googleMapsKey);
 
-    const queries = await gemini.generateSearchQueries(campaign.prompt);
+    const queries = await gemini.generateSearchQueries(campaign.prompt ?? "");
 
     let leadsData: any[] = [];
     for (const q of queries) {
@@ -244,7 +244,7 @@ router.post("/:id/scrape", async (req: Request, res: Response) => {
 
     // AI POST-FILTERING
     // We send the leads to Gemini to filter based on the user's prompt logic (e.g. "less than 50 reviews")
-    const filteredIds = await gemini.filterLeads(uniqueLeads, campaign.prompt);
+    const filteredIds = await gemini.filterLeads(uniqueLeads, campaign.prompt ?? "");
 
     // Filter the leads data by the matching IDs
     const finalLeads = uniqueLeads.filter((l) => filteredIds.includes(l.id));
@@ -366,6 +366,9 @@ router.post("/:id/call", async (req: Request, res: Response) => {
           status: callResult.status,
           transcript: callResult.transcript,
           summary: analysis.summary,
+          vapiCallId: callResult.vapiCallId ?? null,
+          cost: callResult.cost ?? null,
+          costBreakdown: (callResult.costBreakdown as any) ?? undefined,
         },
       });
 
@@ -486,6 +489,9 @@ router.post("/:id/followups", async (req: Request, res: Response) => {
           status: callResult.status,
           transcript: callResult.transcript,
           summary: analysis.summary,
+          vapiCallId: callResult.vapiCallId ?? null,
+          cost: callResult.cost ?? null,
+          costBreakdown: (callResult.costBreakdown as any) ?? undefined,
         },
       });
 

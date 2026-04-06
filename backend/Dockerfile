@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN npm install
-RUN apt-get update -y && apt-get install -y openssl
+RUN apt-get -o Acquire::Check-Date=false update -y && apt-get install -y openssl
 
 COPY prisma ./prisma/
 RUN npx prisma generate
