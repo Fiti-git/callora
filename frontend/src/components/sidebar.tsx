@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import { useTheme } from "@/components/theme-provider";
 
 interface NavItem {
   href: string;
@@ -16,6 +17,38 @@ interface NavGroup {
 }
 
 const navGroups: NavGroup[] = [
+  {
+    label: "CRM",
+    items: [
+      {
+        href: "/contacts",
+        label: "Contacts",
+        icon: (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        ),
+      },
+      {
+        href: "/pipeline",
+        label: "Pipeline",
+        icon: (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+          </svg>
+        ),
+      },
+      {
+        href: "/tasks",
+        label: "Tasks",
+        icon: (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
+        ),
+      },
+    ],
+  },
   {
     label: "Overview",
     items: [
@@ -42,6 +75,15 @@ const navGroups: NavGroup[] = [
   {
     label: "Lead Generation",
     items: [
+      {
+        href: "/demo",
+        label: "Demo Call",
+        icon: (
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          </svg>
+        ),
+      },
       {
         href: "/campaigns",
         label: "Campaigns",
@@ -103,8 +145,9 @@ interface SidebarProps {
   orgName?: string;
 }
 
-export function Sidebar({ userName, userEmail, orgName }: SidebarProps) {
+export function Sidebar({ userName, userEmail }: SidebarProps) {
   const pathname = usePathname();
+  const { theme, toggle } = useTheme();
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -112,16 +155,16 @@ export function Sidebar({ userName, userEmail, orgName }: SidebarProps) {
   }
 
   return (
-    <div className="w-56 bg-gray-950 flex flex-col h-screen flex-shrink-0 border-r border-gray-800/50">
+    <div className="w-56 bg-white dark:bg-gray-950 flex flex-col h-screen flex-shrink-0 border-r border-gray-200 dark:border-gray-800/50">
       {/* Logo */}
-      <div className="h-14 flex items-center px-4 border-b border-gray-800/60">
+      <div className="h-14 flex items-center px-4 border-b border-gray-200 dark:border-gray-800/60">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center flex-shrink-0">
             <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span className="text-white font-semibold text-sm tracking-tight">EzLeads.ai</span>
+          <span className="text-gray-900 dark:text-white font-semibold text-sm tracking-tight">EzLeads.ai</span>
         </div>
       </div>
 
@@ -129,7 +172,7 @@ export function Sidebar({ userName, userEmail, orgName }: SidebarProps) {
       <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
         {navGroups.map((group) => (
           <div key={group.label}>
-            <p className="text-gray-500 text-[10px] font-semibold uppercase tracking-widest px-2 mb-1">
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] font-semibold uppercase tracking-widest px-2 mb-1">
               {group.label}
             </p>
             <div className="space-y-0.5">
@@ -141,11 +184,11 @@ export function Sidebar({ userName, userEmail, orgName }: SidebarProps) {
                     href={item.href}
                     className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm transition-colors ${
                       active
-                        ? "bg-gray-800 text-white"
-                        : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/60"
+                        ? "bg-blue-50 dark:bg-gray-800 text-gray-900 dark:text-white"
+                        : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/60"
                     }`}
                   >
-                    <span className={`flex-shrink-0 ${active ? "text-blue-400" : "text-gray-500"}`}>
+                    <span className={`flex-shrink-0 ${active ? "text-blue-500 dark:text-blue-400" : "text-gray-400 dark:text-gray-500"}`}>
                       {item.icon}
                     </span>
                     <span className="font-medium">{item.label}</span>
@@ -160,20 +203,41 @@ export function Sidebar({ userName, userEmail, orgName }: SidebarProps) {
         ))}
       </nav>
 
-      {/* User section */}
-      <div className="border-t border-gray-800/60 p-3">
-        <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md group">
-          <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-gray-300 text-xs font-semibold flex-shrink-0 uppercase">
+      {/* Theme toggle + user section */}
+      <div className="border-t border-gray-200 dark:border-gray-800/60 p-3 space-y-1">
+        <button
+          onClick={toggle}
+          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800/60 transition-colors"
+        >
+          {theme === "dark" ? (
+            <>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              <span className="font-medium">Light mode</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+              <span className="font-medium">Dark mode</span>
+            </>
+          )}
+        </button>
+
+        <div className="flex items-center gap-2.5 px-2 py-1.5 rounded-md">
+          <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 text-xs font-semibold flex-shrink-0 uppercase">
             {userName?.[0] || "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-gray-200 text-xs font-medium truncate">{userName}</p>
-            <p className="text-gray-500 text-[10px] truncate">{userEmail}</p>
+            <p className="text-gray-800 dark:text-gray-200 text-xs font-medium truncate">{userName}</p>
+            <p className="text-gray-400 dark:text-gray-500 text-[10px] truncate">{userEmail}</p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             title="Sign out"
-            className="text-gray-600 hover:text-gray-300 transition-colors flex-shrink-0 p-1 rounded"
+            className="text-gray-400 dark:text-gray-600 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex-shrink-0 p-1 rounded"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

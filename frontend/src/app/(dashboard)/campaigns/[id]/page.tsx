@@ -2,6 +2,7 @@ import { fetchWithAuth } from "@/lib/api";
 import { CampaignControls } from "@/components/campaign-controls";
 import { LeadCallDetails } from "@/components/lead-call-details";
 import { CsvImport } from "@/components/csv-import";
+import { CampaignRefresher } from "@/components/campaign-refresh";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -79,6 +80,7 @@ export default async function CampaignDetailPage({
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            <CampaignRefresher status={campaign.status} />
             {isCSV && <CsvImport campaignId={campaign.id} />}
             <CampaignControls
               campaignId={campaign.id}
