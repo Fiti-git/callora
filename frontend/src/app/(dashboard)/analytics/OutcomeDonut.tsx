@@ -48,7 +48,7 @@ export function OutcomeDonut({ data }: { data: DataPoint[] }) {
             border: "1px solid #e5e7eb",
             borderRadius: 8,
           }}
-          formatter={(value: number, name: string) => [value, name]}
+          formatter={(value, name) => [value, name]}
         />
         <Legend
           iconType="circle"

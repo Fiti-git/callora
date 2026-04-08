@@ -12,10 +12,16 @@ model User {
   email          String       @unique
   password       String
   name           String?
+  role           String       @default("MEMBER") // ADMIN, MEMBER, VIEWER
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+
+  assignedLeads  Lead[]       @relation("LeadAssignee")
+  assignedTasks  Task[]       @relation("TaskAssignee")
+  assignedDeals  Deal[]       @relation("DealAssignee")
+  notes          Note[]
 }
 
 model Organization {
@@ -26,6 +32,10 @@ model Organization {
   campaigns Campaign[]
   leads     Lead[]
   blacklist Blacklist[]
+  contacts  Contact[]
+  notes     Note[]
+  tasks     Task[]
+  deals     Deal[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }
@@ -53,9 +63,27 @@ model Campaign {
   updatedAt      DateTime     @updatedAt
 
   // Follow-up automation config
-  maxRetryAttempts  Int @default(3)  // max retries for NO_ANSWER/VOICEMAIL
-  retryDelayHours   Int @default(24) // hours to wait before retry
-  followUpDelayDays Int @default(3)  // days to wait before qualified follow-up
+  maxRetryAttempts  Int @default(3)
+  retryDelayHours   Int @default(24)
+  followUpDelayDays Int @default(3)
+}
+
+model Contact {
+  id             String       @id @default(cuid())
+  businessName   String
+  phone          String
+  address        String?
+  email          String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  leads          Lead[]
+  notes          Note[]
+  tasks          Task[]
+  deals          Deal[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([phone, organizationId])
 }
 
 model Lead {
@@ -75,9 +103,17 @@ model Lead {
   updatedAt      DateTime     @updatedAt
 
   // Follow-up automation state
-  callAttempts Int       @default(0) // total dial attempts made
-  nextCallAt   DateTime?             // when to retry (PENDING_RETRY)
-  followUpAt   DateTime?             // when to call back (PENDING_FOLLOWUP)
+  callAttempts Int       @default(0)
+  nextCallAt   DateTime?
+  followUpAt   DateTime?
+
+  // CRM relations
+  contactId    String?
+  contact      Contact?     @relation(fields: [contactId], references: [id])
+  assignedToId String?
+  assignedTo   User?        @relation("LeadAssignee", fields: [assignedToId], references: [id])
+  leadNotes    Note[]
+  tasks        Task[]
 }
 
 model CallLog {
@@ -90,9 +126,69 @@ model CallLog {
   summary   String?
   createdAt DateTime @default(now())
 
-  vapiCallId    String?  // Vapi's own call ID for traceability
-  cost          Float?   // total USD cost from Vapi
-  costBreakdown Json?    // { transport, stt, llm, tts, vapi, total }
+  vapiCallId    String?
+  cost          Float?
+  costBreakdown Json?
+}
+
+model Note {
+  id             String       @id @default(cuid())
+  content        String
+  type           String       @default("NOTE") // NOTE, CALL, EMAIL, STATUS_CHANGE
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id])
+  leadId         String?
+  lead           Lead?        @relation(fields: [leadId], references: [id])
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([leadId])
+  @@index([contactId])
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?
+  dueDate        DateTime?
+  completed      Boolean      @default(false)
+  completedAt    DateTime?
+  assignedToId   String?
+  assignedTo     User?        @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  leadId         String?
+  lead           Lead?        @relation(fields: [leadId], references: [id])
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, completed, dueDate])
+}
+
+model Deal {
+  id             String       @id @default(cuid())
+  title          String
+  value          Float?
+  probability    Int?         // 0-100
+  stage          String       @default("PROSPECT") // PROSPECT, QUALIFIED, PROPOSAL, NEGOTIATION, WON, LOST
+  closeDate      DateTime?
+  notes          String?
+  contactId      String
+  contact        Contact      @relation(fields: [contactId], references: [id])
+  assignedToId   String?
+  assignedTo     User?        @relation("DealAssignee", fields: [assignedToId], references: [id])
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, stage])
 }
 
 model Blacklist {

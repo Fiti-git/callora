@@ -13,6 +13,8 @@ interface BlacklistEntry {
   createdAt: string;
 }
 
+const inputCls = "block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+
 export function BlacklistManager({ initial }: { initial: BlacklistEntry[] }) {
   const [entries, setEntries] = useState<BlacklistEntry[]>(initial);
   const [phone, setPhone] = useState("");
@@ -31,8 +33,8 @@ export function BlacklistManager({ initial }: { initial: BlacklistEntry[] }) {
       setPhone("");
       setReason("");
       router.refresh();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to add number");
     } finally {
       setAdding(false);
     }
@@ -51,11 +53,11 @@ export function BlacklistManager({ initial }: { initial: BlacklistEntry[] }) {
   return (
     <div className="space-y-5">
       {/* Add form */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Add Number</h2>
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">Add Number</h2>
         <form onSubmit={handleAdd} className="flex gap-3 items-end">
           <div className="flex-1">
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
               Phone number
             </label>
             <input
@@ -64,25 +66,25 @@ export function BlacklistManager({ initial }: { initial: BlacklistEntry[] }) {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={inputCls}
             />
           </div>
           <div className="flex-1">
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
-              Reason <span className="text-gray-400 font-normal">(optional)</span>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+              Reason <span className="text-gray-400 dark:text-gray-500 font-normal">(optional)</span>
             </label>
             <input
               type="text"
               placeholder="e.g. Requested no contact"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={inputCls}
             />
           </div>
           <button
             type="submit"
             disabled={adding}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-700 dark:hover:bg-gray-200 disabled:opacity-50 transition-colors whitespace-nowrap"
           >
             {adding ? (
               <>
@@ -105,55 +107,55 @@ export function BlacklistManager({ initial }: { initial: BlacklistEntry[] }) {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-100">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
           <thead>
-            <tr className="bg-gray-50">
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <tr className="bg-gray-50 dark:bg-gray-800/50">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Phone Number
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Reason
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Date Added
               </th>
-              <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Action
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
             {entries.length === 0 ? (
               <tr>
                 <td colSpan={4} className="px-6 py-14 text-center">
                   <div className="flex flex-col items-center gap-2">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-gray-400 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                       </svg>
                     </div>
-                    <p className="text-sm font-medium text-gray-500">No numbers blacklisted</p>
-                    <p className="text-xs text-gray-400">Numbers you block will appear here.</p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">No numbers blacklisted</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Numbers you block will appear here.</p>
                   </div>
                 </td>
               </tr>
             ) : (
               entries.map((entry) => (
-                <tr key={entry.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 text-sm font-mono text-gray-900">
+                <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+                  <td className="px-6 py-4 text-sm font-mono text-gray-900 dark:text-white">
                     {entry.phoneNumber}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
-                    {entry.reason || <span className="text-gray-300">—</span>}
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                    {entry.reason || <span className="text-gray-300 dark:text-gray-600">—</span>}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-400">
+                  <td className="px-6 py-4 text-sm text-gray-400 dark:text-gray-500">
                     {format(new Date(entry.createdAt), "MMM d, yyyy")}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button
                       onClick={() => handleRemove(entry.id, entry.phoneNumber)}
-                      className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors"
+                      className="text-xs font-medium text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                     >
                       Remove
                     </button>

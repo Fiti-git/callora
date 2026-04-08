@@ -28,6 +28,7 @@ router.post("/register", async (req: Request, res: Response) => {
           email,
           password: hashedPassword,
           name,
+          role: "ADMIN", // first user in an org is always ADMIN
           organizationId: org.id,
         },
       });
@@ -56,6 +57,7 @@ router.post("/login", async (req: Request, res: Response) => {
         userId: user.id,
         organizationId: user.organizationId,
         email: user.email,
+        role: user.role,
       },
       SECRET,
       { expiresIn: "7d" }
@@ -67,6 +69,7 @@ router.post("/login", async (req: Request, res: Response) => {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
         organizationId: user.organizationId,
       },
     });
@@ -81,7 +84,7 @@ router.get("/me", authenticate, async (req: Request, res: Response) => {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true, email: true, organizationId: true },
+    select: { id: true, name: true, email: true, role: true, organizationId: true },
   });
 
   if (!user) return res.status(404).json({ error: "User not found" });

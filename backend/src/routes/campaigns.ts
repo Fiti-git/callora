@@ -295,7 +295,7 @@ router.post("/:id/scrape", async (req: Request, res: Response) => {
 
 // POST /campaigns/:id/call
 router.post("/:id/call", async (req: Request, res: Response) => {
-  const { organizationId } = (req as AuthRequest).user!;
+  const { organizationId, userId } = (req as AuthRequest).user!;
   const campaignId = req.params.id;
 
   try {
@@ -372,6 +372,20 @@ router.post("/:id/call", async (req: Request, res: Response) => {
         },
       });
 
+      // Auto-create a CALL note for the activity timeline
+      if (analysis.summary && lead.contactId) {
+        await prisma.note.create({
+          data: {
+            type: "CALL",
+            content: analysis.summary,
+            authorId: userId,
+            leadId: lead.id,
+            contactId: lead.contactId,
+            organizationId,
+          },
+        });
+      }
+
       const attemptNumber = lead.callAttempts + 1;
       const nextState = computeNextLeadState(
         callResult.status,
@@ -430,7 +444,7 @@ router.get("/:id/followups/pending", async (req: Request, res: Response) => {
 
 // POST /campaigns/:id/followups — process due retries and follow-up calls
 router.post("/:id/followups", async (req: Request, res: Response) => {
-  const { organizationId } = (req as AuthRequest).user!;
+  const { organizationId, userId } = (req as AuthRequest).user!;
   const campaignId = req.params.id;
   const now = new Date();
 
@@ -494,6 +508,20 @@ router.post("/:id/followups", async (req: Request, res: Response) => {
           costBreakdown: (callResult.costBreakdown as any) ?? undefined,
         },
       });
+
+      // Auto-create a CALL note for the activity timeline
+      if (analysis.summary && lead.contactId) {
+        await prisma.note.create({
+          data: {
+            type: "CALL",
+            content: analysis.summary,
+            authorId: userId,
+            leadId: lead.id,
+            contactId: lead.contactId,
+            organizationId,
+          },
+        });
+      }
 
       const attemptNumber = lead.callAttempts + 1;
       const nextState = computeNextLeadState(

@@ -52,7 +52,7 @@ export function CallVolumeChart({ data }: { data: DataPoint[] }) {
             borderRadius: 8,
             boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
           }}
-          formatter={(value: number) => [value, "Calls"]}
+          formatter={(value) => [value, "Calls"]}
         />
         <Line
           type="monotone"

@@ -36,6 +36,8 @@ function parseCSV(text: string): ParsedLead[] {
   }).filter((r) => r.number);
 }
 
+const inputCls = "block w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500";
+
 export default function NewCampaignPage() {
   const [type, setType] = useState<CampaignType | null>(null);
   const [name, setName] = useState("");
@@ -57,8 +59,8 @@ export default function NewCampaignPage() {
         const leads = parseCSV(ev.target?.result as string);
         if (leads.length === 0) throw new Error("No valid rows found.");
         setCsvLeads(leads);
-      } catch (err: any) {
-        setCsvError(err.message);
+      } catch (err: unknown) {
+        setCsvError(err instanceof Error ? err.message : "Failed to parse CSV");
       }
     };
     reader.readAsText(file);
@@ -84,8 +86,8 @@ export default function NewCampaignPage() {
       }
 
       setTimeout(() => router.push(`/campaigns/${campaign.id}`), 800);
-    } catch (error: any) {
-      toast.error("Failed: " + error.message);
+    } catch (error: unknown) {
+      toast.error("Failed: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -96,45 +98,45 @@ export default function NewCampaignPage() {
     return (
       <div className="max-w-2xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900">New Campaign</h1>
-          <p className="mt-1 text-sm text-gray-500">Select how you want to source your leads.</p>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">New Campaign</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Select how you want to source your leads.</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setType("AI")}
-            className="group text-left bg-white border border-gray-200 hover:border-blue-400 rounded-xl p-6 transition-all hover:shadow-sm"
+            className="group text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl p-6 transition-all hover:shadow-sm"
           >
-            <div className="w-10 h-10 bg-violet-50 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <div className="w-10 h-10 bg-violet-50 dark:bg-violet-500/10 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 mb-1.5">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-1.5">
               AI Leads
             </h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
               Describe your target market and AI will find businesses from Google Maps, filter them, and prepare them for calls.
             </p>
-            <p className="mt-3 text-xs text-violet-600 font-medium">Gemini + Google Maps</p>
+            <p className="mt-3 text-xs text-violet-600 dark:text-violet-400 font-medium">Gemini + Google Maps</p>
           </button>
 
           <button
             onClick={() => setType("CSV")}
-            className="group text-left bg-white border border-gray-200 hover:border-blue-400 rounded-xl p-6 transition-all hover:shadow-sm"
+            className="group text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:border-blue-400 dark:hover:border-blue-500 rounded-xl p-6 transition-all hover:shadow-sm"
           >
-            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center mb-4">
-              <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+            <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg flex items-center justify-center mb-4">
+              <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 mb-1.5">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 mb-1.5">
               CSV Import
             </h3>
-            <p className="text-xs text-gray-500 leading-relaxed">
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
               Upload your own contact list. Supports Name, Number, Company, Designation, and Discussion Area columns.
             </p>
-            <p className="mt-3 text-xs text-emerald-600 font-medium">Your own list</p>
+            <p className="mt-3 text-xs text-emerald-600 dark:text-emerald-400 font-medium">Your own list</p>
           </button>
         </div>
       </div>
@@ -148,7 +150,7 @@ export default function NewCampaignPage() {
       <div className="flex items-center gap-3 mb-8">
         <button
           onClick={() => { setType(null); setName(""); setPrompt(""); setCsvLeads([]); }}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -156,32 +158,32 @@ export default function NewCampaignPage() {
         </button>
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
               {type === "AI" ? "AI Campaign" : "CSV Campaign"}
             </h1>
             <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ${
               type === "AI"
-                ? "bg-violet-50 text-violet-700 ring-violet-200"
-                : "bg-emerald-50 text-emerald-700 ring-emerald-200"
+                ? "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/30"
+                : "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30"
             }`}>
               {type === "AI" ? "AI Leads" : "CSV Import"}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-0.5">Fill in the details below to create your campaign.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Fill in the details below to create your campaign.</p>
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6">
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Campaign name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Campaign name
             </label>
             <input
               type="text"
               required
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className={inputCls}
               placeholder={type === "AI" ? "e.g. Q1 Outreach — New York Restaurants" : "e.g. Imported Contacts — April 2026"}
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -191,16 +193,16 @@ export default function NewCampaignPage() {
           {/* AI: targeting prompt */}
           {type === "AI" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 Targeting prompt
               </label>
-              <p className="text-xs text-gray-400 mb-2">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
                 Describe the businesses you want to find and contact.
               </p>
               <textarea
                 required
                 rows={4}
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                className={`${inputCls} resize-none`}
                 placeholder="e.g. Find spice importers in New York with fewer than 100 reviews."
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -211,13 +213,13 @@ export default function NewCampaignPage() {
           {/* CSV: file upload */}
           {type === "CSV" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 CSV file
               </label>
-              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
-                <p className="text-xs text-gray-400 mb-3">
-                  Required columns: <span className="font-medium text-gray-600">Name, Number</span>
-                  <span className="mx-1.5 text-gray-300">|</span>
+              <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
+                  Required columns: <span className="font-medium text-gray-600 dark:text-gray-300">Name, Number</span>
+                  <span className="mx-1.5 text-gray-300 dark:text-gray-600">|</span>
                   Optional: Company, Designation, DiscussionArea
                 </p>
                 <input
@@ -225,41 +227,41 @@ export default function NewCampaignPage() {
                   type="file"
                   accept=".csv,text/csv"
                   onChange={onFileChange}
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-gray-300 file:text-xs file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 cursor-pointer"
+                  className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-gray-300 dark:file:border-gray-600 file:text-xs file:font-medium file:bg-white dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-200 hover:file:bg-gray-50 dark:hover:file:bg-gray-600 cursor-pointer"
                 />
               </div>
 
               {csvError && (
-                <div className="mt-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+                <div className="mt-2 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 px-3 py-2 text-xs text-red-700 dark:text-red-400">
                   {csvError}
                 </div>
               )}
 
               {csvLeads.length > 0 && (
                 <div className="mt-3">
-                  <p className="text-xs font-medium text-gray-700 mb-2">
+                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {csvLeads.length} leads ready to import
                   </p>
-                  <div className="overflow-auto max-h-40 rounded-lg border border-gray-200 text-xs">
+                  <div className="overflow-auto max-h-40 rounded-lg border border-gray-200 dark:border-gray-800 text-xs">
                     <table className="min-w-full">
-                      <thead className="bg-gray-50 sticky top-0">
+                      <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0">
                         <tr>
-                          <th className="px-3 py-2 text-left text-gray-500 font-semibold">Name</th>
-                          <th className="px-3 py-2 text-left text-gray-500 font-semibold">Number</th>
-                          <th className="px-3 py-2 text-left text-gray-500 font-semibold">Company</th>
+                          <th className="px-3 py-2 text-left text-gray-500 dark:text-gray-400 font-semibold">Name</th>
+                          <th className="px-3 py-2 text-left text-gray-500 dark:text-gray-400 font-semibold">Number</th>
+                          <th className="px-3 py-2 text-left text-gray-500 dark:text-gray-400 font-semibold">Company</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {csvLeads.slice(0, 5).map((r, i) => (
-                          <tr key={i} className="hover:bg-gray-50">
-                            <td className="px-3 py-1.5 text-gray-700">{r.name}</td>
-                            <td className="px-3 py-1.5 text-gray-500">{r.number}</td>
-                            <td className="px-3 py-1.5 text-gray-400">{r.company || "—"}</td>
+                          <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                            <td className="px-3 py-1.5 text-gray-700 dark:text-gray-300">{r.name}</td>
+                            <td className="px-3 py-1.5 text-gray-500 dark:text-gray-400">{r.number}</td>
+                            <td className="px-3 py-1.5 text-gray-400 dark:text-gray-500">{r.company || "—"}</td>
                           </tr>
                         ))}
                         {csvLeads.length > 5 && (
                           <tr>
-                            <td colSpan={3} className="px-3 py-1.5 text-gray-400 italic">
+                            <td colSpan={3} className="px-3 py-1.5 text-gray-400 dark:text-gray-500 italic">
                               +{csvLeads.length - 5} more rows
                             </td>
                           </tr>
@@ -272,11 +274,11 @@ export default function NewCampaignPage() {
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
             <button
               type="button"
               onClick={() => router.push("/campaigns")}
-              className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
             >
               Cancel
             </button>

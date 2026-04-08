@@ -34,17 +34,17 @@ export function ConfirmationModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm">
       <div
-        className="bg-white rounded-xl shadow-lg border border-gray-200 w-full max-w-sm p-6"
+        className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 w-full max-w-sm p-6"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <h3 id="modal-title" className="text-base font-semibold text-gray-900">
+        <h3 id="modal-title" className="text-base font-semibold text-gray-900 dark:text-white">
           {title}
         </h3>
-        <p className="mt-2 text-sm text-gray-500 leading-relaxed">
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
           {message}
         </p>
 
@@ -52,7 +52,7 @@ export function ConfirmationModal({
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
           >
             {cancelText}
           </button>

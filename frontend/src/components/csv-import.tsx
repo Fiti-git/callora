@@ -60,8 +60,8 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
         const leads = parseCSV(ev.target?.result as string);
         if (leads.length === 0) throw new Error("No valid rows found (Number column required).");
         setPreview(leads);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to parse CSV");
       }
     };
     reader.readAsText(file);
@@ -79,8 +79,8 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
       setPreview([]);
       if (fileRef.current) fileRef.current.value = "";
       router.refresh();
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Import failed");
     } finally {
       setLoading(false);
     }
@@ -98,23 +98,23 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
       >
-        <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+        <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
         Upload CSV
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 w-full max-w-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 dark:bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 w-full max-w-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h2 className="text-base font-semibold text-gray-900">Import Leads from CSV</h2>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">Import Leads from CSV</h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -124,40 +124,40 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
 
             <div className="px-6 py-5 space-y-4">
               {/* Format hint */}
-              <div className="rounded-lg bg-gray-50 border border-gray-200 p-3">
-                <p className="text-xs font-semibold text-gray-600 mb-1">Expected columns</p>
-                <code className="text-xs text-gray-500">{EXPECTED_COLUMNS.join(", ")}</code>
-                <p className="text-xs text-gray-400 mt-1">
-                  <strong className="text-gray-500">Name</strong> and <strong className="text-gray-500">Number</strong> are required. All others are optional.
+              <div className="rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 p-3">
+                <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Expected columns</p>
+                <code className="text-xs text-gray-500 dark:text-gray-400">{EXPECTED_COLUMNS.join(", ")}</code>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  <strong className="text-gray-500 dark:text-gray-300">Name</strong> and <strong className="text-gray-500 dark:text-gray-300">Number</strong> are required. All others are optional.
                 </p>
               </div>
 
               {/* File input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Select file
                 </label>
-                <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
+                <div className="rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
                   <input
                     ref={fileRef}
                     type="file"
                     accept=".csv,text/csv"
                     onChange={onFileChange}
-                    className="block w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-gray-300 file:text-xs file:font-medium file:bg-white file:text-gray-700 hover:file:bg-gray-50 cursor-pointer"
+                    className="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-gray-300 dark:file:border-gray-600 file:text-xs file:font-medium file:bg-white dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-200 hover:file:bg-gray-50 dark:hover:file:bg-gray-600 cursor-pointer"
                   />
                 </div>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                <div className="rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 px-4 py-3 text-sm text-red-700 dark:text-red-400">
                   {error}
                 </div>
               )}
 
               {/* Success */}
               {success && (
-                <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">
+                <div className="rounded-lg bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 px-4 py-3 text-sm text-green-700 dark:text-green-400">
                   {success}
                 </div>
               )}
@@ -165,26 +165,26 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
               {/* Preview */}
               {preview.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {preview.length} leads ready to import
                   </p>
-                  <div className="overflow-auto max-h-52 rounded-lg border border-gray-200">
+                  <div className="overflow-auto max-h-52 rounded-lg border border-gray-200 dark:border-gray-800">
                     <table className="min-w-full text-xs">
-                      <thead className="bg-gray-50 sticky top-0 border-b border-gray-200">
+                      <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 border-b border-gray-200 dark:border-gray-700">
                         <tr>
-                          <th className="px-3 py-2 text-left font-semibold text-gray-500">Name</th>
-                          <th className="px-3 py-2 text-left font-semibold text-gray-500">Number</th>
-                          <th className="px-3 py-2 text-left font-semibold text-gray-500">Company</th>
-                          <th className="px-3 py-2 text-left font-semibold text-gray-500">Designation</th>
+                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Name</th>
+                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Number</th>
+                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Company</th>
+                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Designation</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {preview.map((row, i) => (
-                          <tr key={i} className="hover:bg-gray-50">
-                            <td className="px-3 py-2 text-gray-800">{row.name}</td>
-                            <td className="px-3 py-2 text-gray-500 font-mono">{row.number}</td>
-                            <td className="px-3 py-2 text-gray-500">{row.company || "—"}</td>
-                            <td className="px-3 py-2 text-gray-500">{row.designation || "—"}</td>
+                          <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
+                            <td className="px-3 py-2 text-gray-800 dark:text-gray-200">{row.name}</td>
+                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400 font-mono">{row.number}</td>
+                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400">{row.company || "—"}</td>
+                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400">{row.designation || "—"}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -195,10 +195,10 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-gray-50">
+            <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
               >
                 Cancel
               </button>

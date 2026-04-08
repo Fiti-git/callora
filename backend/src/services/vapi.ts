@@ -28,6 +28,63 @@ export class VapiService {
     this.phoneNumberId = phoneNumberId;
   }
 
+  private formatPhone(businessPhone: string): string {
+    let formattedPhone = businessPhone.replace(/[^0-9+]/g, "");
+    if (!formattedPhone.startsWith("+")) {
+      if (formattedPhone.length === 10) {
+        formattedPhone = "+1" + formattedPhone;
+      } else if (formattedPhone.length === 11 && formattedPhone.startsWith("1")) {
+        formattedPhone = "+" + formattedPhone;
+      }
+    }
+    return formattedPhone;
+  }
+
+  async makeCallWithMessage(
+    businessPhone: string,
+    businessName: string,
+    firstMessage: string
+  ): Promise<CallResult> {
+    if (!this.privateKey || !this.phoneNumberId) {
+      throw new Error("Vapi Configuration Missing for this organization.");
+    }
+    try {
+      const formattedPhone = this.formatPhone(businessPhone);
+      const response = await axios.post(
+        `${this.baseUrl}/call`,
+        {
+          phoneNumberId: this.phoneNumberId,
+          customer: { number: formattedPhone, name: businessName },
+          assistant: {
+            firstMessage,
+            model: {
+              provider: "openai",
+              model: "gpt-4o-mini",
+              messages: [
+                {
+                  role: "system",
+                  content:
+                    "You are Alex from Redot Global. Your goal is to see if the business owner is interested in getting more clients via AI automation. Be professional, concise, and friendly. If they are interested, ask for an email to send details. If they are busy, offer to call back later. If anyone asks for a contact number or email, provide:  8823 9168.",
+                },
+              ],
+            },
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.privateKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const callId = response.data.id;
+      return await this.pollForCompletion(callId);
+    } catch (error: any) {
+      console.error("Vapi Call Failed:", error.response?.data || error.message);
+      return { status: "FAILED", durationSeconds: 0 };
+    }
+  }
+
   async makeCall(
     businessPhone: string,
     businessName: string
@@ -37,20 +94,7 @@ export class VapiService {
     }
 
     try {
-      // E.164 Formatting Logic
-      let formattedPhone = businessPhone.replace(/[^0-9+]/g, ""); // Keep only digits and +
-
-      // If missing + but has 10/11 chars, assume US/Canada and fix
-      if (!formattedPhone.startsWith("+")) {
-        if (formattedPhone.length === 10) {
-          formattedPhone = "+1" + formattedPhone;
-        } else if (
-          formattedPhone.length === 11 &&
-          formattedPhone.startsWith("1")
-        ) {
-          formattedPhone = "+" + formattedPhone;
-        }
-      }
+      const formattedPhone = this.formatPhone(businessPhone);
 
       const response = await axios.post(
         `${this.baseUrl}/call`,

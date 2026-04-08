@@ -58,7 +58,7 @@ export function CostTrendChart({ data }: { data: DataPoint[] }) {
             borderRadius: 8,
             boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
           }}
-          formatter={(value: number) => [`$${value.toFixed(4)}`, "Cost"]}
+          formatter={(value) => [`$${Number(value).toFixed(4)}`, "Cost"]}
         />
         <Area
           type="monotone"

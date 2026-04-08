@@ -8,6 +8,12 @@ import leadsRoutes from "./routes/leads.js";
 import statsRoutes from "./routes/stats.js";
 import blacklistRoutes from "./routes/blacklist.js";
 import analyticsRoutes from "./routes/analytics.js";
+import vapiSyncRoutes from "./routes/vapi-sync.js";
+import contactsRoutes from "./routes/contacts.js";
+import notesRoutes from "./routes/notes.js";
+import tasksRoutes from "./routes/tasks.js";
+import dealsRoutes from "./routes/deals.js";
+import demoRoutes from "./routes/demo.js";
 
 dotenv.config();
 
@@ -31,6 +37,12 @@ app.use("/api/leads", leadsRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/blacklist", blacklistRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/vapi", vapiSyncRoutes);
+app.use("/api/contacts", contactsRoutes);
+app.use("/api/notes", notesRoutes);
+app.use("/api/tasks", tasksRoutes);
+app.use("/api/deals", dealsRoutes);
+app.use("/api/demo", demoRoutes);
 
 // Health Check
 app.get("/health", (req, res) => {

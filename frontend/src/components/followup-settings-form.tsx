@@ -18,6 +18,8 @@ interface FollowUpSettingsFormProps {
   campaign: Campaign;
 }
 
+const inputCls = "w-20 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent";
+
 export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
   const [maxRetry, setMaxRetry] = useState(campaign.maxRetryAttempts);
   const [retryDelay, setRetryDelay] = useState(campaign.retryDelayHours);
@@ -42,8 +44,8 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
       setSaved(true);
       toast.success(`Saved settings for "${campaign.name}"`);
       setTimeout(() => setSaved(false), 2000);
-    } catch (error: any) {
-      toast.error("Failed to save: " + error.message);
+    } catch (error: unknown) {
+      toast.error("Failed to save: " + (error instanceof Error ? error.message : "Unknown error"));
     } finally {
       setSaving(false);
     }
@@ -56,26 +58,26 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
       {/* Campaign header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
         <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-gray-900">{campaign.name}</span>
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">{campaign.name}</span>
           <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ${
             campaign.type === "CSV"
-              ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-              : "bg-violet-50 text-violet-700 ring-violet-200"
+              ? "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30"
+              : "bg-violet-50 text-violet-700 ring-violet-200 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-500/30"
           }`}>
             {campaign.type === "CSV" ? "CSV Import" : "AI Leads"}
           </span>
-          <span className="text-xs text-gray-400">{campaign.status}</span>
+          <span className="text-xs text-gray-400 dark:text-gray-500">{campaign.status}</span>
         </div>
 
         <div className="flex items-center gap-2">
           {isDirty && (
             <button
               onClick={handleReset}
-              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             >
               Reset
             </button>
@@ -88,7 +90,7 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
                 ? "bg-green-600 text-white"
                 : isDirty
                 ? "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed"
             }`}
           >
             {saving ? (
@@ -114,13 +116,13 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
       </div>
 
       {/* Settings fields */}
-      <div className="grid grid-cols-3 divide-x divide-gray-100">
+      <div className="grid grid-cols-3 divide-x divide-gray-100 dark:divide-gray-800">
         {/* Max Retries */}
         <div className="px-6 py-5">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
             Max Retry Attempts
           </label>
-          <p className="text-xs text-gray-400 mb-3">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
             How many times to retry a no-answer or voicemail lead before stopping.
           </p>
           <div className="flex items-center gap-2">
@@ -130,21 +132,21 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
               max={10}
               value={maxRetry}
               onChange={(e) => setMaxRetry(Number(e.target.value))}
-              className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputCls}
             />
-            <span className="text-sm text-gray-400">attempts</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">attempts</span>
           </div>
           {maxRetry === 0 && (
-            <p className="mt-2 text-xs text-amber-600">Set to 0 to disable retries entirely.</p>
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">Set to 0 to disable retries entirely.</p>
           )}
         </div>
 
         {/* Retry Delay */}
         <div className="px-6 py-5">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
             Retry Delay
           </label>
-          <p className="text-xs text-gray-400 mb-3">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
             Hours to wait before calling back a no-answer or voicemail lead.
           </p>
           <div className="flex items-center gap-2">
@@ -154,9 +156,9 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
               max={168}
               value={retryDelay}
               onChange={(e) => setRetryDelay(Number(e.target.value))}
-              className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputCls}
             />
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-400 dark:text-gray-500">
               {retryDelay === 1 ? "hour" : retryDelay < 24 ? `hours` : `hours (${(retryDelay / 24).toFixed(1)}d)`}
             </span>
           </div>
@@ -164,10 +166,10 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
 
         {/* Follow-Up Delay */}
         <div className="px-6 py-5">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
             Follow-Up Delay
           </label>
-          <p className="text-xs text-gray-400 mb-3">
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-3">
             Days to wait before calling back a qualified (interested) lead.
           </p>
           <div className="flex items-center gap-2">
@@ -177,22 +179,22 @@ export function FollowUpSettingsForm({ campaign }: FollowUpSettingsFormProps) {
               max={90}
               value={followUpDelay}
               onChange={(e) => setFollowUpDelay(Number(e.target.value))}
-              className="w-20 rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputCls}
             />
-            <span className="text-sm text-gray-400">{followUpDelay === 1 ? "day" : "days"}</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">{followUpDelay === 1 ? "day" : "days"}</span>
           </div>
         </div>
       </div>
 
-      {/* Visual summary of what these settings mean */}
-      <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
-        <p className="text-xs text-gray-400">
-          <span className="font-medium text-gray-500">Logic: </span>
+      {/* Visual summary */}
+      <div className="px-6 py-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+        <p className="text-xs text-gray-400 dark:text-gray-500">
+          <span className="font-medium text-gray-500 dark:text-gray-400">Logic: </span>
           No answer → retry up to{" "}
-          <span className="font-medium text-amber-600">{maxRetry}×</span>, every{" "}
-          <span className="font-medium text-amber-600">{retryDelay}h</span>.
+          <span className="font-medium text-amber-600 dark:text-amber-400">{maxRetry}×</span>, every{" "}
+          <span className="font-medium text-amber-600 dark:text-amber-400">{retryDelay}h</span>.
           {" "}Interested lead → follow-up after{" "}
-          <span className="font-medium text-violet-600">{followUpDelay} day{followUpDelay !== 1 ? "s" : ""}</span>.
+          <span className="font-medium text-violet-600 dark:text-violet-400">{followUpDelay} day{followUpDelay !== 1 ? "s" : ""}</span>.
           {" "}Not interested → stop.
         </p>
       </div>

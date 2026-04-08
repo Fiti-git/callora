@@ -74,7 +74,7 @@ export function CostBreakdownChart({ breakdown }: { breakdown: Breakdown }) {
             border: "1px solid #e5e7eb",
             borderRadius: 8,
           }}
-          formatter={(value: number) => [`$${value.toFixed(4)}`, "Cost"]}
+          formatter={(value) => [`$${Number(value).toFixed(4)}`, "Cost"]}
         />
         <Bar dataKey="cost" radius={[0, 4, 4, 0]}>
           {data.map((_, index) => (
