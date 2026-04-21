@@ -15,19 +15,33 @@ services:
     networks:
       - ezleads-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: ezleads-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ezleads-network
+
   backend:
     build: ./backend
     container_name: ezleads-backend
     command: npm run dev
+    env_file:
+      - ./backend/.env
     environment:
       DATABASE_URL: postgresql://user:password@db:5432/ezleads?schema=public
       PORT: 4000
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      REDIS_URL: redis://redis:6379
       # API Keys should be passed via .env or injected
     ports:
       - "4000:4000"
     depends_on:
       - db
+      - redis
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -61,3 +75,4 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:

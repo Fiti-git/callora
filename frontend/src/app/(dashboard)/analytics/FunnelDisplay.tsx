@@ -1,3 +1,4 @@
+
 "use client";
 
 type Funnel = { total: number; called: number; qualified: number };

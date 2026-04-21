@@ -4,6 +4,7 @@ import prisma from "../lib/prisma.js";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
 import { GeminiService } from "../services/gemini.js";
 import { VapiService } from "../services/vapi.js";
+import { assertWithinQuota, recordUsage, QuotaError } from "../lib/quota.js";
 
 const router = express.Router();
 router.use(authenticate);
@@ -47,6 +48,8 @@ router.post("/call", async (req: Request, res: Response) => {
   const { phone, name, description, firstMessage } = parsed.data;
 
   try {
+    await assertWithinQuota(organizationId, "call");
+
     // Load org API keys
     const org = await prisma.organization.findUnique({
       where: { id: organizationId },
@@ -90,10 +93,17 @@ router.post("/call", async (req: Request, res: Response) => {
     const vapi = new VapiService(org.apiKeys.vapiKey, org.apiKeys.vapiPhoneId);
     const gemini = new GeminiService(org.apiKeys.geminiKey);
 
+    const orgAiConfig = {
+      aiCallerName: org.aiCallerName,
+      aiCallerCompany: org.aiCallerCompany,
+      aiCallerPhone: org.aiCallerPhone,
+      aiSystemPrompt: org.aiSystemPrompt,
+    };
+
     // Override firstMessage on VapiService if provided
     const callResult = await (firstMessage
       ? vapi.makeCallWithMessage(phone, name, firstMessage)
-      : vapi.makeCall(phone, name));
+      : vapi.makeCall(phone, name, orgAiConfig));
 
     let analysis: any = {
       interestScore: 0,
@@ -125,6 +135,8 @@ router.post("/call", async (req: Request, res: Response) => {
       data: { status: "CALLED", interestScore: analysis.interestScore },
     });
 
+    await recordUsage(organizationId, "call", 1);
+
     res.json({
       status: callResult.status,
       durationSeconds: callResult.durationSeconds,
@@ -139,6 +151,9 @@ router.post("/call", async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
+    if (error instanceof QuotaError) {
+      return res.status(error.status).json({ error: error.message });
+    }
     console.error("Demo call error:", error);
     res.status(500).json({ error: error.message });
   }

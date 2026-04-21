@@ -7,12 +7,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum OrgStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  SUSPENDED
+  CANCELED
+}
+
+enum PlanTier {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum SubStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
 model User {
   id             String       @id @default(cuid())
   email          String       @unique
   password       String
   name           String?
-  role           String       @default("MEMBER") // ADMIN, MEMBER, VIEWER
+  role           Role         @default(MEMBER)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime     @default(now())
@@ -22,22 +51,109 @@ model User {
   assignedTasks  Task[]       @relation("TaskAssignee")
   assignedDeals  Deal[]       @relation("DealAssignee")
   notes          Note[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Organization {
-  id        String      @id @default(cuid())
-  name      String
-  apiKeys   ApiKey?
-  users     User[]
-  campaigns Campaign[]
-  leads     Lead[]
-  blacklist Blacklist[]
-  contacts  Contact[]
-  notes     Note[]
-  tasks     Task[]
-  deals     Deal[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  status       OrgStatus     @default(TRIAL)
+  aiCallerName    String  @default("Alex")
+  aiCallerCompany String  @default("")
+  aiCallerPhone   String  @default("")
+  aiSystemPrompt  String?
+  apiKeys      ApiKey?
+  users        User[]
+  campaigns    Campaign[]
+  leads        Lead[]
+  blacklist    Blacklist[]
+  contacts     Contact[]
+  notes        Note[]
+  tasks        Task[]
+  deals        Deal[]
+  subscription Subscription?
+  usage        UsageRecord[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model PlatformUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  isSuperAdmin Boolean  @default(false)
+  twoFASecret  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Plan {
+  id                String         @id @default(cuid())
+  tier              PlanTier       @unique
+  name              String
+  stripePriceId     String         @unique
+  monthlyCallQuota  Int
+  monthlyLeadQuota  Int
+  seatLimit         Int
+  priceCents        Int
+  subscriptions     Subscription[]
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+}
+
+model Subscription {
+  id                   String       @id @default(cuid())
+  organizationId       String       @unique
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  planId               String
+  plan                 Plan         @relation(fields: [planId], references: [id])
+  status               SubStatus    @default(TRIALING)
+  stripeCustomerId     String?      @unique
+  stripeSubscriptionId String?      @unique
+  trialEndsAt          DateTime?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+}
+
+model UsageRecord {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  periodStart    DateTime
+  periodEnd      DateTime
+  callsMade      Int          @default(0)
+  leadsScraped   Int          @default(0)
+  aiTokens       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, periodStart])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  actorType      String
+  actorId        String
+  organizationId String?
+  action         String
+  target         String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([actorType, actorId])
 }
 
 model ApiKey {
@@ -55,7 +171,8 @@ model Campaign {
   name           String
   type           String       @default("AI") // AI, CSV
   prompt         String?
-  status         String       @default("DRAFT") // DRAFT, RUNNING, COMPLETED
+  status         String       @default("DRAFT") // DRAFT, RUNNING, COMPLETED, PAUSED_QUOTA, CANCELLED, FAILED
+  jobId          String?
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   leads          Lead[]

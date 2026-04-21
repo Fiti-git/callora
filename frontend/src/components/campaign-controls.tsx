@@ -1,6 +1,6 @@
 "use client";
 
-import { findLeads, startCalls, runFollowUps } from "@/app/actions/campaign";
+import { findLeads, startCalls, runFollowUps, cancelCampaign } from "@/app/actions/campaign";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -54,6 +54,19 @@ export function CampaignControls({
     }
   }
 
+  async function handleCancel() {
+    setLoading(true);
+    try {
+      await cancelCampaign(campaignId);
+      toast.success("Campaign cancelled.");
+      router.refresh();
+    } catch (error: unknown) {
+      toast.error("Cancel failed: " + (error instanceof Error ? error.message : "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleRunFollowUps() {
     setLoading(true);
     try {
@@ -84,12 +97,21 @@ export function CampaignControls({
 
   if (isCalling) {
     return (
-      <div className="inline-flex items-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
-        <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        Calling leads...
+      <div className="inline-flex items-center gap-3">
+        <div className="inline-flex items-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
+          <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Calling leads...
+        </div>
+        <button
+          onClick={handleCancel}
+          disabled={loading}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 dark:border-red-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition-colors"
+        >
+          {loading ? "Cancelling..." : "Cancel"}
+        </button>
       </div>
     );
   }

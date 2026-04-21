@@ -43,6 +43,18 @@ export async function startCalls(campaignId: string) {
   return result;
 }
 
+export async function getCampaignProgress(campaignId: string) {
+  return await fetchWithAuth(`/campaigns/${campaignId}/progress`);
+}
+
+export async function cancelCampaign(campaignId: string) {
+  const result = await fetchWithAuth(`/campaigns/${campaignId}/cancel`, {
+    method: "POST",
+  });
+  revalidatePath(`/campaigns/${campaignId}`);
+  return result;
+}
+
 export async function importLeads(campaignId: string, leads: object[]) {
   const result = await fetchWithAuth(`/campaigns/${campaignId}/import`, {
     method: "POST",

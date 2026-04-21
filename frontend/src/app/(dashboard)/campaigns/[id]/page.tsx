@@ -3,6 +3,7 @@ import { CampaignControls } from "@/components/campaign-controls";
 import { LeadCallDetails } from "@/components/lead-call-details";
 import { CsvImport } from "@/components/csv-import";
 import { CampaignRefresher } from "@/components/campaign-refresh";
+import { CampaignProgress } from "@/components/campaign-progress";
 import { format } from "date-fns";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -96,6 +97,9 @@ export default async function CampaignDetailPage({
           Created {campaign.createdAt ? format(new Date(campaign.createdAt), "PPP") : "-"}
         </p>
       </div>
+
+      {/* Live progress while running */}
+      <CampaignProgress campaignId={campaign.id} initialStatus={campaign.status} />
 
       {/* Info box */}
       {isCSV ? (

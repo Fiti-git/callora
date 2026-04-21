@@ -244,6 +244,14 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
             </svg>
           </button>
         </div>
+
+        <div className="px-2 pt-2 border-t border-gray-100 dark:border-gray-800/60">
+          <p className="text-[10px] text-gray-400 dark:text-gray-500">
+            <Link href="/terms" className="hover:text-gray-600 dark:hover:text-gray-300">Terms</Link>
+            {" · "}
+            <Link href="/privacy" className="hover:text-gray-600 dark:hover:text-gray-300">Privacy</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

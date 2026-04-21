@@ -74,7 +74,7 @@ router.get("/activity", async (req: Request, res: Response) => {
     for (const contact of recentContacts) {
       events.push({
         type: "contact",
-        title: `New contact: ${contact.name}`,
+        title: `New contact: ${contact.businessName}`,
         subtitle: contact.email ?? contact.phone ?? "",
         timestamp: contact.createdAt,
         status: "NEW",

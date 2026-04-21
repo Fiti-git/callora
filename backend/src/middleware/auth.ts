@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import prisma from "../lib/prisma.js";
 
 const SECRET = process.env.NEXTAUTH_SECRET || "fallback_secret";
 
@@ -12,7 +13,7 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticate = (
+export const authenticate = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -28,6 +29,30 @@ export const authenticate = (
   try {
     const decoded = jwt.verify(token, SECRET) as any;
     (req as AuthRequest).user = decoded;
+
+    const org = await prisma.organization.findUnique({
+      where: { id: decoded.organizationId },
+      select: { status: true },
+    });
+
+    if (!org) {
+      return res.status(401).json({ error: "Unauthorized: Organization not found" });
+    }
+
+    if (org.status === "SUSPENDED" || org.status === "CANCELED") {
+      return res.status(402).json({
+        error: "Organization access blocked",
+        status: org.status,
+      });
+    }
+
+    if (org.status === "PAST_DUE") {
+      return res.status(402).json({
+        error: "Payment required",
+        status: org.status,
+      });
+    }
+
     next();
   } catch (error) {
     return res.status(401).json({ error: "Unauthorized: Invalid token" });

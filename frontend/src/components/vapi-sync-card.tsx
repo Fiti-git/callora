@@ -36,7 +36,7 @@ export default function VapiSyncCard() {
       <div className="px-6 py-5">
         <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Vapi Call History</h2>
         <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-          Import past calls made directly in Vapi into EzLeadsAI. Leads are
+          Import past calls made directly in Vapi into Callora. Leads are
           matched by phone number; unmatched calls are placed in a "Vapi Import"
           campaign. Safe to run multiple times — duplicates are skipped.
         </p>

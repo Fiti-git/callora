@@ -2,16 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Product Name
+
+**Callora** — by Redot Global (redot.global)
+Previously called "EzLeadsAI" — this name is retired. Use "Callora" everywhere: UI text, email templates, page titles, meta tags, error messages, and all user-facing strings. Never use "EzLeadsAI" in new code.
+
 ## Project Overview
 
-EzLeadsAI is a multi-tenant SaaS platform for AI-powered lead generation. The pipeline is: Google Places API (business discovery) → Gemini AI (qualification) → Vapi.ai (outbound calling).
+Callora is a multi-tenant SaaS platform for AI-powered lead generation, built by Redot Global. The pipeline is: Google Places API (business discovery) → Gemini AI (qualification) → Vapi.ai (outbound calling).
 
 ## Repository Structure
 
 ```
-EzLeadsAI/
+Callora/
 ├── backend/       # Express.js API server (port 4000)
-├── frontend/      # Next.js app with App Router (port 3000)
+├── frontend/      # Tenant Next.js app (port 3000)
+├── admin/         # Platform super-admin Next.js app (port 3001)
 └── legacy_cli/    # Archived CLI implementation (reference only)
 ```
 
@@ -65,9 +71,21 @@ npx prisma generate        # Regenerate Prisma client
 - API calls from server actions use `Authorization: Bearer <token>` headers
 
 ### Data Model (multi-tenant)
-`Organization` is the top-level tenant. Each org owns `User`s, `Campaign`s, `Lead`s, `CallLog`s, `Blacklist` entries, and encrypted `ApiKey`s (Google Maps, Gemini, Vapi stored per-org).
+`Organization` is the top-level tenant. Each org owns `User`s, `Campaign`s, `Lead`s, `CallLog`s, `Blacklist` entries, `ApiKey`s, and a single `Subscription` (→ `Plan`).
+
+Organization status: `TRIAL → ACTIVE → PAST_DUE/SUSPENDED/CANCELED`. `requireAuth` middleware blocks SUSPENDED/CANCELED (returns 402) and PAST_DUE.
 
 Campaign types: `AI` (Places API scraping) or `CSV` (bulk upload). Campaign status: `DRAFT → RUNNING → COMPLETED`.
+
+### Platform Tier
+Above tenants sits a platform layer:
+- `PlatformUser` — super-admin accounts (separate table, separate JWT secret)
+- `Plan` — FREE/STARTER/PRO/ENTERPRISE with quotas (calls, leads, seats) + Stripe price ID
+- `Subscription` — links Org to Plan; Stripe customer/subscription IDs
+- `UsageRecord` — monthly per-org meter (callsMade, leadsScraped, aiTokens)
+- `AuditLog` — platform + tenant actions trail
+
+Platform API routes live under `/api/platform/*` and require `PLATFORM_JWT_SECRET`. The `admin/` Next.js app consumes them. Tenant signup auto-creates a TRIALING subscription on the FREE plan; upgrades flow through Stripe Checkout (`/api/billing/checkout` → webhook at `/api/billing/webhook`). Setup run-book: [docs/setup/PLATFORM_SETUP.md](docs/setup/PLATFORM_SETUP.md).
 
 ### Auth Flow
 1. Frontend calls `/api/auth` (backend) to get JWT
@@ -77,16 +95,14 @@ Campaign types: `AI` (Places API scraping) or `CSV` (bulk upload). Campaign stat
 
 ## Environment Variables
 
-Backend needs: `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY`, `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_ID`
+Backend needs: `DATABASE_URL`, `NEXTAUTH_SECRET` (tenant JWT), `PLATFORM_JWT_SECRET`, `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY`, `VAPI_PRIVATE_KEY`, `VAPI_PHONE_NUMBER_ID`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_FREE/STARTER/PRO/ENTERPRISE`, `TENANT_APP_ORIGIN`, `ADMIN_APP_ORIGIN`, `TRIAL_DAYS` (optional, default 14)
 
-Frontend needs: `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `NEXT_PUBLIC_API_URL` (points to backend)
+Seeding: `PLATFORM_ADMIN_EMAIL`, `PLATFORM_ADMIN_PASSWORD`, `PLATFORM_ADMIN_NAME` required only when running `npm run seed:admin`.
+
+Frontend needs: `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `API_URL` (server) / `NEXT_PUBLIC_API_URL` (client)
+
+Admin app needs: `NEXTAUTH_URL=http://localhost:3001`, `NEXTAUTH_SECRET`, `NEXT_PUBLIC_PLATFORM_API_URL`
 
 In Docker, `NEXT_PUBLIC_API_URL=http://backend:4000` for inter-container communication.
 
-## Key Conventions
-
-- Both backend and frontend use ES modules (`"type": "module"`)
-- Backend TypeScript targets ES2020 with Node16 module resolution
-- Frontend uses `@/*` path alias for `src/`
-- Zod schemas are used for request validation in backend routes
-- `react-hook-form` + Zod for frontend form validation
+## Key Conventi

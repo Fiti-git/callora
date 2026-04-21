@@ -1,20 +1,37 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Papa from "papaparse";
 import { importLeads } from "@/app/actions/campaign";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
-const REQUIRED_COLUMNS = ["Name", "Number"];
-const EXPECTED_COLUMNS = ["ContactID", "Name", "Number", "Company", "Designation", "DiscussionArea"];
+const PHONE_COLUMN_VARIANTS = [
+  "phone",
+  "number",
+  "mobile",
+  "tel",
+  "phone number",
+  "mobile number",
+];
+const NAME_COLUMN_VARIANTS = [
+  "name",
+  "business name",
+  "company",
+  "company name",
+  "business",
+];
 
 interface ParsedLead {
-  contactId?: string;
+  phone: string;
   name: string;
-  number: string;
-  company?: string;
-  designation?: string;
-  discussionArea?: string;
+}
+
+function normalizePhone(raw: string): string {
+  let digits = raw.toString().replace(/[^\d+]/g, "");
+  if (digits.startsWith("+1")) digits = digits.slice(2);
+  else if (digits.startsWith("1") && digits.length === 11) digits = digits.slice(1);
+  return digits;
 }
 
 export function CsvImport({ campaignId }: { campaignId: string }) {
@@ -27,25 +44,49 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
   const router = useRouter();
 
   function parseCSV(text: string): ParsedLead[] {
-    const lines = text.trim().split(/\r?\n/);
-    if (lines.length < 2) throw new Error("CSV must have a header row and at least one data row.");
-    const headers = lines[0].split(",").map((h) => h.trim());
-    for (const col of REQUIRED_COLUMNS) {
-      if (!headers.includes(col)) throw new Error(`Missing required column: "${col}"`);
+    const result = Papa.parse<Record<string, string>>(text, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (h: string) => h.trim().toLowerCase(),
+    });
+
+    const headers = result.meta.fields ?? [];
+    const hasPhoneColumn = headers.some((h) => PHONE_COLUMN_VARIANTS.includes(h));
+    const hasNameColumn = headers.some((h) => NAME_COLUMN_VARIANTS.includes(h));
+    if (!hasPhoneColumn) {
+      throw new Error(
+        `Missing phone column. Expected one of: ${PHONE_COLUMN_VARIANTS.join(", ")}.`
+      );
     }
-    return lines.slice(1).map((line) => {
-      const values = line.split(",").map((v) => v.trim());
-      const row: Record<string, string> = {};
-      headers.forEach((h, i) => { row[h] = values[i] || ""; });
-      return {
-        contactId: row["ContactID"],
-        name: row["Name"],
-        number: row["Number"],
-        company: row["Company"],
-        designation: row["Designation"],
-        discussionArea: row["DiscussionArea"],
-      };
-    }).filter((r) => r.number);
+    if (!hasNameColumn) {
+      throw new Error(
+        `Missing name column. Expected one of: ${NAME_COLUMN_VARIANTS.join(", ")}.`
+      );
+    }
+
+    return (result.data as Record<string, string>[])
+      .map((row) => {
+        const rawPhone =
+          row.phone ??
+          row.number ??
+          row.mobile ??
+          row.tel ??
+          row["phone number"] ??
+          row["mobile number"] ??
+          "";
+        const rawName =
+          row.name ??
+          row["business name"] ??
+          row.company ??
+          row["company name"] ??
+          row.business ??
+          "";
+        return {
+          phone: normalizePhone(rawPhone),
+          name: (rawName || "").trim(),
+        };
+      })
+      .filter((lead) => lead.phone.length >= 7 && lead.name.length > 0);
   }
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -58,7 +99,7 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
     reader.onload = (ev) => {
       try {
         const leads = parseCSV(ev.target?.result as string);
-        if (leads.length === 0) throw new Error("No valid rows found (Number column required).");
+        if (leads.length === 0) throw new Error("No valid rows found. Each row needs a name and a phone of at least 7 digits.");
         setPreview(leads);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to parse CSV");
@@ -126,9 +167,16 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
               {/* Format hint */}
               <div className="rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 p-3">
                 <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Expected columns</p>
-                <code className="text-xs text-gray-500 dark:text-gray-400">{EXPECTED_COLUMNS.join(", ")}</code>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <strong className="text-gray-700 dark:text-gray-200">Name</strong> column: any of{" "}
+                  <code>{NAME_COLUMN_VARIANTS.join(", ")}</code>
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <strong className="text-gray-700 dark:text-gray-200">Phone</strong> column: any of{" "}
+                  <code>{PHONE_COLUMN_VARIANTS.join(", ")}</code>
+                </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  <strong className="text-gray-500 dark:text-gray-300">Name</strong> and <strong className="text-gray-500 dark:text-gray-300">Number</strong> are required. All others are optional.
+                  Phone numbers are normalized automatically (e.g. <code>+1 (416) 555-0100</code> and <code>4165550100</code> are treated as the same).
                 </p>
               </div>
 
@@ -173,18 +221,14 @@ export function CsvImport({ campaignId }: { campaignId: string }) {
                       <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 border-b border-gray-200 dark:border-gray-700">
                         <tr>
                           <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Name</th>
-                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Number</th>
-                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Company</th>
-                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Designation</th>
+                          <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-400">Phone</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {preview.map((row, i) => (
                           <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
                             <td className="px-3 py-2 text-gray-800 dark:text-gray-200">{row.name}</td>
-                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400 font-mono">{row.number}</td>
-                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400">{row.company || "—"}</td>
-                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400">{row.designation || "—"}</td>
+                            <td className="px-3 py-2 text-gray-500 dark:text-gray-400 font-mono">{row.phone}</td>
                           </tr>
                         ))}
                       </tbody>

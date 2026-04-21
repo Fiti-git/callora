@@ -18,6 +18,23 @@ export interface CallResult {
   costBreakdown?: CostBreakdown;
 }
 
+export interface VapiOrgConfig {
+  aiCallerName: string;
+  aiCallerCompany: string;
+  aiCallerPhone: string;
+  aiSystemPrompt?: string | null;
+}
+
+export function buildSystemPrompt(orgConfig: VapiOrgConfig): string {
+  if (orgConfig.aiSystemPrompt && orgConfig.aiSystemPrompt.trim().length > 0) {
+    return orgConfig.aiSystemPrompt;
+  }
+  const contactLine = orgConfig.aiCallerPhone
+    ? ` If anyone asks for a contact number, provide: ${orgConfig.aiCallerPhone}.`
+    : "";
+  return `You are ${orgConfig.aiCallerName} from ${orgConfig.aiCallerCompany}. Your goal is to see if the business owner is interested in getting more clients via AI automation. Be professional, concise, and friendly. If they are interested, ask for an email to send details. If they are busy, offer to call back later.${contactLine}`;
+}
+
 export class VapiService {
   private baseUrl = "https://api.vapi.ai";
   private privateKey: string;
@@ -87,7 +104,8 @@ export class VapiService {
 
   async makeCall(
     businessPhone: string,
-    businessName: string
+    businessName: string,
+    orgConfig: VapiOrgConfig
   ): Promise<CallResult> {
     if (!this.privateKey || !this.phoneNumberId) {
       throw new Error("Vapi Configuration Missing for this organization.");
@@ -95,6 +113,7 @@ export class VapiService {
 
     try {
       const formattedPhone = this.formatPhone(businessPhone);
+      const systemPrompt = buildSystemPrompt(orgConfig);
 
       const response = await axios.post(
         `${this.baseUrl}/call`,
@@ -112,8 +131,7 @@ export class VapiService {
               messages: [
                 {
                   role: "system",
-                  content:
-                    "You are Alex from Redot Global. Your goal is to see if the business owner is interested in getting more clients via AI automation. Be professional, concise, and friendly. If they are interested, ask for an email to send details. If they are busy, offer to call back later. If anyone asks for a contact number or email, provide:  8823 9168.",
+                  content: systemPrompt,
                 },
               ],
             },
@@ -136,11 +154,12 @@ export class VapiService {
   }
 
   private async pollForCompletion(callId: string): Promise<CallResult> {
-    const maxRetries = 60; // 5 mins
+    const maxRetries = 80;
     let attempts = 0;
 
     while (attempts < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      const delayMs = attempts < 10 ? 3000 : 5000;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
       attempts++;
 
       try {
@@ -177,7 +196,7 @@ export class VapiService {
           };
         }
       } catch (err) {
-        // Ignore polling errors
+        console.error("Vapi poll error:", err);
       }
     }
 

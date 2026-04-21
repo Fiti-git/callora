@@ -1,14 +1,14 @@
 # AboutSystem.md
 
-## What is EzLeadsAI?
+## What is Callora?
 
-EzLeadsAI is a **B2B lead generation and outreach automation SaaS platform**. It is designed for sales teams or agencies that want to automatically discover potential business clients, qualify them using AI, and reach out via automated phone calls — all from a single dashboard.
+Callora is a **B2B lead generation and outreach automation SaaS platform**. It is designed for sales teams or agencies that want to automatically discover potential business clients, qualify them using AI, and reach out via automated phone calls — all from a single dashboard.
 
 ---
 
 ## The Core Problem It Solves
 
-Traditional lead generation is manual and slow: find businesses online, decide if they're worth calling, then actually call them. EzLeadsAI automates this entire pipeline end-to-end.
+Traditional lead generation is manual and slow: find businesses online, decide if they're worth calling, then actually call them. Callora automates this entire pipeline end-to-end.
 
 ---
 
