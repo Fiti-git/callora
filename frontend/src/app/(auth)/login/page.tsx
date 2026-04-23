@@ -30,88 +30,94 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Brand */}
-        <div className="flex items-center justify-center gap-2.5 mb-8">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span className="text-gray-900 font-bold text-xl tracking-tight">EzLeads.ai</span>
+    <div className="flex min-h-screen w-full items-center justify-center bg-lightPrimary px-4 py-12 dark:bg-navy-900">
+      <div className="w-full max-w-md">
+        <div className="mb-8 flex items-center justify-center">
+          <span className="font-poppins text-[32px] font-bold uppercase text-navy-700 dark:text-white">
+            Callora
+          </span>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm px-8 py-8">
-          <div className="mb-6">
-            <h1 className="text-xl font-semibold text-gray-900">Sign in to your account</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium">
-                Create one
-              </Link>
-            </p>
-          </div>
+        <div className="rounded-[20px] bg-white p-8 shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none">
+          <h1 className="mb-2 text-3xl font-bold text-navy-700 dark:text-white">
+            Sign In
+          </h1>
+          <p className="mb-7 text-sm text-gray-600">
+            Enter your email and password to sign in.
+          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                Email address
+              <label className="mb-1.5 block text-sm font-medium text-navy-700 dark:text-white">
+                Email
               </label>
               <input
                 type="email"
                 required
                 autoComplete="email"
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-navy-700 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:!border-white/10 dark:!bg-navy-800 dark:text-white"
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="mb-1.5 block text-sm font-medium text-navy-700 dark:text-white">
                 Password
               </label>
               <input
                 type="password"
                 required
                 autoComplete="current-password"
-                className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="h-12 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm text-navy-700 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:!border-white/10 dark:!bg-navy-800 dark:text-white"
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              <div className="text-right mt-1">
-                <Link href="/forgot-password" className="text-xs text-gray-500 hover:text-gray-700">
+              <div className="mt-2 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                >
                   Forgot your password?
                 </Link>
               </div>
             </div>
 
-            {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            {error ? (
+              <div className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-600 dark:bg-red-500/10">
                 {error}
               </div>
-            )}
+            ) : null}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-60 transition-colors"
+              className="linear flex w-full items-center justify-center gap-2 rounded-xl bg-brand-500 py-3 text-sm font-bold text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 disabled:opacity-60 dark:bg-brand-400 dark:hover:bg-brand-300"
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                   Signing in...
                 </>
               ) : (
-                "Sign in"
+                "Sign In"
               )}
             </button>
           </form>
+
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/register"
+              className="font-bold text-brand-500 hover:text-brand-600 dark:text-brand-400"
+            >
+              Create one
+            </Link>
+          </p>
         </div>
       </div>
     </div>

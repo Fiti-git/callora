@@ -1,27 +1,59 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
 
-/* Class-based dark mode for Tailwind v4 */
-@custom-variant dark (&:where(.dark, .dark *));
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #f9fafb;
-  --foreground: #111827;
+@layer base {
+  html {
+    font-family: 'Inter', sans-serif !important;
+    font-feature-settings: 'kern' !important;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.2px;
+  }
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Montserrat', sans-serif;
+  }
+  body {
+    background: #F9FAFB;
+    color: #1C1C1C;
+  }
+  .dark body {
+    background: #0D0D0D;
+    color: #ffffff;
+  }
 }
 
-.dark {
-  --background: #030712;
-  --foreground: #f9fafb;
+input.defaultCheckbox {
+  color: white;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+input.defaultCheckbox::before {
+  content: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.66662 10.115L12.7946 3.98633L13.7379 4.92899L6.66662 12.0003L2.42395 7.75766L3.36662 6.81499L6.66662 10.115Z' fill='white'/%3E%3C/svg%3E%0A");
+  fill: currentColor;
+  opacity: 0;
+  height: 16px;
+  width: 16px;
+  top: 0;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0px);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+input:checked.defaultCheckbox::before {
+  opacity: 1;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(112, 144, 176, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(112, 144, 176, 0.5);
 }

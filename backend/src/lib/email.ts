@@ -1,14 +1,12 @@
 import { Resend } from "resend";
 
-const FROM = process.env.FROM_EMAIL ?? "hello@callora.ai";
+const FROM = process.env.FROM_EMAIL ?? "Callora <onboarding@resend.dev>";
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 
-// CDN-hosted logo assets (ImageKit) — always accessible from email clients
 export const LOGO_DARK  = "https://ik.imagekit.io/z85ct1wzn/callora-logo-dark.png";
 export const LOGO_LIGHT = "https://ik.imagekit.io/z85ct1wzn/callora-logo-light.png";
 export const LOGO_ICON  = "https://ik.imagekit.io/z85ct1wzn/callora-logo-icon.png";
 
-// Lazy Resend client — constructing with an undefined key throws at module load.
 let _resend: Resend | null = null;
 function getResend(): Resend | null {
   if (_resend) return _resend;
@@ -24,12 +22,16 @@ export async function sendEmail(to: string, subject: string, html: string): Prom
   try {
     const client = getResend();
     if (!client) {
-      console.warn("Email skipped — RESEND_API_KEY is not set");
+      console.warn("[email] Skipped — RESEND_API_KEY is not set");
       return;
     }
-    await client.emails.send({ from: FROM, to, subject, html });
+    const { data, error } = await client.emails.send({ from: FROM, to, subject, html });
+    if (error) {
+      console.error(`[email] Resend rejected to=${to} from=${FROM} subject="${subject}":`, error);
+      return;
+    }
+    console.log(`[email] Sent to=${to} from=${FROM} subject="${subject}" id=${data?.id}`);
   } catch (err) {
-    console.error("Email send failed:", err);
-    // Never throw — email failures must not crash the app
+    console.error(`[email] Send failed to=${to} from=${FROM} subject="${subject}":`, err);
   }
 }

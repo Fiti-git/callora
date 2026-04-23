@@ -19,7 +19,13 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "components/*": ["./src/horizon-ui/components/*"],
+      "utils/*": ["./src/horizon-ui/utils/*"],
+      "types/*": ["./src/horizon-ui/types/*"],
+      "variables/*": ["./src/horizon-ui/variables/*"],
+      "styles/*": ["./src/horizon-ui/styles/*"],
+      "routes": ["./src/horizon-ui/routes.tsx"]
     }
   },
   "include": [
@@ -30,5 +36,20 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "legacy_cli"]
+  "exclude": [
+    "node_modules",
+    "legacy_cli",
+    "src/horizon-ui/components/admin",
+    "src/horizon-ui/components/auth",
+    "src/horizon-ui/components/calendar",
+    "src/horizon-ui/components/rtl",
+    "src/horizon-ui/components/rtlProvider",
+    "src/horizon-ui/components/popover",
+    "src/horizon-ui/components/tooltip",
+    "src/horizon-ui/components/image",
+    "src/horizon-ui/components/scrollbar",
+    "src/horizon-ui/components/sidebar/RTL.tsx",
+    "src/horizon-ui/components/sidebar/componentsrtl",
+    "src/horizon-ui/components/navbar/RTL.tsx"
+  ]
 }

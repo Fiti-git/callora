@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchWithAuth } from "@/lib/api";
+import { MdPerson } from "react-icons/md";
 
 interface TeamMember {
   id: string;
@@ -15,9 +16,9 @@ interface TeamMember {
 const ROLES = ["ADMIN", "MEMBER", "VIEWER"] as const;
 
 const ROLE_STYLES: Record<string, string> = {
-  ADMIN: "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400",
-  MEMBER: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
-  VIEWER: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+  ADMIN: "bg-brand-50 text-brand-600 dark:bg-brand-500/20 dark:text-brand-200",
+  MEMBER: "bg-horizonBlue-100 text-horizonBlue-600 dark:bg-horizonBlue-500/20 dark:text-horizonBlue-200",
+  VIEWER: "bg-lightPrimary text-gray-700 dark:bg-navy-900 dark:text-gray-300",
 };
 
 async function updateRole(userId: string, role: string) {
@@ -51,45 +52,101 @@ export function TeamManager({
     }
   }
 
+  if (team.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-xl bg-lightPrimary py-10 text-center dark:bg-navy-900">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white dark:bg-navy-800">
+          <MdPerson className="h-6 w-6 text-gray-600 dark:text-white" />
+        </div>
+        <p className="text-sm font-bold text-navy-700 dark:text-white">
+          No team members yet
+        </p>
+        <p className="mt-1 text-xs text-gray-600">
+          You&apos;re the only one here.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
-      {error && (
-        <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg px-3 py-2">
+      {error ? (
+        <div className="rounded-xl bg-red-100 px-4 py-3 text-sm text-red-600 dark:bg-red-500/10">
           {error}
-        </p>
-      )}
-      <div className="divide-y divide-gray-100 dark:divide-gray-800">
-        {team.map((member) => (
-          <div key={member.id} className="flex items-center justify-between py-3">
-            <div>
-              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                {member.name || member.email}
-                {member.id === currentUserId && (
-                  <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">(you)</span>
-                )}
-              </p>
-              {member.name && <p className="text-xs text-gray-400 dark:text-gray-500">{member.email}</p>}
-            </div>
-            <div className="flex items-center gap-2">
-              {member.id === currentUserId ? (
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${ROLE_STYLES[member.role]}`}>
-                  {member.role}
-                </span>
-              ) : (
-                <select
-                  value={member.role}
-                  disabled={loading === member.id}
-                  onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                  className="text-sm rounded-lg border border-gray-200 dark:border-gray-700 px-2 py-1 focus:border-blue-500 focus:outline-none bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 disabled:opacity-50"
-                >
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>{r}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </div>
-        ))}
+        </div>
+      ) : null}
+
+      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+        <table className="min-w-full">
+          <thead className="bg-lightPrimary dark:bg-navy-900">
+            <tr className="text-left text-xs font-bold uppercase tracking-wider text-gray-600">
+              <th className="px-5 py-3">Member</th>
+              <th className="px-5 py-3">Joined</th>
+              <th className="px-5 py-3 text-right">Role</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white dark:divide-white/10 dark:bg-navy-800">
+            {team.map((member) => {
+              const isYou = member.id === currentUserId;
+              return (
+                <tr key={member.id} className="text-sm">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-brandLinear to-brand-500 font-bold text-white">
+                        {(member.name || member.email).charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-navy-700 dark:text-white">
+                          {member.name || member.email}
+                          {isYou ? (
+                            <span className="ml-1.5 text-xs font-medium text-gray-500">
+                              (you)
+                            </span>
+                          ) : null}
+                        </p>
+                        {member.name ? (
+                          <p className="truncate text-xs text-gray-600">
+                            {member.email}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4 text-gray-700 dark:text-gray-300">
+                    {new Date(member.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    {isYou ? (
+                      <span
+                        className={
+                          "inline-block rounded-full px-3 py-1 text-xs font-bold " +
+                          ROLE_STYLES[member.role]
+                        }
+                      >
+                        {member.role}
+                      </span>
+                    ) : (
+                      <select
+                        value={member.role}
+                        disabled={loading === member.id}
+                        onChange={(e) =>
+                          handleRoleChange(member.id, e.target.value)
+                        }
+                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-navy-700 outline-none focus:border-brand-500 disabled:opacity-50 dark:border-white/10 dark:bg-navy-900 dark:text-white"
+                      >
+                        {ROLES.map((r) => (
+                          <option key={r} value={r}>
+                            {r}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
