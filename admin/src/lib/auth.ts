@@ -1,7 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-const BASE = process.env.NEXT_PUBLIC_PLATFORM_API_URL || "http://localhost:4000/api/platform";
+const BASE = process.env.PLATFORM_API_URL || process.env.NEXT_PUBLIC_PLATFORM_API_URL || "http://localhost:4000/api/platform";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },

@@ -1,33 +1,19 @@
-import { getApiKeys } from "@/app/actions/settings";
 import { getAiCallerSettings } from "@/app/actions/ai-caller";
-import { fetchWithAuth } from "@/lib/api";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import SettingsForm from "@/components/settings-form";
-import VapiSyncCard from "@/components/vapi-sync-card";
-import { TeamManager } from "@/components/team-manager";
 import { AiCallerForm } from "@/components/ai-caller-form";
 import Card from "@/horizon-ui/components/card";
 
 export default async function SettingsPage() {
-  const [keys, session, aiCaller] = await Promise.all([
-    getApiKeys(),
-    getServerSession(authOptions),
-    getAiCallerSettings().catch(() => ({
-      aiCallerName: "Alex",
-      aiCallerCompany: "",
-      aiCallerPhone: "",
-      aiSystemPrompt: null,
-    })),
-  ]);
+  const aiCaller = await getAiCallerSettings().catch(() => ({
+    aiCallerName: "Alex",
+    aiCallerCompany: "",
+    aiCallerPhone: "",
+    aiSystemPrompt: null,
+  }));
 
-  const isAdmin = session?.user?.role === "ADMIN";
-  let team: any[] = [];
-  if (isAdmin) {
-    try {
-      team = await fetchWithAuth("/settings/team");
-    } catch {}
-  }
+  // Outbound number is now managed by the platform — show a read-only label
+  // rather than letting tenants edit it. The platform-level Vapi phone is
+  // configured server-side via env.
+  const platformOutboundNumber = aiCaller.aiCallerPhone || "Managed by Callora";
 
   return (
     <div>
@@ -36,7 +22,7 @@ export default async function SettingsPage() {
           Settings
         </h1>
         <p className="mt-1 text-sm text-gray-600">
-          Configure API keys, AI caller persona, and team access.
+          Configure your AI caller persona.
         </p>
       </div>
 
@@ -44,52 +30,29 @@ export default async function SettingsPage() {
         <Card extra="p-0">
           <div className="border-b border-gray-200 px-6 py-5 dark:border-white/10">
             <h2 className="text-lg font-bold text-navy-700 dark:text-white">
-              AI Caller
+              AI Caller Persona
             </h2>
             <p className="mt-1 text-sm text-gray-600">
               Configure how your AI caller introduces itself on outbound calls.
             </p>
           </div>
-          <div className="px-6 py-5">
+          <div className="px-6 py-5 space-y-5">
+            <div className="rounded-xl border border-gray-200 bg-lightPrimary px-4 py-3 dark:border-white/10 dark:bg-navy-900/40">
+              <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Outbound Number
+              </div>
+              <div className="mt-1 text-sm font-medium text-navy-700 dark:text-white">
+                {platformOutboundNumber}
+              </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Outbound calls are placed from a Callora-managed number. To use
+                a custom number, contact support.
+              </p>
+            </div>
+
             <AiCallerForm initial={aiCaller} />
           </div>
         </Card>
-
-        <Card extra="p-0">
-          <div className="border-b border-gray-200 px-6 py-5 dark:border-white/10">
-            <h2 className="text-lg font-bold text-navy-700 dark:text-white">
-              API Configuration
-            </h2>
-            <p className="mt-1 text-sm text-gray-600">
-              Keys are stored securely per organisation and never exposed in the UI.
-            </p>
-          </div>
-          <div className="px-6 py-5">
-            <SettingsForm keys={keys} />
-          </div>
-        </Card>
-
-        <VapiSyncCard />
-
-        {isAdmin ? (
-          <Card extra="p-0">
-            <div className="border-b border-gray-200 px-6 py-5 dark:border-white/10">
-              <h2 className="text-lg font-bold text-navy-700 dark:text-white">
-                Team
-              </h2>
-              <p className="mt-1 text-sm text-gray-600">
-                Admins manage everything, Members create and edit, Viewers have
-                read-only access.
-              </p>
-            </div>
-            <div className="px-6 py-5">
-              <TeamManager
-                team={team}
-                currentUserId={session?.user?.id || ""}
-              />
-            </div>
-          </Card>
-        ) : null}
       </div>
     </div>
   );

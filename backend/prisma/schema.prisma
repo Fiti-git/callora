@@ -44,6 +44,9 @@ model User {
   role           Role         @default(MEMBER)
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
+  emailVerified  Boolean      @default(false)
+  verifyToken    String?      @unique
+  verifyTokenExp DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
@@ -72,6 +75,9 @@ model Organization {
   aiCallerCompany String  @default("")
   aiCallerPhone   String  @default("")
   aiSystemPrompt  String?
+  onboardingStep     String  @default("verify_email") // verify_email | choose_plan | setup_caller | complete
+  vapiPhoneNumberId  String? // Vapi phone-number object ID (provisioned on Stripe checkout)
+  vapiPhoneNumber    String? // E.164 number shown to the tenant e.g. +14155551234
   apiKeys      ApiKey?
   users        User[]
   campaigns    Campaign[]

@@ -50,3 +50,51 @@ export async function resetPassword(token: string, newPassword: string) {
   }
   return { success: true };
 }
+
+// Verifies an email-verification token. The verify-email endpoint is public
+// (no auth required) so we hit the API directly rather than via the
+// session-bound `fetchWithAuth` wrapper.
+export async function verifyEmail(token: string) {
+  if (!token) {
+    return { error: "Missing verification token." };
+  }
+
+  const res = await fetch(
+    `${API_URL}/auth/verify-email?token=${encodeURIComponent(token)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    return { error: data.error || "Verification failed." };
+  }
+  return {
+    success: true,
+    redirect: data.redirect ?? "/onboarding",
+  };
+}
+
+// Requests a new verification email for the currently authenticated user.
+// Backend: POST /api/auth/resend-verify (auth-service). Returns
+// `{ ok, alreadyVerified? }` on success or `{ error }` on failure.
+export async function resendVerificationEmail() {
+  try {
+    const data = await fetchWithAuth("/auth/resend-verify", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    return {
+      ok: true,
+      alreadyVerified: Boolean(data?.alreadyVerified),
+    };
+  } catch (err: unknown) {
+    return {
+      error:
+        err instanceof Error
+          ? err.message
+          : "Failed to resend verification email.",
+    };
+  }
+}

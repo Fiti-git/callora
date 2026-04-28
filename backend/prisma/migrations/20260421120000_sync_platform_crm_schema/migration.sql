@@ -21,7 +21,7 @@ ADD COLUMN     "aiSystemPrompt" TEXT,
 ADD COLUMN     "status" "OrgStatus" NOT NULL DEFAULT 'TRIAL';
 
 -- AlterTable
-ALTER TABLE "User" DROP COLUMN "role",
+ALTER TABLE "User" DROP COLUMN IF EXISTS "role",
 ADD COLUMN     "role" "Role" NOT NULL DEFAULT 'MEMBER';
 
 -- CreateTable

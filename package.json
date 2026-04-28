@@ -1,0 +1,5 @@
+{
+  "name": "callora",
+  "private": true,
+  "workspaces": ["shared", "services/*"]
+}

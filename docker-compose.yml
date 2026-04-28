@@ -1,97 +1,269 @@
+# Callora microservices stack.
+#
+# NOTE: There is no standalone `shared-build` service. Each service that depends
+# on @callora/shared builds it inside its own Dockerfile (multi-stage:
+# `shared-builder` stage compiles shared/, then copies dist into the service's
+# node_modules). Services that don't depend on shared (api-gateway,
+# notification-service) use a simpler single-context Dockerfile.
+
 services:
   db:
     image: postgres:15
     container_name: callora-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
-      retries: 3
-    networks:
-      - callora-network
+      retries: 10
 
   redis:
     image: redis:7-alpine
     container_name: callora-redis
     restart: unless-stopped
-    volumes:
-      - redis_data:/data
+    ports:
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
-      retries: 3
-    networks:
-      - callora-network
+      retries: 10
 
-  migrate:
-    image: callora-backend:latest
-    container_name: callora-migrate
-    command: npx prisma migrate deploy
-    env_file:
-      - .env
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: callora-api-gateway
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      AUTH_SERVICE_URL: http://auth-service:4001
+      CAMPAIGN_SERVICE_URL: http://campaign-service:4002
+      LEAD_SERVICE_URL: http://lead-service:4003
+      CALLING_SERVICE_URL: http://calling-service:4004
+      CRM_SERVICE_URL: http://crm-service:4005
+      BILLING_SERVICE_URL: http://billing-service:4006
+      PLATFORM_SERVICE_URL: http://platform-service:4007
+      NOTIFICATION_SERVICE_URL: http://notification-service:4008
+      ANALYTICS_SERVICE_URL: http://analytics-service:4009
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+      ADMIN_APP_ORIGIN: ${ADMIN_APP_ORIGIN}
+    depends_on:
+      - auth-service
+      - campaign-service
+      - lead-service
+      - calling-service
+      - crm-service
+      - billing-service
+      - platform-service
+      - analytics-service
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: callora-auth-service
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NOTIFICATION_SERVICE_URL: http://notification-service:4008
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
     depends_on:
       db:
         condition: service_healthy
-    restart: "no"
-    networks:
-      - callora-network
 
-  backend:
-    image: callora-backend:latest
-    container_name: callora-backend
+  campaign-service:
+    build:
+      context: .
+      dockerfile: services/campaign-service/Dockerfile
+    container_name: callora-campaign-service
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
-      - "4000:4000"
+      - "4002:4002"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      REDIS_URL: redis://redis:6379
+      LEAD_SERVICE_URL: http://lead-service:4003
+      CALLING_SERVICE_URL: http://calling-service:4004
+      NOTIFICATION_SERVICE_URL: http://notification-service:4008
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - callora-network
+
+  lead-service:
+    build:
+      context: .
+      dockerfile: services/lead-service/Dockerfile
+    container_name: callora-lead-service
+    restart: unless-stopped
+    ports:
+      - "4003:4003"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  calling-service:
+    build:
+      context: .
+      dockerfile: services/calling-service/Dockerfile
+    container_name: callora-calling-service
+    restart: unless-stopped
+    ports:
+      - "4004:4004"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      VAPI_PRIVATE_KEY: ${VAPI_PRIVATE_KEY}
+      VAPI_PHONE_NUMBER_ID: ${VAPI_PHONE_NUMBER_ID}
+      VAPI_WEBHOOK_SECRET: ${VAPI_WEBHOOK_SECRET}
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  crm-service:
+    build:
+      context: .
+      dockerfile: services/crm-service/Dockerfile
+    container_name: callora-crm-service
+    restart: unless-stopped
+    ports:
+      - "4005:4005"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  billing-service:
+    build:
+      context: .
+      dockerfile: services/billing-service/Dockerfile
+    container_name: callora-billing-service
+    restart: unless-stopped
+    ports:
+      - "4006:4006"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_FREE: ${STRIPE_PRICE_FREE}
+      STRIPE_PRICE_STARTER: ${STRIPE_PRICE_STARTER}
+      STRIPE_PRICE_PRO: ${STRIPE_PRICE_PRO}
+      STRIPE_PRICE_ENTERPRISE: ${STRIPE_PRICE_ENTERPRISE}
+      NOTIFICATION_SERVICE_URL: http://notification-service:4008
+      CALLING_SERVICE_URL: http://calling-service:4004
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+      calling-service:
+        condition: service_started
+
+  platform-service:
+    build:
+      context: .
+      dockerfile: services/platform-service/Dockerfile
+    container_name: callora-platform-service
+    restart: unless-stopped
+    ports:
+      - "4007:4007"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      PLATFORM_JWT_SECRET: ${PLATFORM_JWT_SECRET}
+      ADMIN_APP_ORIGIN: ${ADMIN_APP_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: callora-notification-service
+    restart: unless-stopped
+    ports:
+      - "4008:4008"
+    environment:
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+      APP_URL: ${TENANT_APP_ORIGIN}
+
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics-service/Dockerfile
+    container_name: callora-analytics-service
+    restart: unless-stopped
+    ports:
+      - "4009:4009"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
-    image: callora-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: callora-frontend
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
       - "3000:3000"
+    environment:
+      NEXTAUTH_URL: ${TENANT_APP_ORIGIN}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      API_URL: http://api-gateway:4000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
     depends_on:
-      backend:
-        condition: service_started
-    networks:
-      - callora-network
+      - api-gateway
 
   admin:
-    image: callora-admin:latest
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
     container_name: callora-admin
     restart: unless-stopped
-    env_file:
-      - .env
     ports:
       - "3001:3001"
+    environment:
+      NEXTAUTH_URL: ${ADMIN_APP_ORIGIN}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXT_PUBLIC_PLATFORM_API_URL: http://localhost:4000
     depends_on:
-      backend:
-        condition: service_started
-    networks:
-      - callora-network
-
-networks:
-  callora-network:
-    driver: bridge
+      - platform-service
 
 volumes:
-  postgres_data:
-  redis_data:
+  pgdata:

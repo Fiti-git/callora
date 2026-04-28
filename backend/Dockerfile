@@ -32,8 +32,11 @@ RUN apt-get update -y \
  && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
+COPY tsconfig.json ./
+COPY scripts ./scripts
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/prisma ./prisma
 
 RUN npx prisma generate

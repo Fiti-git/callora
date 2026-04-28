@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
 
-const BASE = process.env.NEXT_PUBLIC_PLATFORM_API_URL || "http://localhost:4000/api/platform";
+const BASE = process.env.PLATFORM_API_URL || process.env.NEXT_PUBLIC_PLATFORM_API_URL || "http://localhost:4000/api/platform";
 
 export async function platformFetch(path: string, init: RequestInit = {}) {
   const session = (await getServerSession(authOptions)) as any;
