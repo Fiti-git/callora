@@ -195,6 +195,26 @@ async function handleStripeEvent(event: any) {
       // no-op beyond the subscription.updated handler
       break;
     }
+    case "customer.subscription.trial_will_end": {
+      const sub = event.data.object;
+      const organizationId = sub.metadata?.organizationId;
+      if (!organizationId) return;
+      const dbSub = await prisma.subscription.findFirst({
+        where: { organizationId },
+        include: { organization: { include: { users: { where: { role: "ADMIN" } } } } },
+      });
+      const admin = dbSub?.organization.users[0];
+      if (admin?.email) {
+        await sendEmail(
+          admin.email,
+          "Your Callora trial is ending soon",
+          `<p style="font-family:Arial,sans-serif;color:#444;">Hi ${admin.name ?? "there"},</p>
+           <p style="font-family:Arial,sans-serif;color:#444;">Your free trial ends in 3 days. Add a payment method now to keep your campaigns running.</p>
+           <p><a href="${APP_URL}/billing" style="background:#DC0014;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:700;font-family:Arial,sans-serif;">Choose a Plan</a></p>`
+        );
+      }
+      break;
+    }
   }
 }
 

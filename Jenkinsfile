@@ -91,6 +91,10 @@ pipeline {
                                 cd /opt/callora
                                 echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
                                 docker compose pull
+                                # Apply pending Prisma migrations against the live DB before
+                                # rolling out new app containers. Uses the backend image we
+                                # just pulled so the bundled migration files match the code.
+                                docker compose run --rm --no-deps backend npx prisma migrate deploy
                                 docker compose up -d --remove-orphans
                                 docker image prune -f
                                 docker logout

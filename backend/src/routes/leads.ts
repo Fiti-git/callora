@@ -1,8 +1,15 @@
 import express, { Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { validateBody } from "../lib/validate.js";
 
 const router = express.Router();
+
+const scheduleFollowupSchema = z.object({
+  type: z.enum(["PENDING_RETRY", "PENDING_FOLLOWUP"]),
+  scheduledAt: z.string().datetime(),
+});
 
 router.use(authenticate);
 
@@ -30,19 +37,12 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // PATCH /leads/:id/schedule-followup — manually schedule a follow-up for any lead
-router.patch("/:id/schedule-followup", async (req: Request, res: Response) => {
+router.patch("/:id/schedule-followup", validateBody(scheduleFollowupSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { type, scheduledAt } = req.body as {
     type: "PENDING_RETRY" | "PENDING_FOLLOWUP";
-    scheduledAt: string; // ISO date string
+    scheduledAt: string;
   };
-
-  if (!type || !scheduledAt) {
-    return res.status(400).json({ error: "type and scheduledAt are required" });
-  }
-  if (type !== "PENDING_RETRY" && type !== "PENDING_FOLLOWUP") {
-    return res.status(400).json({ error: "type must be PENDING_RETRY or PENDING_FOLLOWUP" });
-  }
 
   try {
     const lead = await prisma.lead.findUnique({
@@ -51,9 +51,6 @@ router.patch("/:id/schedule-followup", async (req: Request, res: Response) => {
     if (!lead) return res.status(404).json({ error: "Lead not found" });
 
     const date = new Date(scheduledAt);
-    if (isNaN(date.getTime())) {
-      return res.status(400).json({ error: "Invalid scheduledAt date" });
-    }
 
     const updated = await prisma.lead.update({
       where: { id: req.params.id },

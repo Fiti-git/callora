@@ -164,7 +164,7 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
           </div>
-          <span className="text-gray-900 dark:text-white font-semibold text-sm tracking-tight">EzLeads.ai</span>
+          <span className="text-gray-900 dark:text-white font-semibold text-sm tracking-tight">Callora</span>
         </div>
       </div>
 

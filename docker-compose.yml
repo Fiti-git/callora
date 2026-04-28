@@ -5,12 +5,27 @@
 # `shared-builder` stage compiles shared/, then copies dist into the service's
 # node_modules). Services that don't depend on shared (api-gateway,
 # notification-service) use a simpler single-context Dockerfile.
+#
+# Production hardening:
+# - Default logging is rotated json-file (10MB x 3 files) so a noisy container
+#   can't fill the host disk.
+# - Postgres and Redis ports are bound to 127.0.0.1 only — reachable from the
+#   host (psql, backup script) but not from the public internet.
+# - The db container has explicit memory limits so a runaway query can't
+#   OOM-kill other services.
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 
 services:
   db:
     image: postgres:15
     container_name: callora-db
     restart: unless-stopped
+    logging: *default-logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -18,7 +33,13 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+        reservations:
+          memory: 512m
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
@@ -29,8 +50,13 @@ services:
     image: redis:7-alpine
     container_name: callora-redis
     restart: unless-stopped
+    logging: *default-logging
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -43,6 +69,7 @@ services:
       dockerfile: Dockerfile
     container_name: callora-api-gateway
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4000:4000"
     environment:
@@ -74,6 +101,7 @@ services:
       dockerfile: services/auth-service/Dockerfile
     container_name: callora-auth-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4001:4001"
     environment:
@@ -91,6 +119,7 @@ services:
       dockerfile: services/campaign-service/Dockerfile
     container_name: callora-campaign-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4002:4002"
     environment:
@@ -113,6 +142,7 @@ services:
       dockerfile: services/lead-service/Dockerfile
     container_name: callora-lead-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4003:4003"
     environment:
@@ -131,6 +161,7 @@ services:
       dockerfile: services/calling-service/Dockerfile
     container_name: callora-calling-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4004:4004"
     environment:
@@ -150,6 +181,7 @@ services:
       dockerfile: services/crm-service/Dockerfile
     container_name: callora-crm-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4005:4005"
     environment:
@@ -166,6 +198,7 @@ services:
       dockerfile: services/billing-service/Dockerfile
     container_name: callora-billing-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4006:4006"
     environment:
@@ -192,6 +225,7 @@ services:
       dockerfile: services/platform-service/Dockerfile
     container_name: callora-platform-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4007:4007"
     environment:
@@ -208,6 +242,7 @@ services:
       dockerfile: Dockerfile
     container_name: callora-notification-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4008:4008"
     environment:
@@ -224,6 +259,7 @@ services:
       dockerfile: services/analytics-service/Dockerfile
     container_name: callora-analytics-service
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "4009:4009"
     environment:
@@ -240,6 +276,7 @@ services:
       dockerfile: Dockerfile
     container_name: callora-frontend
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "3000:3000"
     environment:
@@ -256,6 +293,7 @@ services:
       dockerfile: Dockerfile
     container_name: callora-admin
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - "3001:3001"
     environment:

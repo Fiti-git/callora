@@ -18,6 +18,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <Link className="block hover:text-cyan-400" href="/">Dashboard</Link>
               <Link className="block hover:text-cyan-400" href="/tenants">Tenants</Link>
               <Link className="block hover:text-cyan-400" href="/plans">Plans</Link>
+              <Link className="block hover:text-cyan-400" href="/audit">Audit Log</Link>
             </aside>
             <main className="flex-1 p-8">{children}</main>
           </div>

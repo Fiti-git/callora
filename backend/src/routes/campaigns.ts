@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
 import { GeminiService } from "../services/gemini.js";
@@ -6,8 +7,41 @@ import { PlacesService } from "../services/places.js";
 import { VapiService } from "../services/vapi.js";
 import { assertWithinQuota, recordUsage, QuotaError } from "../lib/quota.js";
 import { callQueue, redisConnection } from "../lib/queue.js";
+import { validateBody } from "../lib/validate.js";
 
 const router = express.Router();
+
+const createCampaignSchema = z.object({
+  name: z.string().min(1).max(200),
+  prompt: z.string().max(5000).optional().nullable(),
+  type: z.enum(["AI", "CSV"]).optional(),
+});
+
+const followupSettingsSchema = z.object({
+  maxRetryAttempts: z.number().int().min(0).max(10).optional(),
+  retryDelayHours: z.number().int().min(1).max(168).optional(),
+  followUpDelayDays: z.number().int().min(1).max(90).optional(),
+});
+
+const importLeadsSchema = z.object({
+  leads: z
+    .array(
+      z.object({
+        phone: z.string().max(40).optional(),
+        number: z.string().max(40).optional(),
+        name: z.string().max(200).optional(),
+        company: z.string().max(200).optional(),
+        designation: z.string().max(200).optional(),
+        discussionArea: z.string().max(500).optional(),
+      })
+    )
+    .min(1)
+    .max(10_000),
+});
+
+const scrapeSchema = z.object({
+  limit: z.number().int().min(1).max(500).optional(),
+});
 
 // --- Follow-up automation helpers ---
 
@@ -78,7 +112,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // POST /campaigns
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", validateBody(createCampaignSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { name, prompt, type } = req.body;
 
@@ -100,7 +134,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // PATCH /campaigns/:id/followup-settings
-router.patch("/:id/followup-settings", async (req: Request, res: Response) => {
+router.patch("/:id/followup-settings", validateBody(followupSettingsSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { maxRetryAttempts, retryDelayHours, followUpDelayDays } = req.body;
 
@@ -153,7 +187,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // POST /campaigns/:id/import  — manual CSV upload
-router.post("/:id/import", async (req: Request, res: Response) => {
+router.post("/:id/import", validateBody(importLeadsSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const campaignId = req.params.id;
   const { leads } = req.body as {
@@ -227,7 +261,7 @@ router.post("/:id/import", async (req: Request, res: Response) => {
 });
 
 // POST /campaigns/:id/scrape
-router.post("/:id/scrape", async (req: Request, res: Response) => {
+router.post("/:id/scrape", validateBody(scrapeSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const campaignId = req.params.id;
 

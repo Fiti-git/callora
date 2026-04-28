@@ -1,12 +1,38 @@
 import "dotenv/config";
 import express, { type RequestHandler } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 import { createProxyMiddleware, type Options } from "http-proxy-middleware";
 import tenantAuth from "./middleware/tenantAuth";
 
 const app = express();
 const SERVICE = "api-gateway";
 const PORT = Number(process.env.PORT) || 4000;
+
+app.set("trust proxy", 1);
+app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many auth attempts. Try again in 15 minutes." },
+});
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Rate limit exceeded." },
+});
+const platformLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
 
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL || "http://auth-service:4001";
@@ -77,6 +103,7 @@ app.use(express.json());
 // ---------------------------------------------------------------------------
 app.use(
   "/api/platform",
+  platformLimiter,
   createProxyMiddleware({
     target: PLATFORM_SERVICE_URL,
     changeOrigin: true,
@@ -94,25 +121,25 @@ const tenantProxy = (target: string): RequestHandler =>
     changeOrigin: true,
   }) as unknown as RequestHandler;
 
-app.use("/api/auth", tenantAuth, tenantProxy(AUTH_SERVICE_URL));
-app.use("/api/campaigns", tenantAuth, tenantProxy(CAMPAIGN_SERVICE_URL));
-app.use("/api/leads", tenantAuth, tenantProxy(LEAD_SERVICE_URL));
-app.use("/api/vapi", tenantAuth, tenantProxy(CALLING_SERVICE_URL));
+app.use("/api/auth", authLimiter, tenantProxy(AUTH_SERVICE_URL));
+app.use("/api/campaigns", apiLimiter, tenantAuth, tenantProxy(CAMPAIGN_SERVICE_URL));
+app.use("/api/leads", apiLimiter, tenantAuth, tenantProxy(LEAD_SERVICE_URL));
+app.use("/api/vapi", apiLimiter, tenantAuth, tenantProxy(CALLING_SERVICE_URL));
 
 // CRM service hosts multiple resource paths
-app.use("/api/contacts", tenantAuth, tenantProxy(CRM_SERVICE_URL));
-app.use("/api/notes", tenantAuth, tenantProxy(CRM_SERVICE_URL));
-app.use("/api/tasks", tenantAuth, tenantProxy(CRM_SERVICE_URL));
-app.use("/api/deals", tenantAuth, tenantProxy(CRM_SERVICE_URL));
+app.use("/api/contacts", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
+app.use("/api/notes", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
+app.use("/api/tasks", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
+app.use("/api/deals", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
 
 // Remaining /api/billing/* (webhook already handled above)
-app.use("/api/billing", tenantAuth, tenantProxy(BILLING_SERVICE_URL));
+app.use("/api/billing", apiLimiter, tenantAuth, tenantProxy(BILLING_SERVICE_URL));
 
 // Analytics
-app.use("/api/stats", tenantAuth, tenantProxy(ANALYTICS_SERVICE_URL));
-app.use("/api/analytics", tenantAuth, tenantProxy(ANALYTICS_SERVICE_URL));
-app.use("/api/settings", tenantAuth, tenantProxy(CAMPAIGN_SERVICE_URL));
-app.use("/api/blacklist", tenantAuth, tenantProxy(LEAD_SERVICE_URL));
+app.use("/api/stats", apiLimiter, tenantAuth, tenantProxy(ANALYTICS_SERVICE_URL));
+app.use("/api/analytics", apiLimiter, tenantAuth, tenantProxy(ANALYTICS_SERVICE_URL));
+app.use("/api/settings", apiLimiter, tenantAuth, tenantProxy(CAMPAIGN_SERVICE_URL));
+app.use("/api/blacklist", apiLimiter, tenantAuth, tenantProxy(LEAD_SERVICE_URL));
 
 // Notification service is referenced for completeness but is NOT exposed
 // publicly — services call it directly over the internal Docker network.

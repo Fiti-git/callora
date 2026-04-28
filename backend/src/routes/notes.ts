@@ -1,8 +1,18 @@
 import express, { Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { validateBody } from "../lib/validate.js";
 
 const router = express.Router();
+
+const createSchema = z.object({
+  content: z.string().min(1).max(5000),
+  type: z.enum(["NOTE", "CALL", "EMAIL", "STATUS_CHANGE"]).optional(),
+  leadId: z.string().cuid().optional().nullable(),
+  contactId: z.string().cuid().optional().nullable(),
+});
+const updateSchema = z.object({ content: z.string().min(1).max(5000) });
 
 router.use(authenticate);
 
@@ -25,7 +35,7 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", validateBody(createSchema), async (req: Request, res: Response) => {
   const { organizationId, userId } = (req as AuthRequest).user!;
   const { content, type, leadId, contactId } = req.body;
   try {
@@ -45,7 +55,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-router.patch("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", validateBody(updateSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { content } = req.body;
   try {

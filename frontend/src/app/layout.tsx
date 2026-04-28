@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "@/components/theme-provider";
+import CookieConsent from "@/components/cookie-consent";
 
 export const metadata: Metadata = {
   title: "Callora — AI Lead Generation",
@@ -26,6 +27,7 @@ export default function RootLayout({
         <ThemeProvider>
           <Toaster position="top-right" />
           {children}
+          <CookieConsent />
         </ThemeProvider>
       </body>
     </html>

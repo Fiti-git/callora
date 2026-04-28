@@ -189,6 +189,9 @@ model Campaign {
   maxRetryAttempts  Int @default(3)
   retryDelayHours   Int @default(24)
   followUpDelayDays Int @default(3)
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
 }
 
 model Contact {
@@ -207,6 +210,7 @@ model Contact {
   updatedAt      DateTime     @updatedAt
 
   @@unique([phone, organizationId])
+  @@index([organizationId, createdAt])
 }
 
 model Lead {
@@ -237,6 +241,13 @@ model Lead {
   assignedTo   User?        @relation("LeadAssignee", fields: [assignedToId], references: [id])
   leadNotes    Note[]
   tasks        Task[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([campaignId, status])
+  @@index([campaignId, status, nextCallAt])
+  @@index([campaignId, status, followUpAt])
+  @@index([organizationId, contactId])
 }
 
 model CallLog {
@@ -252,6 +263,9 @@ model CallLog {
   vapiCallId    String?
   cost          Float?
   costBreakdown Json?
+
+  @@index([leadId, createdAt])
+  @@index([createdAt])
 }
 
 model Note {
@@ -271,6 +285,7 @@ model Note {
 
   @@index([leadId])
   @@index([contactId])
+  @@index([organizationId, createdAt])
 }
 
 model Task {
@@ -321,4 +336,7 @@ model Blacklist {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime     @default(now())
+
+  @@unique([organizationId, phoneNumber])
+  @@index([organizationId, createdAt])
 }

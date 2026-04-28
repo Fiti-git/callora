@@ -80,8 +80,17 @@ router.post("/register", async (req: Request, res: Response) => {
 });
 
 // LOGIN
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
 router.post("/login", async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const parsed = loginSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(401).json({ error: "Invalid credentials" });
+  }
+  const { email, password } = parsed.data;
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });

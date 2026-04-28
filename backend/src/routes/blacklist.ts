@@ -1,8 +1,16 @@
 import express, { Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { validateBody } from "../lib/validate.js";
 
 const router = express.Router();
+
+const createSchema = z.object({
+  phoneNumber: z.string().min(7).max(40),
+  reason: z.string().max(500).optional().nullable(),
+});
+
 router.use(authenticate);
 
 // GET /blacklist
@@ -20,11 +28,9 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // POST /blacklist
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", validateBody(createSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { phoneNumber, reason } = req.body;
-
-  if (!phoneNumber) return res.status(400).json({ error: "phoneNumber is required" });
 
   try {
     const existing = await prisma.blacklist.findFirst({

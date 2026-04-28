@@ -1,8 +1,31 @@
 import express, { Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { validateBody } from "../lib/validate.js";
 
 const router = express.Router();
+
+const STAGES = ["PROSPECT", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "WON", "LOST"] as const;
+const createSchema = z.object({
+  title: z.string().min(1).max(200),
+  contactId: z.string().cuid(),
+  value: z.number().nonnegative().max(1_000_000_000).optional().nullable(),
+  probability: z.number().min(0).max(100).optional().nullable(),
+  stage: z.enum(STAGES).optional(),
+  closeDate: z.string().datetime().optional().nullable(),
+  notes: z.string().max(5000).optional().nullable(),
+  assignedToId: z.string().cuid().optional().nullable(),
+});
+const updateSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  value: z.number().nonnegative().max(1_000_000_000).optional().nullable(),
+  probability: z.number().min(0).max(100).optional().nullable(),
+  stage: z.enum(STAGES).optional(),
+  closeDate: z.string().datetime().optional().nullable(),
+  notes: z.string().max(5000).optional().nullable(),
+  assignedToId: z.string().cuid().optional().nullable(),
+});
 
 router.use(authenticate);
 
@@ -45,7 +68,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", validateBody(createSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { title, contactId, value, probability, stage, closeDate, notes, assignedToId } = req.body;
   try {
@@ -68,7 +91,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-router.patch("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", validateBody(updateSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { title, value, probability, stage, closeDate, notes, assignedToId } = req.body;
   try {

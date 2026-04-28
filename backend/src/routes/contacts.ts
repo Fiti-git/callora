@@ -1,8 +1,23 @@
 import express, { Request, Response } from "express";
+import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { validateBody } from "../lib/validate.js";
 
 const router = express.Router();
+
+const createSchema = z.object({
+  businessName: z.string().min(1).max(200),
+  phone: z.string().min(1).max(40),
+  address: z.string().max(500).optional().nullable(),
+  email: z.string().email().optional().nullable(),
+});
+
+const updateSchema = z.object({
+  businessName: z.string().min(1).max(200).optional(),
+  address: z.string().max(500).optional().nullable(),
+  email: z.string().email().optional().nullable(),
+});
 
 router.use(authenticate);
 
@@ -44,7 +59,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", validateBody(createSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { businessName, phone, address, email } = req.body;
   try {
@@ -57,7 +72,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-router.patch("/:id", async (req: Request, res: Response) => {
+router.patch("/:id", validateBody(updateSchema), async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   const { businessName, address, email } = req.body;
   try {
