@@ -280,9 +280,14 @@ router.post("/:id/scrape", async (req: Request, res: Response) => {
 });
 
 // POST /campaigns/:id/call — enqueue background campaign execution
+//
+// Mirrors the monolith pre-check (Phase 1 wrap-up Task 2): refuse with 429
+// if the projected dispatch would exceed the org's VAPI_CALL quota, unless
+// `?force=true` opts into a partial run.
 async function enqueueCampaignCalls(req: Request, res: Response) {
   const { organizationId } = (req as AuthRequest).user!;
   const campaignId = req.params.id;
+  const force = req.query.force === "true" || req.query.force === "1";
 
   try {
     const campaign = await prisma.campaign.findUnique({
@@ -297,10 +302,23 @@ async function enqueueCampaignCalls(req: Request, res: Response) {
       return res.status(400).json({ error: "Campaign already running" });
     }
 
-    const leads = await prisma.lead.findMany({
-      where: { campaignId, status: { in: ["NEW", "PENDING_RETRY"] } },
-      select: { id: true },
+    const blacklisted = await prisma.blacklist.findMany({
+      where: { organizationId },
+      select: { phoneNumber: true },
     });
+    const blacklistedSet = new Set(blacklisted.map((b: { phoneNumber: string }) => b.phoneNumber));
+
+    const allLeads = await prisma.lead.findMany({
+      where: {
+        campaignId,
+        organizationId,
+        status: { in: ["NEW", "PENDING_RETRY"] },
+      },
+      select: { id: true, phone: true },
+    });
+    const leads = allLeads.filter(
+      (l: { id: string; phone: string | null }) => l.phone && !blacklistedSet.has(l.phone)
+    );
 
     if (leads.length === 0) {
       await prisma.campaign.update({
@@ -308,6 +326,38 @@ async function enqueueCampaignCalls(req: Request, res: Response) {
         data: { status: "COMPLETED" },
       });
       return res.json({ success: true, message: "No new leads to call", totalLeads: 0 });
+    }
+
+    if (!force) {
+      const sub = await prisma.subscription.findUnique({
+        where: { organizationId },
+        include: { plan: true },
+      });
+      const limit =
+        (sub?.plan?.maxCallsPerMonth ?? sub?.plan?.monthlyCallQuota ?? null) as
+          | number
+          | null;
+      if (limit !== null) {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const usage = await prisma.usageRecord.findUnique({
+          where: {
+            organizationId_periodStart: { organizationId, periodStart: start },
+          },
+        });
+        const current = usage?.callsMade ?? 0;
+        if (current + leads.length > limit) {
+          return res.status(429).json({
+            error: "QUOTA_WOULD_BE_EXCEEDED",
+            kind: "VAPI_CALL",
+            current,
+            limit,
+            requested: leads.length,
+            message:
+              "Starting this campaign would exceed your monthly call quota. Re-run with ?force=true to dispatch a partial run, or upgrade your plan.",
+          });
+        }
+      }
     }
 
     await redisConnection.srem("cancelled_campaigns", campaignId);

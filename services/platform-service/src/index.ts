@@ -1,6 +1,10 @@
 import "dotenv/config";
+import { startOtel } from "@callora/shared";
+if (process.env.NODE_ENV !== "test") startOtel({ serviceName: "platform-service" });
+
 import express from "express";
 import cors from "cors";
+import { prisma, makeHealthHandler } from "@callora/shared";
 
 import platformAuthRouter from "./routes/platform-auth.js";
 import organizationsRouter from "./routes/organizations.js";
@@ -22,9 +26,13 @@ app.use(
 
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.json({ service: SERVICE, status: "ok" });
-});
+app.get(
+  "/health",
+  makeHealthHandler({
+    serviceName: SERVICE,
+    pingDb: () => prisma.$queryRaw`SELECT 1`,
+  })
+);
 
 app.use("/api/platform/auth", platformAuthRouter);
 app.use("/api/platform/organizations", organizationsRouter);

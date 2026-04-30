@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
+import { requireEnv } from "../lib/env.js";
 
-const SECRET = process.env.NEXTAUTH_SECRET || "fallback_secret";
+// No fallback — fail loud at module load if the secret is missing.
+const SECRET = requireEnv("NEXTAUTH_SECRET");
 
 export interface AuthRequest extends Request {
   user?: {
@@ -10,6 +12,8 @@ export interface AuthRequest extends Request {
     organizationId: string;
     email: string;
     role: string;
+    tokenVersion?: number;
+    jti?: string;
   };
 }
 
@@ -30,13 +34,29 @@ export const authenticate = async (
     const decoded = jwt.verify(token, SECRET) as any;
     (req as AuthRequest).user = decoded;
 
-    const org = await prisma.organization.findUnique({
-      where: { id: decoded.organizationId },
-      select: { status: true },
-    });
+    const [org, user] = await Promise.all([
+      prisma.organization.findUnique({
+        where: { id: decoded.organizationId },
+        select: { status: true },
+      }),
+      prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { id: true, tokenVersion: true },
+      }),
+    ]);
 
     if (!org) {
       return res.status(401).json({ error: "Unauthorized: Organization not found" });
+    }
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized: User not found" });
+    }
+
+    // Token-revocation check (B11): a password reset bumps tokenVersion, which
+    // invalidates every existing JWT signed with the old version.
+    const tokenVersion = typeof decoded.tokenVersion === "number" ? decoded.tokenVersion : 0;
+    if (tokenVersion !== (user.tokenVersion ?? 0)) {
+      return res.status(401).json({ error: "Unauthorized: Token revoked" });
     }
 
     if (org.status === "SUSPENDED" || org.status === "CANCELED") {

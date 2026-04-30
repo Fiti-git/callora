@@ -47,16 +47,16 @@ router.post("/", validateBody(createSchema), async (req: Request, res: Response)
   }
 });
 
-// DELETE /blacklist/:id
+// DELETE /blacklist/:id — soft-delete via Prisma extension auto-filter.
 router.delete("/:id", async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   try {
-    const entry = await prisma.blacklist.findUnique({ where: { id: req.params.id } });
-    if (!entry || entry.organizationId !== organizationId)
-      return res.status(404).json({ error: "Not found" });
-
-    await prisma.blacklist.delete({ where: { id: req.params.id } });
-    res.json({ success: true });
+    const result = await prisma.blacklist.updateMany({
+      where: { id: req.params.id, organizationId, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) return res.status(404).json({ error: "Not found" });
+    res.status(204).end();
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

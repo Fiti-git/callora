@@ -23,6 +23,92 @@ pipeline {
             }
         }
 
+        // -----------------------------------------------------------------
+        // Test + migration-drift gate.
+        //
+        // These stages run BEFORE we build/push images so a regression or a
+        // schema-vs-migrations drift fails the pipeline early — no broken
+        // code or partial migration ever reaches the Push or Deploy stages.
+        //
+        // The Test stage runs the same vitest suites covered by GitHub
+        // Actions CI. It uses Docker so the agent doesn't need Node/Postgres
+        // installed locally. The DB is a throwaway container scoped to the
+        // build so it can't pollute (or be polluted by) anything else.
+        //
+        // The Migration Drift Check guards against `schema.prisma` being
+        // edited without a matching migration committed. `prisma migrate
+        // diff --exit-code` returns non-zero on any drift.
+        // -----------------------------------------------------------------
+        stage('Test') {
+            agent {
+                docker {
+                    image 'node:20'
+                    reuseNode true
+                    args '--user 0:0'
+                }
+            }
+            environment {
+                DATABASE_URL        = "postgres://postgres:postgres@ci-pg-${env.BUILD_NUMBER}:5432/callora_test"
+                NEXTAUTH_SECRET     = "ci0000000000000000000000000000000000000000000000000000000000ci00"
+                PLATFORM_JWT_SECRET = "ci1111111111111111111111111111111111111111111111111111111111ci11"
+                VAPI_WEBHOOK_SECRET = "ci2222222222222222222222222222222222222222222222222222222222ci22"
+                TENANT_APP_ORIGIN   = "http://localhost:3000"
+                REDIS_URL           = "redis://ci-redis-${env.BUILD_NUMBER}:6379"
+                CALLING_SERVICE_URL = "http://localhost:4004"
+                NOTIFICATION_SERVICE_URL = "http://localhost:4008"
+                LEAD_SERVICE_URL    = "http://localhost:4003"
+                NODE_ENV            = "test"
+            }
+            steps {
+                script {
+                    docker.image('postgres:16').withRun(
+                        "--name ci-pg-${env.BUILD_NUMBER} -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=callora_test"
+                    ) { _pg ->
+                        docker.image('redis:7').withRun(
+                            "--name ci-redis-${env.BUILD_NUMBER}"
+                        ) { _redis ->
+                            sh '''
+                                set -e
+                                # Wait for Postgres
+                                for i in 1 2 3 4 5 6 7 8 9 10; do
+                                    pg_isready -h ci-pg-${BUILD_NUMBER} -U postgres && break
+                                    sleep 2
+                                done
+                                npm install --no-audit --no-fund
+                                (cd shared && npx tsc)
+                                (cd backend && npm install --no-audit --no-fund && npx prisma generate && npx prisma migrate deploy && npx vitest run)
+                                (cd services/campaign-service && npm install --no-audit --no-fund && npx vitest run)
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Migration Drift Check') {
+            agent {
+                docker {
+                    image 'node:20'
+                    reuseNode true
+                    args '--user 0:0'
+                }
+            }
+            steps {
+                sh '''
+                    set -e
+                    cd backend
+                    npm install --no-audit --no-fund
+                    npx prisma validate
+                    # Fails non-zero if schema.prisma and migrations are
+                    # out of sync — block the pipeline before deploy.
+                    npx prisma migrate diff \
+                        --from-migrations prisma/migrations \
+                        --to-schema-datamodel prisma/schema.prisma \
+                        --exit-code
+                '''
+            }
+        }
+
         stage('Build Images') {
             parallel {
                 stage('Build backend') {

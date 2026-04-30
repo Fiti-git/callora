@@ -1,4 +1,11 @@
 import axios from "axios";
+import { Sentry, sentryEnabled } from "../lib/sentry.js";
+import { logger } from "../lib/logger.js";
+import { meterAndCharge } from "../lib/quota.js";
+import prisma from "../lib/prisma.js";
+import { isOnDNC } from "../lib/dnc.js";
+import { ConsentRequiredError, DNCBlockedError } from "../lib/complianceErrors.js";
+import { scrubBrandStrings } from "./provisioning/brandScrub.js";
 
 export interface CostBreakdown {
   transport?: number;
@@ -10,7 +17,7 @@ export interface CostBreakdown {
 }
 
 export interface CallResult {
-  status: "COMPLETED" | "NO_ANSWER" | "VOICEMAIL" | "FAILED";
+  status: "PENDING" | "COMPLETED" | "NO_ANSWER" | "VOICEMAIL" | "FAILED";
   durationSeconds: number;
   transcript?: string;
   vapiCallId?: string;
@@ -25,14 +32,34 @@ export interface VapiOrgConfig {
   aiSystemPrompt?: string | null;
 }
 
+/**
+ * Builds the system prompt sent to Vapi/OpenAI.
+ *
+ * SAFETY: campaigns must NOT run with a generic, branded fallback prompt.
+ * If the org has not configured an AI system prompt in Settings, throw —
+ * otherwise we'd dial real prospects with someone else's branding.
+ */
 export function buildSystemPrompt(orgConfig: VapiOrgConfig): string {
-  if (orgConfig.aiSystemPrompt && orgConfig.aiSystemPrompt.trim().length > 0) {
-    return orgConfig.aiSystemPrompt;
+  if (!orgConfig.aiSystemPrompt || orgConfig.aiSystemPrompt.trim().length === 0) {
+    throw new Error(
+      "AI system prompt is not configured for this organization. " +
+        "Please set it under Settings before starting a campaign."
+    );
   }
-  const contactLine = orgConfig.aiCallerPhone
-    ? ` If anyone asks for a contact number, provide: ${orgConfig.aiCallerPhone}.`
-    : "";
-  return `You are ${orgConfig.aiCallerName} from ${orgConfig.aiCallerCompany}. Your goal is to see if the business owner is interested in getting more clients via AI automation. Be professional, concise, and friendly. If they are interested, ask for an email to send details. If they are busy, offer to call back later.${contactLine}`;
+  return orgConfig.aiSystemPrompt;
+}
+
+/**
+ * Redact axios errors before logging — never log full response bodies, headers,
+ * or request configs (they may contain Authorization headers / API keys).
+ */
+function redactAxiosError(err: any): Record<string, unknown> {
+  return {
+    status: err?.response?.status,
+    statusText: err?.response?.statusText,
+    code: err?.code,
+    message: err?.message,
+  };
 }
 
 export class VapiService {
@@ -57,13 +84,100 @@ export class VapiService {
     return formattedPhone;
   }
 
+  /**
+   * Initiate an outbound call and return the Vapi call ID immediately.
+   * Does NOT poll — the webhook completes the CallLog row asynchronously.
+   */
+  async initiateCall(
+    businessPhone: string,
+    businessName: string,
+    orgConfig: VapiOrgConfig,
+    organizationId?: string
+  ): Promise<{ vapiCallId: string }> {
+    if (!this.privateKey || !this.phoneNumberId) {
+      // brand-scrubbed; original cause in err.cause
+      throw new Error(
+        scrubBrandStrings("Vapi Configuration Missing for this organization.")
+      );
+    }
+
+    const formattedPhone = this.formatPhone(businessPhone);
+    const systemPrompt = buildSystemPrompt(orgConfig);
+
+    // ----- TCPA compliance gates (Phase 2 Agent 9) -----
+    // 1. Per-lead consent + do-not-call. Looked up by phone+org because the
+    //    monolith path doesn't always carry leadId — phone is the canonical
+    //    business key on Lead-by-call.
+    if (organizationId) {
+      const lead = await prisma.lead.findFirst({
+        where: { phone: businessPhone, organizationId },
+        select: { id: true, consentGiven: true, doNotCall: true },
+      });
+      if (lead) {
+        if (lead.doNotCall) throw new ConsentRequiredError("DO_NOT_CALL", lead.id);
+        if (!lead.consentGiven) throw new ConsentRequiredError("NO_CONSENT", lead.id);
+      }
+      // 2. Platform / tenant DNC list.
+      const dnc = await isOnDNC(formattedPhone, organizationId);
+      if (dnc.onDnc) throw new DNCBlockedError(dnc.source, lead?.id);
+    }
+
+    // Meter & charge BEFORE we hit Vapi so a quota-exhausted org doesn't
+    // actually dial. Throws QuotaExceededError on overage; the caller
+    // (worker / route) must let that propagate.
+    if (organizationId) {
+      await meterAndCharge(organizationId, "VAPI_CALL", 1);
+    }
+
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/call`,
+        {
+          phoneNumberId: this.phoneNumberId,
+          customer: { number: formattedPhone, name: businessName },
+          assistant: {
+            firstMessage: `Hi, is this from ${businessName}?`,
+            model: {
+              provider: "openai",
+              model: "gpt-4o-mini",
+              messages: [{ role: "system", content: systemPrompt }],
+            },
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.privateKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return { vapiCallId: response.data.id };
+    } catch (err: any) {
+      if (sentryEnabled) {
+        Sentry.captureException(err, {
+          tags: { component: "vapi", kind: "initiate-call" },
+        });
+      }
+      logger.error(redactAxiosError(err), "Vapi initiateCall failed");
+      // brand-scrubbed; original cause in err.cause (Sentry got the real one above)
+      const scrubbed = new Error(
+        scrubBrandStrings(`Vapi call initiation failed: ${err.message}`)
+      );
+      (scrubbed as any).cause = err;
+      throw scrubbed;
+    }
+  }
+
   async makeCallWithMessage(
     businessPhone: string,
     businessName: string,
     firstMessage: string
   ): Promise<CallResult> {
     if (!this.privateKey || !this.phoneNumberId) {
-      throw new Error("Vapi Configuration Missing for this organization.");
+      // brand-scrubbed; original cause in err.cause
+      throw new Error(
+        scrubBrandStrings("Vapi Configuration Missing for this organization.")
+      );
     }
     try {
       const formattedPhone = this.formatPhone(businessPhone);
@@ -81,7 +195,7 @@ export class VapiService {
                 {
                   role: "system",
                   content:
-                    "You are Alex from Redot Global. Your goal is to see if the business owner is interested in getting more clients via AI automation. Be professional, concise, and friendly. If they are interested, ask for an email to send details. If they are busy, offer to call back later. If anyone asks for a contact number or email, provide:  8823 9168.",
+                    "You are a professional outbound caller. Be concise and friendly.",
                 },
               ],
             },
@@ -94,48 +208,66 @@ export class VapiService {
           },
         }
       );
-      const callId = response.data.id;
-      return await this.pollForCompletion(callId);
-    } catch (error: any) {
-      console.error("Vapi Call Failed:", error.response?.data || error.message);
-      return { status: "FAILED", durationSeconds: 0 };
+      return {
+        status: "PENDING",
+        durationSeconds: 0,
+        vapiCallId: response.data.id,
+      };
+    } catch (err: any) {
+      if (sentryEnabled) {
+        Sentry.captureException(err, {
+          tags: { component: "vapi", kind: "make-call-with-message" },
+        });
+      }
+      logger.error(redactAxiosError(err), "Vapi makeCallWithMessage failed");
+      // brand-scrubbed; original cause in err.cause (Sentry got the real one above)
+      const scrubbed = new Error(
+        scrubBrandStrings(`Vapi call failed: ${err.message}`)
+      );
+      (scrubbed as any).cause = err;
+      throw scrubbed;
     }
   }
 
-  async makeCall(
+  /**
+   * Phase 5 Agent M5 — hosted/PAYG path. Skips buildSystemPrompt and uses a
+   * pre-created Vapi assistant id (provisioned per-org). The platform key in
+   * `this.privateKey` does the auth.
+   */
+  async makeCallWithAssistant(
     businessPhone: string,
     businessName: string,
-    orgConfig: VapiOrgConfig
+    assistantId: string,
+    organizationId?: string
   ): Promise<CallResult> {
     if (!this.privateKey || !this.phoneNumberId) {
-      throw new Error("Vapi Configuration Missing for this organization.");
+      throw new Error(
+        scrubBrandStrings("Vapi Configuration Missing for this organization.")
+      );
+    }
+    const formattedPhone = this.formatPhone(businessPhone);
+
+    if (organizationId) {
+      const lead = await prisma.lead.findFirst({
+        where: { phone: businessPhone, organizationId },
+        select: { id: true, consentGiven: true, doNotCall: true },
+      });
+      if (lead) {
+        if (lead.doNotCall) throw new ConsentRequiredError("DO_NOT_CALL", lead.id);
+        if (!lead.consentGiven) throw new ConsentRequiredError("NO_CONSENT", lead.id);
+      }
+      const dnc = await isOnDNC(formattedPhone, organizationId);
+      if (dnc.onDnc) throw new DNCBlockedError(dnc.source, lead?.id);
+      await meterAndCharge(organizationId, "VAPI_CALL", 1);
     }
 
     try {
-      const formattedPhone = this.formatPhone(businessPhone);
-      const systemPrompt = buildSystemPrompt(orgConfig);
-
       const response = await axios.post(
         `${this.baseUrl}/call`,
         {
           phoneNumberId: this.phoneNumberId,
-          customer: {
-            number: formattedPhone,
-            name: businessName,
-          },
-          assistant: {
-            firstMessage: `Hi, is this from ${businessName}?`,
-            model: {
-              provider: "openai",
-              model: "gpt-4o-mini",
-              messages: [
-                {
-                  role: "system",
-                  content: systemPrompt,
-                },
-              ],
-            },
-          },
+          customer: { number: formattedPhone, name: businessName },
+          assistantId,
         },
         {
           headers: {
@@ -144,66 +276,47 @@ export class VapiService {
           },
         }
       );
-
-      const callId = response.data.id;
-      return await this.pollForCompletion(callId);
-    } catch (error: any) {
-      console.error("Vapi Call Failed:", error.response?.data || error.message);
-      return { status: "FAILED", durationSeconds: 0 };
+      return {
+        status: "PENDING",
+        durationSeconds: 0,
+        vapiCallId: response.data.id,
+      };
+    } catch (err: any) {
+      if (sentryEnabled) {
+        Sentry.captureException(err, {
+          tags: { component: "vapi", kind: "make-call-with-assistant" },
+        });
+      }
+      logger.error(redactAxiosError(err), "Vapi makeCallWithAssistant failed");
+      const scrubbed = new Error(
+        scrubBrandStrings(`Vapi call initiation failed: ${err.message}`)
+      );
+      (scrubbed as any).cause = err;
+      throw scrubbed;
     }
   }
 
-  private async pollForCompletion(callId: string): Promise<CallResult> {
-    const maxRetries = 80;
-    let attempts = 0;
-
-    while (attempts < maxRetries) {
-      const delayMs = attempts < 10 ? 3000 : 5000;
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-      attempts++;
-
-      try {
-        const response = await axios.get(`${this.baseUrl}/call/${callId}`, {
-          headers: { Authorization: `Bearer ${this.privateKey}` },
-        });
-
-        const call = response.data;
-        if (call.status === "ended") {
-          const reason = call.endedReason;
-          let status: CallResult["status"] = "COMPLETED";
-
-          if (
-            reason === "customer-did-not-answer" ||
-            reason === "ring-timeout"
-          ) {
-            status = "NO_ANSWER";
-          } else if (reason === "voicemail") {
-            status = "VOICEMAIL";
-          }
-
-          const transcript =
-            call.transcript ||
-            call.analysis?.summary ||
-            call.artifact?.transcript;
-
-          return {
-            status,
-            durationSeconds: call.durationSeconds || 0,
-            transcript: JSON.stringify(transcript || "No transcript available"),
-            vapiCallId: callId,
-            cost: call.cost ?? undefined,
-            costBreakdown: call.costBreakdown ?? undefined,
-          };
-        }
-      } catch (err) {
-        console.error("Vapi poll error:", err);
-      }
-    }
-
+  /**
+   * Fire-and-forget: initiate the call and return immediately with a PENDING
+   * CallResult containing the vapiCallId. The webhook handler is responsible
+   * for transitioning the resulting CallLog to COMPLETED/FAILED.
+   */
+  async makeCall(
+    businessPhone: string,
+    businessName: string,
+    orgConfig: VapiOrgConfig,
+    organizationId?: string
+  ): Promise<CallResult> {
+    const { vapiCallId } = await this.initiateCall(
+      businessPhone,
+      businessName,
+      orgConfig,
+      organizationId
+    );
     return {
-      status: "FAILED",
-      durationSeconds: 300,
-      transcript: "Timeout waiting for call to end.",
+      status: "PENDING",
+      durationSeconds: 0,
+      vapiCallId,
     };
   }
 }

@@ -2,6 +2,7 @@ import { Worker, Job } from "bullmq";
 import { callQueue, redisConnection } from "../lib/queue.js";
 import { campaignWorker, CampaignCallJobData } from "./campaignWorker.js";
 import { trialExpiryWorker } from "./trialExpiryWorker.js";
+import { callCompletedWorker, CallCompletedJobData } from "./callCompletedWorker.js";
 
 export const campaignCallsWorker = new Worker<any>(
   "campaign-calls",
@@ -12,11 +13,14 @@ export const campaignCallsWorker = new Worker<any>(
     if (job.name === "checkTrialExpiry") {
       return await trialExpiryWorker(job);
     }
+    if (job.name === "callCompleted") {
+      return await callCompletedWorker(job as Job<CallCompletedJobData>);
+    }
     console.warn(`Unknown job name received on campaign-calls queue: ${job.name}`);
   },
   {
     connection: redisConnection,
-    concurrency: 1,
+    concurrency: Number(process.env.WORKER_CONCURRENCY || 1),
   }
 );
 

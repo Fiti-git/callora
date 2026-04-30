@@ -132,6 +132,13 @@ exports.Prisma.UserScalarFieldEnum = {
   emailVerified: 'emailVerified',
   verifyToken: 'verifyToken',
   verifyTokenExp: 'verifyTokenExp',
+  tokenVersion: 'tokenVersion',
+  twoFASecret: 'twoFASecret',
+  twoFAEnabled: 'twoFAEnabled',
+  twoFARecoveryCodes: 'twoFARecoveryCodes',
+  lastLoginAt: 'lastLoginAt',
+  ssoProvider: 'ssoProvider',
+  ssoSubject: 'ssoSubject',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -154,6 +161,11 @@ exports.Prisma.OrganizationScalarFieldEnum = {
   aiCallerPhone: 'aiCallerPhone',
   aiSystemPrompt: 'aiSystemPrompt',
   onboardingStep: 'onboardingStep',
+  vapiPhoneNumberId: 'vapiPhoneNumberId',
+  vapiPhoneNumber: 'vapiPhoneNumber',
+  gdprDeletedAt: 'gdprDeletedAt',
+  zapierTriggerToken: 'zapierTriggerToken',
+  billingMode: 'billingMode',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -178,6 +190,11 @@ exports.Prisma.PlanScalarFieldEnum = {
   monthlyLeadQuota: 'monthlyLeadQuota',
   seatLimit: 'seatLimit',
   priceCents: 'priceCents',
+  maxCallsPerMonth: 'maxCallsPerMonth',
+  maxPlacesPerMonth: 'maxPlacesPerMonth',
+  maxGeminiTokensPerMonth: 'maxGeminiTokensPerMonth',
+  maxEmailsPerMonth: 'maxEmailsPerMonth',
+  maxApiCallsPerMonth: 'maxApiCallsPerMonth',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -203,6 +220,10 @@ exports.Prisma.UsageRecordScalarFieldEnum = {
   callsMade: 'callsMade',
   leadsScraped: 'leadsScraped',
   aiTokens: 'aiTokens',
+  placesScraped: 'placesScraped',
+  emailsSent: 'emailsSent',
+  apiCallsThisMonth: 'apiCallsThisMonth',
+  vapiSpendCents: 'vapiSpendCents',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -212,9 +233,24 @@ exports.Prisma.AuditLogScalarFieldEnum = {
   actorType: 'actorType',
   actorId: 'actorId',
   organizationId: 'organizationId',
+  targetOrganizationId: 'targetOrganizationId',
   action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
   target: 'target',
   metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EmailLogScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  recipient: 'recipient',
+  subject: 'subject',
+  template: 'template',
+  status: 'status',
+  providerMessageId: 'providerMessageId',
+  error: 'error',
   createdAt: 'createdAt'
 };
 
@@ -239,7 +275,8 @@ exports.Prisma.CampaignScalarFieldEnum = {
   updatedAt: 'updatedAt',
   maxRetryAttempts: 'maxRetryAttempts',
   retryDelayHours: 'retryDelayHours',
-  followUpDelayDays: 'followUpDelayDays'
+  followUpDelayDays: 'followUpDelayDays',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.ContactScalarFieldEnum = {
@@ -248,9 +285,12 @@ exports.Prisma.ContactScalarFieldEnum = {
   phone: 'phone',
   address: 'address',
   email: 'email',
+  tags: 'tags',
+  ownerId: 'ownerId',
   organizationId: 'organizationId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.LeadScalarFieldEnum = {
@@ -269,7 +309,17 @@ exports.Prisma.LeadScalarFieldEnum = {
   nextCallAt: 'nextCallAt',
   followUpAt: 'followUpAt',
   contactId: 'contactId',
-  assignedToId: 'assignedToId'
+  assignedToId: 'assignedToId',
+  consentGiven: 'consentGiven',
+  consentTimestamp: 'consentTimestamp',
+  consentSource: 'consentSource',
+  consentIpAddress: 'consentIpAddress',
+  doNotCall: 'doNotCall',
+  doNotCallReason: 'doNotCallReason',
+  doNotCallAt: 'doNotCallAt',
+  state: 'state',
+  timezone: 'timezone',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.CallLogScalarFieldEnum = {
@@ -282,7 +332,8 @@ exports.Prisma.CallLogScalarFieldEnum = {
   createdAt: 'createdAt',
   vapiCallId: 'vapiCallId',
   cost: 'cost',
-  costBreakdown: 'costBreakdown'
+  costBreakdown: 'costBreakdown',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.NoteScalarFieldEnum = {
@@ -294,7 +345,8 @@ exports.Prisma.NoteScalarFieldEnum = {
   contactId: 'contactId',
   organizationId: 'organizationId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.TaskScalarFieldEnum = {
@@ -309,7 +361,8 @@ exports.Prisma.TaskScalarFieldEnum = {
   contactId: 'contactId',
   organizationId: 'organizationId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.DealScalarFieldEnum = {
@@ -322,9 +375,195 @@ exports.Prisma.DealScalarFieldEnum = {
   notes: 'notes',
   contactId: 'contactId',
   assignedToId: 'assignedToId',
+  ownerId: 'ownerId',
   organizationId: 'organizationId',
   createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.DealHistoryScalarFieldEnum = {
+  id: 'id',
+  dealId: 'dealId',
+  organizationId: 'organizationId',
+  fromStage: 'fromStage',
+  toStage: 'toStage',
+  changedById: 'changedById',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DunningStateScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  invoiceId: 'invoiceId',
+  subscriptionId: 'subscriptionId',
+  attempt: 'attempt',
+  status: 'status',
+  firstFailedAt: 'firstFailedAt',
+  nextActionAt: 'nextActionAt',
+  lastEmailSentAt: 'lastEmailSentAt',
+  resolvedAt: 'resolvedAt',
+  amountDueCents: 'amountDueCents',
+  currency: 'currency',
+  createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.StripeWebhookEventScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  livemode: 'livemode',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt'
+};
+
+exports.Prisma.CallWindowConfigScalarFieldEnum = {
+  id: 'id',
+  state: 'state',
+  allowedFrom: 'allowedFrom',
+  allowedTo: 'allowedTo',
+  timezone: 'timezone',
+  source: 'source',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DNCEntryScalarFieldEnum = {
+  id: 'id',
+  phoneHash: 'phoneHash',
+  organizationId: 'organizationId',
+  source: 'source',
+  reason: 'reason',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EmailSuppressionScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  organizationId: 'organizationId',
+  reason: 'reason',
+  source: 'source',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.ResendWebhookEventScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt'
+};
+
+exports.Prisma.EmailCampaignScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  subject: 'subject',
+  previewText: 'previewText',
+  htmlBody: 'htmlBody',
+  textBody: 'textBody',
+  status: 'status',
+  scheduledAt: 'scheduledAt',
+  sentAt: 'sentAt',
+  fromName: 'fromName',
+  fromEmail: 'fromEmail',
+  replyTo: 'replyTo',
+  totalRecipients: 'totalRecipients',
+  totalSent: 'totalSent',
+  totalDelivered: 'totalDelivered',
+  totalOpened: 'totalOpened',
+  totalClicked: 'totalClicked',
+  totalBounced: 'totalBounced',
+  totalUnsubscribed: 'totalUnsubscribed',
+  totalComplained: 'totalComplained',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.EmailRecipientListScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  description: 'description',
+  memberCount: 'memberCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.EmailCampaignListScalarFieldEnum = {
+  campaignId: 'campaignId',
+  listId: 'listId'
+};
+
+exports.Prisma.EmailRecipientListMemberScalarFieldEnum = {
+  id: 'id',
+  listId: 'listId',
+  contactId: 'contactId',
+  email: 'email',
+  source: 'source',
+  subscribedAt: 'subscribedAt',
+  unsubscribedAt: 'unsubscribedAt'
+};
+
+exports.Prisma.EmailSendScalarFieldEnum = {
+  id: 'id',
+  campaignId: 'campaignId',
+  contactId: 'contactId',
+  organizationId: 'organizationId',
+  email: 'email',
+  status: 'status',
+  providerMessageId: 'providerMessageId',
+  sentAt: 'sentAt',
+  deliveredAt: 'deliveredAt',
+  openedAt: 'openedAt',
+  clickedAt: 'clickedAt',
+  bouncedAt: 'bouncedAt',
+  complainedAt: 'complainedAt',
+  unsubscribedAt: 'unsubscribedAt',
+  failedAt: 'failedAt',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.EmailTemplateScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  subject: 'subject',
+  htmlBody: 'htmlBody',
+  textBody: 'textBody',
+  category: 'category',
+  isDefault: 'isDefault',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.EmailAutomationScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  trigger: 'trigger',
+  active: 'active',
+  sequence: 'sequence',
+  stats: 'stats',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.EmailAutomationRunScalarFieldEnum = {
+  id: 'id',
+  automationId: 'automationId',
+  organizationId: 'organizationId',
+  contactId: 'contactId',
+  triggeredAt: 'triggeredAt',
+  currentStep: 'currentStep',
+  status: 'status',
+  context: 'context'
 };
 
 exports.Prisma.BlacklistScalarFieldEnum = {
@@ -332,6 +571,89 @@ exports.Prisma.BlacklistScalarFieldEnum = {
   phoneNumber: 'phoneNumber',
   reason: 'reason',
   organizationId: 'organizationId',
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.TenantWebhookScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  url: 'url',
+  events: 'events',
+  secret: 'secret',
+  active: 'active',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
+};
+
+exports.Prisma.WebhookDeliveryScalarFieldEnum = {
+  id: 'id',
+  webhookId: 'webhookId',
+  organizationId: 'organizationId',
+  event: 'event',
+  payload: 'payload',
+  status: 'status',
+  responseCode: 'responseCode',
+  responseBody: 'responseBody',
+  attempts: 'attempts',
+  lastAttemptAt: 'lastAttemptAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PublicApiKeyScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  name: 'name',
+  keyHash: 'keyHash',
+  prefix: 'prefix',
+  scopes: 'scopes',
+  lastUsedAt: 'lastUsedAt',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  revokedAt: 'revokedAt'
+};
+
+exports.Prisma.TenantProvisioningScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  status: 'status',
+  vapiAssistantId: 'vapiAssistantId',
+  vapiPhoneNumberId: 'vapiPhoneNumberId',
+  vapiPhoneE164: 'vapiPhoneE164',
+  stripeCustomerId: 'stripeCustomerId',
+  defaultPaymentMethodId: 'defaultPaymentMethodId',
+  failureReason: 'failureReason',
+  steps: 'steps',
+  provisionedAt: 'provisionedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CreditLedgerScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  balanceCents: 'balanceCents',
+  lifetimeAddedCents: 'lifetimeAddedCents',
+  lifetimeSpentCents: 'lifetimeSpentCents',
+  autoRechargeEnabled: 'autoRechargeEnabled',
+  autoRechargeThresholdCents: 'autoRechargeThresholdCents',
+  autoRechargeAmountCents: 'autoRechargeAmountCents',
+  lastAutoRechargeAt: 'lastAutoRechargeAt',
+  lowBalanceAlertSentAt: 'lowBalanceAlertSentAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.CreditTransactionScalarFieldEnum = {
+  id: 'id',
+  ledgerId: 'ledgerId',
+  organizationId: 'organizationId',
+  kind: 'kind',
+  amountCents: 'amountCents',
+  balanceAfterCents: 'balanceAfterCents',
+  ref: 'ref',
+  metadata: 'metadata',
   createdAt: 'createdAt'
 };
 
@@ -342,6 +664,10 @@ exports.Prisma.SortOrder = {
 
 exports.Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
@@ -371,7 +697,14 @@ exports.OrgStatus = exports.$Enums.OrgStatus = {
   ACTIVE: 'ACTIVE',
   PAST_DUE: 'PAST_DUE',
   SUSPENDED: 'SUSPENDED',
-  CANCELED: 'CANCELED'
+  CANCELED: 'CANCELED',
+  PAUSED_NO_CREDIT: 'PAUSED_NO_CREDIT'
+};
+
+exports.BillingMode = exports.$Enums.BillingMode = {
+  PAYG: 'PAYG',
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  BYOK: 'BYOK'
 };
 
 exports.PlanTier = exports.$Enums.PlanTier = {
@@ -389,6 +722,68 @@ exports.SubStatus = exports.$Enums.SubStatus = {
   INCOMPLETE: 'INCOMPLETE'
 };
 
+exports.DunningStatus = exports.$Enums.DunningStatus = {
+  ACTIVE: 'ACTIVE',
+  RETRY_SCHEDULED: 'RETRY_SCHEDULED',
+  WARNED: 'WARNED',
+  SUSPENDED: 'SUSPENDED',
+  RESOLVED: 'RESOLVED',
+  CANCELED: 'CANCELED'
+};
+
+exports.EmailCampaignStatus = exports.$Enums.EmailCampaignStatus = {
+  DRAFT: 'DRAFT',
+  SCHEDULED: 'SCHEDULED',
+  SENDING: 'SENDING',
+  SENT: 'SENT',
+  PAUSED: 'PAUSED',
+  FAILED: 'FAILED'
+};
+
+exports.EmailRecipientSource = exports.$Enums.EmailRecipientSource = {
+  MANUAL: 'MANUAL',
+  CSV_IMPORT: 'CSV_IMPORT',
+  CAMPAIGN: 'CAMPAIGN',
+  API: 'API'
+};
+
+exports.EmailSendStatus = exports.$Enums.EmailSendStatus = {
+  QUEUED: 'QUEUED',
+  SENT: 'SENT',
+  DELIVERED: 'DELIVERED',
+  OPENED: 'OPENED',
+  CLICKED: 'CLICKED',
+  BOUNCED: 'BOUNCED',
+  COMPLAINED: 'COMPLAINED',
+  UNSUBSCRIBED: 'UNSUBSCRIBED',
+  FAILED: 'FAILED'
+};
+
+exports.EmailAutomationTrigger = exports.$Enums.EmailAutomationTrigger = {
+  LEAD_QUALIFIED: 'LEAD_QUALIFIED',
+  DEAL_WON: 'DEAL_WON',
+  CONTACT_CREATED: 'CONTACT_CREATED',
+  CAMPAIGN_COMPLETE: 'CAMPAIGN_COMPLETE'
+};
+
+exports.WebhookEvent = exports.$Enums.WebhookEvent = {
+  LEAD_QUALIFIED: 'LEAD_QUALIFIED',
+  CALL_COMPLETED: 'CALL_COMPLETED',
+  DEAL_WON: 'DEAL_WON',
+  CAMPAIGN_COMPLETED: 'CAMPAIGN_COMPLETED',
+  EMAIL_OPENED: 'EMAIL_OPENED',
+  EMAIL_CLICKED: 'EMAIL_CLICKED'
+};
+
+exports.ProvisioningStatus = exports.$Enums.ProvisioningStatus = {
+  PENDING: 'PENDING',
+  PROVISIONING: 'PROVISIONING',
+  READY: 'READY',
+  FAILED: 'FAILED',
+  SUSPENDED: 'SUSPENDED',
+  DEPROVISIONED: 'DEPROVISIONED'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   PasswordResetToken: 'PasswordResetToken',
@@ -398,6 +793,7 @@ exports.Prisma.ModelName = {
   Subscription: 'Subscription',
   UsageRecord: 'UsageRecord',
   AuditLog: 'AuditLog',
+  EmailLog: 'EmailLog',
   ApiKey: 'ApiKey',
   Campaign: 'Campaign',
   Contact: 'Contact',
@@ -406,7 +802,28 @@ exports.Prisma.ModelName = {
   Note: 'Note',
   Task: 'Task',
   Deal: 'Deal',
-  Blacklist: 'Blacklist'
+  DealHistory: 'DealHistory',
+  DunningState: 'DunningState',
+  StripeWebhookEvent: 'StripeWebhookEvent',
+  CallWindowConfig: 'CallWindowConfig',
+  DNCEntry: 'DNCEntry',
+  EmailSuppression: 'EmailSuppression',
+  ResendWebhookEvent: 'ResendWebhookEvent',
+  EmailCampaign: 'EmailCampaign',
+  EmailRecipientList: 'EmailRecipientList',
+  EmailCampaignList: 'EmailCampaignList',
+  EmailRecipientListMember: 'EmailRecipientListMember',
+  EmailSend: 'EmailSend',
+  EmailTemplate: 'EmailTemplate',
+  EmailAutomation: 'EmailAutomation',
+  EmailAutomationRun: 'EmailAutomationRun',
+  Blacklist: 'Blacklist',
+  TenantWebhook: 'TenantWebhook',
+  WebhookDelivery: 'WebhookDelivery',
+  PublicApiKey: 'PublicApiKey',
+  TenantProvisioning: 'TenantProvisioning',
+  CreditLedger: 'CreditLedger',
+  CreditTransaction: 'CreditTransaction'
 };
 
 /**

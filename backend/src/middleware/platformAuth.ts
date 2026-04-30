@@ -1,9 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma.js";
+import { requireEnv } from "../lib/env.js";
 
-const PLATFORM_SECRET =
-  process.env.PLATFORM_JWT_SECRET || "platform_fallback_secret";
+// No fallback — fail loud at module load if the platform secret is missing.
+const PLATFORM_SECRET = requireEnv("PLATFORM_JWT_SECRET");
 
 export interface PlatformAuthRequest extends Request {
   platformUser?: {

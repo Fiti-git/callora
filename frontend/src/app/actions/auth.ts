@@ -76,6 +76,27 @@ export async function verifyEmail(token: string) {
   };
 }
 
+// Public resend — does not require a session. Always returns { ok: true } to
+// avoid leaking whether an email is registered. Used by the verify-email-pending
+// page when the user clicks "Resend" before logging in.
+export async function resendVerificationEmailPublic(email: string) {
+  try {
+    const res = await fetch(`${API_URL}/auth/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+      cache: "no-store",
+    });
+    await res.json().catch(() => ({}));
+    return { ok: true };
+  } catch (err: unknown) {
+    return {
+      error:
+        err instanceof Error ? err.message : "Failed to resend verification email.",
+    };
+  }
+}
+
 // Requests a new verification email for the currently authenticated user.
 // Backend: POST /api/auth/resend-verify (auth-service). Returns
 // `{ ok, alreadyVerified? }` on success or `{ error }` on failure.

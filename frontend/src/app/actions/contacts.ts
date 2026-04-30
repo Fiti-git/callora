@@ -44,3 +44,48 @@ export async function deleteContact(id: string) {
   revalidatePath("/contacts");
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// Bulk operations (Phase 2 Agent 7).
+// ---------------------------------------------------------------------------
+export async function bulkDeleteContacts(ids: string[]) {
+  const result = await fetchWithAuth("/contacts/bulk-delete", {
+    method: "POST",
+    body: JSON.stringify({ ids }),
+  });
+  revalidatePath("/contacts");
+  return result;
+}
+
+export async function bulkTagContacts(ids: string[], tags: string[]) {
+  const result = await fetchWithAuth("/contacts/bulk-tag", {
+    method: "POST",
+    body: JSON.stringify({ ids, tags }),
+  });
+  revalidatePath("/contacts");
+  return result;
+}
+
+export async function bulkAssignContactOwner(ids: string[], ownerId: string) {
+  const result = await fetchWithAuth("/contacts/bulk-assign-owner", {
+    method: "POST",
+    body: JSON.stringify({ ids, ownerId }),
+  });
+  revalidatePath("/contacts");
+  return result;
+}
+
+export async function mergeContact(primaryId: string, duplicateId: string) {
+  const result = await fetchWithAuth(
+    `/contacts/${primaryId}/merge/${duplicateId}`,
+    { method: "POST" }
+  );
+  revalidatePath("/contacts");
+  revalidatePath(`/contacts/${primaryId}`);
+  return result;
+}
+
+export async function getContactTimeline(id: string, cursor?: string) {
+  const q = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  return fetchWithAuth(`/contacts/${id}/timeline${q}`);
+}

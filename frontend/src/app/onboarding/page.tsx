@@ -2,105 +2,71 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getOnboardingStatus } from "@/app/actions/onboarding";
-import OnboardingChoosePlan from "./choose-plan";
-import OnboardingSetupCaller from "./setup-caller";
-import OnboardingPostCheckout from "./post-checkout";
+import OnboardingWizard from "./wizard";
+
+/**
+ * Phase 5 Agent M6 — 3-step Model B onboarding wizard entry point.
+ *
+ * Decides which step to land on (server-side) and hands off to the client
+ * wizard. Routing rules, in priority order:
+ *
+ *   1. No session                            -> /login
+ *   2. Email not verified                    -> /verify-email-pending
+ *   3. Provisioning READY                    -> /dashboard (already done)
+ *   4. No payment method                     -> Step 1 (PaymentStep)
+ *   5. No or too-short system prompt         -> Step 2 (BusinessStep)
+ *   6. else                                  -> Step 3 (ProvisioningStep)
+ */
 
 interface PageProps {
-  searchParams: Promise<{ success?: string; canceled?: string }>;
+  searchParams: Promise<{ step?: string }>;
 }
 
 export default async function OnboardingPage({ searchParams }: PageProps) {
   const session = await getServerSession(authOptions);
-  if (!session) {
-    redirect("/login");
-  }
+  if (!session) redirect("/login");
 
-  const params = await searchParams;
   const status = await getOnboardingStatus();
 
-  // User landed back here from Stripe success — promote step before rendering.
-  if (params?.success === "true" && status.onboardingStep === "choose_plan") {
-    return <OnboardingPostCheckout />;
-  }
-
-  if (!status.emailVerified || status.onboardingStep === "verify_email") {
+  if (!status.emailVerified) {
     redirect("/verify-email-pending");
   }
-
-  if (status.onboardingStep === "complete") {
+  if (status.provisioningStatus === "READY") {
     redirect("/dashboard");
   }
 
-  if (status.onboardingStep === "setup_caller") {
-    return (
-      <OnboardingShell step={2} totalSteps={2} title="Set up your AI caller">
-        <OnboardingSetupCaller
-          initial={{
-            aiCallerName: status.aiCallerName ?? "Alex",
-            aiCallerCompany: status.aiCallerCompany ?? "",
-            aiSystemPrompt: status.aiSystemPrompt ?? "",
-            vapiPhoneNumber: status.vapiPhoneNumber ?? null,
-          }}
-        />
-      </OnboardingShell>
-    );
+  let initialStep: 1 | 2 | 3;
+  if (!status.hasPaymentMethod) {
+    initialStep = 1;
+  } else if (
+    !status.aiSystemPrompt ||
+    status.aiSystemPrompt.trim().length < 50
+  ) {
+    initialStep = 2;
+  } else {
+    initialStep = 3;
   }
 
-  // Default: choose_plan
+  // ?step=N override (for "back" buttons inside the wizard) — clamps to a
+  // step the user is actually allowed on.
+  const params = await searchParams;
+  const requested = Number(params.step);
+  if (Number.isFinite(requested) && requested >= 1 && requested <= 3) {
+    if (requested === 1 || (requested === 2 && status.hasPaymentMethod)) {
+      initialStep = requested as 1 | 2 | 3;
+    }
+  }
+
   return (
-    <OnboardingShell step={1} totalSteps={2} title="Choose your plan">
-      <OnboardingChoosePlan />
-    </OnboardingShell>
-  );
-}
-
-function OnboardingShell({
-  step,
-  totalSteps,
-  title,
-  children,
-}: {
-  step: number;
-  totalSteps: number;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex min-h-screen w-full items-start justify-center bg-lightPrimary px-4 py-12 dark:bg-navy-900">
-      <div className="w-full max-w-3xl">
-        <div className="mb-8 flex items-center justify-center">
-          <span className="font-poppins text-[32px] font-bold uppercase text-navy-700 dark:text-white">
-            Callora
-          </span>
-        </div>
-
-        <div className="rounded-[20px] bg-white p-8 shadow-3xl shadow-shadow-500 dark:!bg-navy-800 dark:shadow-none">
-          <div className="mb-6 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-navy-700 dark:text-white">
-              {title}
-            </h1>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: totalSteps }).map((_, i) => (
-                <span
-                  key={i}
-                  className={
-                    "h-2.5 w-2.5 rounded-full " +
-                    (i + 1 <= step
-                      ? "bg-brand-500 dark:bg-brand-400"
-                      : "bg-gray-200 dark:bg-white/10")
-                  }
-                />
-              ))}
-              <span className="ml-2 text-xs font-medium text-gray-500 dark:text-gray-400">
-                Step {step} of {totalSteps}
-              </span>
-            </div>
-          </div>
-
-          {children}
-        </div>
-      </div>
-    </div>
+    <OnboardingWizard
+      initialStep={initialStep}
+      initial={{
+        aiCallerName: status.aiCallerName ?? "Alex",
+        aiCallerCompany: status.aiCallerCompany ?? "",
+        aiSystemPrompt: status.aiSystemPrompt ?? "",
+        provisioningStatus: status.provisioningStatus,
+        phoneNumberE164: status.phoneNumberE164,
+      }}
+    />
   );
 }

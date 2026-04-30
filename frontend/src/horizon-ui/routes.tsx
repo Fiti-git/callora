@@ -10,6 +10,7 @@ import {
   MdBarChart,
   MdPhone,
   MdBlock,
+  MdMail,
   MdCreditCard,
   MdSettings,
 } from 'react-icons/md';
@@ -56,6 +57,12 @@ const routes = [
     layout: '',
     path: '/follow-ups',
     icon: <MdEventNote className="h-6 w-6" />,
+  },
+  {
+    name: 'Email Marketing',
+    layout: '',
+    path: '/email-marketing',
+    icon: <MdMail className="h-6 w-6" />,
   },
   {
     name: 'Analytics',

@@ -1,4 +1,7 @@
 import "dotenv/config";
+import { startOtel, makeHealthHandler } from "./observability.js";
+startOtel("notification-service");
+
 import express from "express";
 import sendRouter from "./routes/send.js";
 
@@ -8,7 +11,7 @@ const SERVICE = "notification-service";
 
 app.use(express.json());
 
-app.get("/health", (_req, res) => res.json({ service: SERVICE, status: "ok" }));
+app.get("/health", makeHealthHandler({ serviceName: SERVICE }));
 app.use("/internal", sendRouter);
 
 app.listen(PORT, () => console.log(`[Callora] ${SERVICE} listening on port ${PORT}`));

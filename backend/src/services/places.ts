@@ -1,4 +1,6 @@
 import axios from "axios";
+import { Sentry, sentryEnabled } from "../lib/sentry.js";
+import { meterAndCharge } from "../lib/quota.js";
 
 export interface Lead {
   id: string;
@@ -17,7 +19,14 @@ export class PlacesService {
     this.apiKey = apiKey;
   }
 
-  async findLeads(query: string): Promise<Lead[]> {
+  /**
+   * Search Google Places for businesses matching `query`. When `organizationId`
+   * is supplied (the new path), each returned result is metered against the
+   * org's PLACES quota via `meterAndCharge` BEFORE returning to the caller.
+   * Throws QuotaExceededError on overage; the request handler maps that to
+   * HTTP 429.
+   */
+  async findLeads(query: string, organizationId?: string): Promise<Lead[]> {
     if (!this.apiKey) {
       throw new Error("Google Maps API Key is missing for this organization.");
     }
@@ -38,7 +47,7 @@ export class PlacesService {
         }
       );
 
-      return (response.data.places || []).map((place: any) => ({
+      const results = (response.data.places || []).map((place: any) => ({
         id: place.id,
         name: place.displayName?.text,
         address: place.formattedAddress,
@@ -48,7 +57,24 @@ export class PlacesService {
         types: place.types,
         openNow: place.currentOpeningHours?.openNow,
       }));
+
+      // Charge the org for the Places lookups we just performed. We meter
+      // returned results (not requested limits) so empty searches don't
+      // cost quota. Throws QuotaExceededError on overage.
+      if (organizationId && results.length > 0) {
+        await meterAndCharge(organizationId, "PLACES", results.length);
+      }
+
+      return results;
     } catch (error: any) {
+      // QuotaExceededError must propagate so routes return 429 — never
+      // wrap it in the generic "Places API failed" message.
+      if (error?.name === "QuotaExceededError") throw error;
+      if (sentryEnabled) {
+        Sentry.captureException(error, {
+          tags: { component: "places", kind: "google-places-search" },
+        });
+      }
       console.error("Places API Error:", error.response?.data || error.message);
       // In SaaS, we propagate the error so the UI sees it (e.g. Invalid Key)
       throw new Error(

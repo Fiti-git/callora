@@ -12,6 +12,22 @@ const router = express.Router();
 
 router.use(authenticate);
 
+/**
+ * Phase 5 Agent M1 — billingMode is platform-managed. Tenant payloads MUST
+ * NOT contain it. Stripping is not enough: surface as a 400 so the tenant
+ * sees the mistake (e.g. an integrator that copied an admin payload).
+ */
+function rejectBillingMode(req: Request, res: Response): boolean {
+  if (req.body && Object.prototype.hasOwnProperty.call(req.body, "billingMode")) {
+    res.status(400).json({
+      error: "INVALID_BILLING_MODE",
+      message: "Billing mode is managed by Callora",
+    });
+    return true;
+  }
+  return false;
+}
+
 // GET /api/settings/ai-caller
 router.get("/ai-caller", async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
@@ -41,6 +57,7 @@ const aiCallerSchema = z.object({
 
 // PATCH /api/settings/ai-caller
 router.patch("/ai-caller", async (req: Request, res: Response) => {
+  if (rejectBillingMode(req, res)) return;
   const { organizationId } = (req as AuthRequest).user!;
 
   const parsed = aiCallerSchema.safeParse(req.body);
@@ -86,6 +103,7 @@ router.get("/", async (req: Request, res: Response) => {
 
 // UPDATE API KEYS
 router.post("/", async (req: Request, res: Response) => {
+  if (rejectBillingMode(req, res)) return;
   const { organizationId } = (req as AuthRequest).user!;
   const data = req.body;
 

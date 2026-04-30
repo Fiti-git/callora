@@ -60,8 +60,12 @@ router.post("/provision-number", async (req: Request, res: Response) => {
     console.log(`[calling-service] provisioned number ${number} (${id}) for org ${organizationId}`);
     return res.json({ phoneNumberId: id, phoneNumber: number });
   } catch (err: any) {
-    console.error("[calling-service] /internal/provision-number error:", err?.response?.data ?? err.message);
-    res.status(500).json({ error: "Phone number provisioning failed", detail: err?.response?.data ?? err.message });
+    console.error("[calling-service] /internal/provision-number error:", {
+      status: err?.response?.status,
+      code: err?.code,
+      message: err?.message,
+    });
+    res.status(500).json({ error: "Phone number provisioning failed" });
   }
 });
 
@@ -131,11 +135,17 @@ router.post("/call", async (req: Request, res: Response) => {
     const { vapiCallId } = await vapi.initiateCall(
       lead.phone,
       lead.businessName,
-      orgConfig
+      orgConfig,
+      organizationId
     );
 
-    const callLog = await prisma.callLog.create({
-      data: {
+    // Idempotent: if a previous attempt for the same vapiCallId crashed after
+    // Vapi accepted the call but before we returned, the unique constraint
+    // protects against duplicate rows.
+    const callLog = await prisma.callLog.upsert({
+      where: { vapiCallId },
+      update: { leadId: lead.id, status: "IN_PROGRESS" },
+      create: {
         leadId: lead.id,
         duration: 0,
         status: "IN_PROGRESS",
@@ -145,75 +155,46 @@ router.post("/call", async (req: Request, res: Response) => {
 
     return res.json({ callLogId: callLog.id, vapiCallId });
   } catch (err: any) {
-    console.error("[/internal/call] error:", err.response?.data || err.message);
+    if (err?.name === "QuotaExceededError") {
+      return res.status(429).json({
+        error: "quota_exceeded",
+        message: err.message,
+        kind: err.kind,
+        current: err.current,
+        limit: err.limit,
+        units: err.units,
+      });
+    }
+    if (err?.name === "ConsentRequiredError") {
+      return res.status(451).json({
+        error: "consent_required",
+        message: err.message,
+        reason: err.reason,
+        leadId: err.leadId,
+      });
+    }
+    if (err?.name === "DNCBlockedError") {
+      return res.status(451).json({
+        error: "dnc_blocked",
+        message: err.message,
+        source: err.source,
+        leadId: err.leadId,
+      });
+    }
+    console.error("[/internal/call] error:", {
+      status: err?.response?.status,
+      code: err?.code,
+      message: err?.message,
+    });
     return res
       .status(500)
       .json({ error: err.message || "Failed to place call" });
   }
 });
 
-/**
- * GET /internal/call-result/:vapiCallId?organizationId=...
- *
- * Checks Vapi for the live status of a call, updates the CallLog row if the
- * call has ended, and returns the result to the campaign worker for polling.
- *
- * Uses platform Vapi credentials from env. No per-org ApiKey is needed.
- */
-router.get("/call-result/:vapiCallId", async (req: Request, res: Response) => {
-  try {
-    const { vapiCallId } = req.params;
-    const organizationId = req.query.organizationId as string | undefined;
-
-    if (!vapiCallId) {
-      return res.status(400).json({ error: "vapiCallId is required" });
-    }
-    if (!VAPI_KEY) {
-      return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured" });
-    }
-
-    // Load the existing CallLog so we can fall back to stored values
-    const log = await prisma.callLog.findFirst({
-      where: {
-        vapiCallId,
-        ...(organizationId
-          ? { lead: { organizationId } }
-          : {}),
-      },
-    });
-
-    if (!log) {
-      return res.status(404).json({ error: "CallLog not found" });
-    }
-
-    const vapi = new VapiService(VAPI_KEY, VAPI_PHONE_ID_FALLBACK);
-    const result = await vapi.fetchCallStatus(vapiCallId);
-
-    if (result.status !== "IN_PROGRESS") {
-      await prisma.callLog.update({
-        where: { id: log.id },
-        data: {
-          status: result.status,
-          duration: result.durationSeconds,
-          transcript: result.transcript ?? log.transcript,
-          summary: result.summary ?? log.summary,
-          cost: result.cost ?? log.cost,
-          costBreakdown: (result.costBreakdown as any) ?? (log as any).costBreakdown,
-        },
-      });
-    }
-
-    return res.json({
-      status: result.status === "IN_PROGRESS" ? log.status : result.status,
-      duration: result.status === "IN_PROGRESS" ? log.duration : result.durationSeconds,
-      transcript: result.transcript ?? log.transcript ?? undefined,
-      summary: result.summary ?? log.summary ?? undefined,
-      cost: result.cost ?? log.cost ?? undefined,
-    });
-  } catch (err: any) {
-    console.error("[calling-service] /internal/call-result error:", err);
-    res.status(500).json({ error: "Failed to fetch call status" });
-  }
-});
+// NOTE: GET /internal/call-result was removed during the fire-and-forget refactor.
+// The calling-service no longer exposes a polling endpoint. Final call state
+// arrives via the Vapi webhook (POST /api/vapi/webhook), which updates the
+// CallLog and enqueues a `callCompleted` job for the campaign-service worker.
 
 export default router;

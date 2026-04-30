@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+﻿import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import prisma from "../../lib/prisma.js";
@@ -32,7 +32,7 @@ router.post("/login", async (req: Request, res: Response) => {
   const token = signPlatformToken({ id: user.id, email: user.email });
 
   await writeAudit({
-    actorType: "PLATFORM",
+    actorType: "PLATFORM_USER",
     actorId: user.id,
     action: "platform.login",
   });

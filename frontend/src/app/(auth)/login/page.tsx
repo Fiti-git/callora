@@ -24,9 +24,21 @@ export default function LoginPage() {
     setLoading(false);
     if (res?.ok) {
       router.push("/dashboard");
-    } else {
-      setError("Invalid email or password. Please try again.");
+      return;
     }
+    // NextAuth surfaces our thrown Error.message via res.error
+    const errMsg = res?.error || "";
+    if (errMsg.startsWith("REQUIRES_2FA:")) {
+      const challenge = errMsg.slice("REQUIRES_2FA:".length);
+      sessionStorage.setItem("callora_2fa_challenge", challenge);
+      router.push("/login/2fa");
+      return;
+    }
+    if (errMsg === "EMAIL_NOT_VERIFIED") {
+      router.push(`/verify-email-pending?email=${encodeURIComponent(email)}`);
+      return;
+    }
+    setError("Invalid email or password. Please try again.");
   };
 
   return (
@@ -45,6 +57,37 @@ export default function LoginPage() {
           <p className="mb-7 text-sm text-gray-600">
             Enter your email and password to sign in.
           </p>
+
+          {/* Phase 3 Agent 12 — SSO buttons. NEXT_PUBLIC_* env flags so the
+              buttons hide cleanly when SSO isn't configured server-side. */}
+          {(process.env.NEXT_PUBLIC_SSO_GOOGLE_ENABLED === "true" ||
+            process.env.NEXT_PUBLIC_SSO_MICROSOFT_ENABLED === "true") && (
+            <div className="mb-6 space-y-3">
+              {process.env.NEXT_PUBLIC_SSO_GOOGLE_ENABLED === "true" && (
+                <button
+                  type="button"
+                  onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+                  className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-navy-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-navy-700 dark:text-white"
+                >
+                  Continue with Google
+                </button>
+              )}
+              {process.env.NEXT_PUBLIC_SSO_MICROSOFT_ENABLED === "true" && (
+                <button
+                  type="button"
+                  onClick={() => signIn("azure-ad", { callbackUrl: "/dashboard" })}
+                  className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-navy-700 transition hover:bg-gray-50 dark:border-white/10 dark:bg-navy-700 dark:text-white"
+                >
+                  Continue with Microsoft
+                </button>
+              )}
+              <div className="relative my-2 flex items-center">
+                <div className="flex-1 border-t border-gray-200 dark:border-white/10" />
+                <span className="mx-3 text-xs text-gray-400">or</span>
+                <div className="flex-1 border-t border-gray-200 dark:border-white/10" />
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

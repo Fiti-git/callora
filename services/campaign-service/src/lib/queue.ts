@@ -19,3 +19,25 @@ export const callQueue = new Queue("campaign-calls", {
     attempts: 1,
   },
 });
+
+/**
+ * Publish a real-time campaign progress event. Mirrors the helper in
+ * backend/src/lib/queue.ts so the SSE endpoint sees events from both
+ * monolith and microservice workers on the same channel.
+ */
+export async function publishCampaignProgress(
+  campaignId: string,
+  payload: Record<string, unknown>
+): Promise<void> {
+  try {
+    await redisConnection.publish(
+      `campaign:${campaignId}:progress`,
+      JSON.stringify({ ...payload, ts: Date.now() })
+    );
+  } catch (err) {
+    console.error(
+      `[publishCampaignProgress] failed for ${campaignId}:`,
+      err
+    );
+  }
+}

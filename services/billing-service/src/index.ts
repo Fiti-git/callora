@@ -1,6 +1,10 @@
 import "dotenv/config";
+import { startOtel } from "@callora/shared";
+if (process.env.NODE_ENV !== "test") startOtel({ serviceName: "billing-service" });
+
 import express from "express";
 import cors from "cors";
+import { prisma, makeHealthHandler } from "@callora/shared";
 import billingRouter, { webhookHandler } from "./routes/billing.js";
 
 const app = express();
@@ -24,9 +28,13 @@ app.post(
 
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.json({ service: SERVICE, status: "ok" });
-});
+app.get(
+  "/health",
+  makeHealthHandler({
+    serviceName: SERVICE,
+    pingDb: () => prisma.$queryRaw`SELECT 1`,
+  })
+);
 
 app.use("/api/billing", billingRouter);
 

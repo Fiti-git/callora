@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
 import { DealBoard } from "@/components/deal-board";
+import { Timeline } from "@/components/timeline/timeline";
+import { getDealTimeline } from "@/app/actions/deals";
 
 const STAGE_OPTIONS = ["PROSPECT", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "WON", "LOST"];
 
@@ -23,6 +25,13 @@ export default async function DealDetailPage({ params }: { params: { id: string 
     notFound();
   }
   if (!deal) notFound();
+
+  let timeline: any = { events: [] };
+  try {
+    timeline = await getDealTimeline(params.id);
+  } catch {
+    timeline = { events: [] };
+  }
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -88,6 +97,11 @@ export default async function DealDetailPage({ params }: { params: { id: string 
             <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{deal.notes}</p>
           </div>
         )}
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">Activity</h2>
+        <Timeline events={timeline.events ?? []} />
       </div>
     </div>
   );

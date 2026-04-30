@@ -1,64 +1,150 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getCredits, getTransactions } from "@/app/actions/billing";
+import { getBillingStatus } from "@/app/actions/billing-status";
+import PaygBillingControls from "@/components/payg-billing-controls";
 
-const API = process.env.API_URL || "http://localhost:4000/api";
+/**
+ * Phase 5 Agent M7 — PAYG-first billing dashboard.
+ *
+ * Replaces the old plan-list / Stripe-Portal-only page. Subscription
+ * subroutes (dunning, portal, upgrade) keep their own URLs so this page
+ * focuses on what every PAYG tenant needs: balance, top-up, transactions,
+ * auto-recharge.
+ */
 
-async function fetchMe(token: string) {
-  const res = await fetch(`${API}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return res.json();
+function dollars(cents: number): string {
+  const sign = cents < 0 ? "-" : "";
+  return `${sign}$${(Math.abs(cents) / 100).toFixed(2)}`;
+}
+
+function statusPill(
+  balanceCents: number,
+  isOutOfCredits: boolean,
+  thresholdCents: number
+) {
+  if (isOutOfCredits) {
+    return (
+      <span className="ml-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-600 text-white">
+        OUT OF CREDITS
+      </span>
+    );
+  }
+  if (balanceCents > 0 && balanceCents < thresholdCents) {
+    return (
+      <span className="ml-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-500 text-amber-950">
+        LOW BALANCE
+      </span>
+    );
+  }
+  return (
+    <span className="ml-3 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-600 text-white">
+      ACTIVE
+    </span>
+  );
 }
 
 export default async function BillingPage() {
-  const session: any = await getServerSession(authOptions);
-  if (!session?.user?.accessToken) return <p>Please sign in.</p>;
+  const [credits, transactions, status] = await Promise.all([
+    getCredits(),
+    getTransactions(undefined, 50),
+    getBillingStatus(),
+  ]);
 
-  const me = await fetchMe(session.user.accessToken);
-  const sub = me?.organization?.subscription;
-  const trialEnd = sub?.trialEndsAt ? new Date(sub.trialEndsAt) : null;
+  if (!credits) {
+    return (
+      <div className="p-8">
+        <h1 className="text-3xl font-bold mb-2">Billing</h1>
+        <p className="text-slate-400">Unable to load billing data. Please sign in or try again.</p>
+      </div>
+    );
+  }
+
+  const thresholdCents = status?.lowBalanceThresholdCents ?? 1000;
+  const isOutOfCredits = status?.payg?.isOutOfCredits ?? false;
 
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="text-3xl font-bold">Billing</h1>
-
-      <div className="rounded-xl border p-4">
-        <div className="text-sm opacity-70">Current Plan</div>
-        <div className="text-xl font-semibold">
-          {sub?.plan?.name ?? "No plan"}{" "}
-          <span className="text-sm opacity-60">({sub?.status ?? "—"})</span>
-        </div>
-        <div className="text-sm opacity-70 mt-1">
-          Org status: <strong>{me?.organization?.status}</strong>
-          {trialEnd && (
-            <> · Trial ends {trialEnd.toLocaleDateString()}</>
-          )}
+    <div className="p-8 space-y-8 max-w-5xl">
+      <div className="flex items-baseline justify-between">
+        <h1 className="text-3xl font-bold">Billing</h1>
+        <div className="text-xs text-slate-400 space-x-3">
+          <Link href="/billing/portal" className="underline hover:text-slate-200">
+            Customer portal
+          </Link>
+          <Link href="/billing/dunning" className="underline hover:text-slate-200">
+            Dunning history
+          </Link>
         </div>
       </div>
 
-      <form action="/billing/upgrade" method="post" className="flex gap-3 flex-wrap">
-        {["STARTER", "PRO", "ENTERPRISE"].map((tier) => (
-          <button
-            key={tier}
-            name="planTier"
-            value={tier}
-            className="bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold px-4 py-2 rounded"
-          >
-            Upgrade to {tier}
-          </button>
-        ))}
-      </form>
+      {/* Balance card */}
+      <div className="rounded-xl border border-slate-700 bg-slate-900/60 p-6">
+        <div className="flex items-baseline">
+          <span className="text-sm text-slate-400">Credit balance</span>
+          {statusPill(credits.balanceCents, isOutOfCredits, thresholdCents)}
+        </div>
+        <div className="text-5xl font-bold mt-2">
+          {dollars(credits.balanceCents)}
+        </div>
+        <div className="mt-1 text-xs text-slate-500">
+          Low-balance alert at {dollars(thresholdCents)}.
+        </div>
+        <div className="mt-6">
+          <PaygBillingControls credits={credits} />
+        </div>
+      </div>
 
-      <form action="/billing/portal" method="post">
-        <button className="border px-4 py-2 rounded">Manage Billing (Stripe Portal)</button>
-      </form>
+      {/* Transactions */}
+      <section>
+        <h2 className="text-xl font-semibold mb-3">Recent transactions</h2>
+        <div className="rounded-xl border border-slate-700 bg-slate-900/60 overflow-hidden">
+          {!transactions || transactions.transactions.length === 0 ? (
+            <p className="p-6 text-slate-400 text-sm">No transactions yet.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead className="bg-slate-800/60">
+                <tr>
+                  <th className="text-left p-3 font-medium text-slate-300">Date</th>
+                  <th className="text-left p-3 font-medium text-slate-300">Type</th>
+                  <th className="text-right p-3 font-medium text-slate-300">Amount</th>
+                  <th className="text-right p-3 font-medium text-slate-300">Balance after</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transactions.transactions.map((tx) => (
+                  <tr key={tx.id} className="border-t border-slate-800">
+                    <td className="p-3 text-slate-400">
+                      {new Date(tx.createdAt).toLocaleString()}
+                    </td>
+                    <td className="p-3">{tx.display}</td>
+                    <td
+                      className={`p-3 text-right font-mono ${
+                        tx.amountCents < 0 ? "text-red-400" : "text-emerald-400"
+                      }`}
+                    >
+                      {dollars(tx.amountCents)}
+                    </td>
+                    <td className="p-3 text-right font-mono text-slate-300">
+                      {dollars(tx.balanceAfterCents)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+        {transactions?.nextCursor && (
+          <p className="text-xs text-slate-500 mt-2">
+            Showing latest 50 transactions. Older entries are available via
+            the customer portal.
+          </p>
+        )}
+      </section>
 
-      <p className="text-xs text-gray-500 mt-2">
-        <Link href="/privacy" className="underline hover:text-gray-700">View our Privacy Policy</Link>
-        {" "}to understand how payment data is handled.
+      <p className="text-xs text-slate-500">
+        <Link href="/privacy" className="underline hover:text-slate-300">
+          View our Privacy Policy
+        </Link>{" "}
+        to understand how payment data is handled.
       </p>
     </div>
   );

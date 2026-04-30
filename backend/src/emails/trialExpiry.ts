@@ -62,7 +62,7 @@ export function trialExpiryEmail(
         </p>
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px;">
           ${loss("AI outbound calling", "All active and scheduled campaigns will be paused immediately.")}
-          ${loss("Lead discovery & qualification", "Google Places scraping and Gemini AI scoring will stop.")}
+          ${loss("Lead discovery & qualification", "Lead discovery and AI scoring will stop.")}
           ${loss("Call transcripts & history", "Your existing data is safe, but new calls won't be logged.")}
         </table>
         ${highlightBox("Plans start at <strong>CA$99/month</strong>. No setup fees. Cancel anytime.")}

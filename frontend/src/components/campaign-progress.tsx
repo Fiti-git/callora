@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { getCampaignProgress } from "@/app/actions/campaign";
+import { useCampaignProgress } from "@/hooks/useCampaignProgress";
 
 interface CampaignProgressProps {
   campaignId: string;
@@ -13,21 +15,45 @@ const TERMINAL_STATUSES = ["COMPLETED", "PAUSED_QUOTA", "CANCELLED", "FAILED"];
 
 export function CampaignProgress({ campaignId, initialStatus }: CampaignProgressProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [status, setStatus] = useState(initialStatus);
   const [progress, setProgress] = useState<{ completed: number; total: number }>({
     completed: 0,
     total: 0,
   });
 
+  // SSE: pulls real-time events as the campaign worker fires. Falls back to
+  // polling automatically when EventSource is unsupported or the connection
+  // is closed (see hook).
+  const accessToken = (session as any)?.user?.accessToken as string | undefined;
+  const live = useCampaignProgress(campaignId, accessToken);
+
   useEffect(() => {
     setStatus(initialStatus);
   }, [initialStatus]);
 
+  // Apply live snapshot/event updates from SSE.
+  useEffect(() => {
+    if (!live) return;
+    if (typeof live.completed === "number" && typeof live.total === "number") {
+      setProgress({ completed: live.completed, total: live.total });
+    } else if (typeof live.leadsTotal === "number") {
+      setProgress({
+        completed: live.leadsProcessed ?? 0,
+        total: live.leadsTotal ?? 0,
+      });
+    }
+    if (typeof live.status === "string") {
+      setStatus(live.status);
+      if (TERMINAL_STATUSES.includes(live.status)) router.refresh();
+    }
+  }, [live, router]);
+
+  // Fallback poller — runs every 10s while SSE is unavailable or as a
+  // safety net. The cost is negligible compared to the previous 5s interval.
   useEffect(() => {
     if (status !== "RUNNING" && status !== "CALLING") return;
-
     let cancelled = false;
-
     async function poll() {
       try {
         const data = await getCampaignProgress(campaignId);
@@ -35,17 +61,14 @@ export function CampaignProgress({ campaignId, initialStatus }: CampaignProgress
         if (data?.progress) setProgress(data.progress);
         if (data?.status) {
           setStatus(data.status);
-          if (TERMINAL_STATUSES.includes(data.status)) {
-            router.refresh();
-          }
+          if (TERMINAL_STATUSES.includes(data.status)) router.refresh();
         }
       } catch {
-        // non-fatal — keep polling
+        // non-fatal
       }
     }
-
     poll();
-    const id = setInterval(poll, 5000);
+    const id = setInterval(poll, 10_000);
     return () => {
       cancelled = true;
       clearInterval(id);

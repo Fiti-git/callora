@@ -63,6 +63,12 @@ services:
       timeout: 5s
       retries: 10
 
+  # Anchor for service-level healthchecks. Each Node service exposes
+  # /health on its assigned port; we hit it with `node` (no curl/wget
+  # needed — the image is node:20-bookworm-slim which already has node).
+  # interval/timeout/retries/start_period are tuned for cold-start:
+  # services need ~30s before first check, then we give them 75s of
+  # retry budget before they're declared unhealthy.
   api-gateway:
     build:
       context: ./services/api-gateway
@@ -85,15 +91,31 @@ services:
       ANALYTICS_SERVICE_URL: http://analytics-service:4009
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
       ADMIN_APP_ORIGIN: ${ADMIN_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
-      - auth-service
-      - campaign-service
-      - lead-service
-      - calling-service
-      - crm-service
-      - billing-service
-      - platform-service
-      - analytics-service
+      auth-service:
+        condition: service_started
+      campaign-service:
+        condition: service_started
+      lead-service:
+        condition: service_started
+      calling-service:
+        condition: service_started
+      crm-service:
+        condition: service_started
+      billing-service:
+        condition: service_started
+      platform-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      analytics-service:
+        condition: service_started
 
   auth-service:
     build:
@@ -109,6 +131,12 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NOTIFICATION_SERVICE_URL: http://notification-service:4008
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4001/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -130,6 +158,12 @@ services:
       CALLING_SERVICE_URL: http://calling-service:4004
       NOTIFICATION_SERVICE_URL: http://notification-service:4008
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4002/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -151,6 +185,12 @@ services:
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4003/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -171,6 +211,12 @@ services:
       VAPI_PHONE_NUMBER_ID: ${VAPI_PHONE_NUMBER_ID}
       VAPI_WEBHOOK_SECRET: ${VAPI_WEBHOOK_SECRET}
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4004/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -188,6 +234,12 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4005/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -213,6 +265,12 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:4008
       CALLING_SERVICE_URL: http://calling-service:4004
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4006/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -232,6 +290,12 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       PLATFORM_JWT_SECRET: ${PLATFORM_JWT_SECRET}
       ADMIN_APP_ORIGIN: ${ADMIN_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4007/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -252,6 +316,12 @@ services:
       SMTP_PASS: ${SMTP_PASS}
       EMAIL_FROM: ${EMAIL_FROM}
       APP_URL: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4008/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   analytics-service:
     build:
@@ -266,6 +336,12 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       TENANT_APP_ORIGIN: ${TENANT_APP_ORIGIN}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4009/health').then(r=>r.json().then(b=>process.exit(b.status==='ok'?0:1))).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -284,8 +360,17 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       API_URL: http://api-gateway:4000
       NEXT_PUBLIC_API_URL: http://localhost:4000
+    healthcheck:
+      # Next.js doesn't expose /api/health here. Use a TCP probe via node.net
+      # to confirm port 3000 is accepting connections.
+      test: ["CMD", "node", "-e", "require('net').createConnection(3000,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_started
 
   admin:
     build:
@@ -300,8 +385,15 @@ services:
       NEXTAUTH_URL: ${ADMIN_APP_ORIGIN}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       NEXT_PUBLIC_PLATFORM_API_URL: http://localhost:4000
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').createConnection(3001,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
-      - platform-service
+      platform-service:
+        condition: service_started
 
 volumes:
   pgdata:

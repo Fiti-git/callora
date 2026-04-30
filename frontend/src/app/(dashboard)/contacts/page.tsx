@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getContacts } from "@/app/actions/contacts";
 import Card from "@/horizon-ui/components/card";
 import { MdContacts, MdSearch } from "react-icons/md";
+import { ContactsBulkList } from "@/components/contacts-bulk-list";
 
 type Contact = {
   id: string;
@@ -96,48 +97,7 @@ export default async function ContactsPage({
               ) : null}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 text-left text-xs font-bold uppercase tracking-wider text-gray-600 dark:border-white/10">
-                    <th className="px-4 py-3">Business</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Address</th>
-                    <th className="px-4 py-3">Added</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-white/10">
-                  {contacts.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="text-sm hover:bg-lightPrimary dark:hover:bg-navy-900"
-                    >
-                      <td className="px-4 py-3">
-                        <Link
-                          href={`/contacts/${c.id}`}
-                          className="font-bold text-navy-700 hover:text-brand-500 dark:text-white"
-                        >
-                          {c.businessName}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                        {c.phone}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                        {c.email || "—"}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                        {c.address || "—"}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {new Date(c.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ContactsBulkList contacts={contacts} />
           )}
         </Card>
       </div>

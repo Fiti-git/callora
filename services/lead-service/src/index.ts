@@ -1,6 +1,10 @@
 import "dotenv/config";
+import { startOtel } from "@callora/shared";
+if (process.env.NODE_ENV !== "test") startOtel({ serviceName: "lead-service" });
+
 import express from "express";
 import cors from "cors";
+import { prisma, makeHealthHandler } from "@callora/shared";
 import leadsRouter from "./routes/leads.js";
 import blacklistRouter from "./routes/blacklist.js";
 import internalRouter from "./routes/internal.js";
@@ -18,7 +22,13 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 
-app.get("/health", (_req, res) => res.json({ service: SERVICE, status: "ok" }));
+app.get(
+  "/health",
+  makeHealthHandler({
+    serviceName: SERVICE,
+    pingDb: () => prisma.$queryRaw`SELECT 1`,
+  })
+);
 
 // Auth is applied inside each tenant router via router.use(authenticate).
 app.use("/api/leads", leadsRouter);

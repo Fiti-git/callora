@@ -2,9 +2,15 @@ import express, { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { prisma } from "@callora/shared";
+import {
+  prisma,
+  assertSeatAvailableForLimit,
+  SeatLimitExceededError,
+  signTenantAccessToken,
+  passwordChecks,
+  isStrongPassword,
+} from "@callora/shared";
 import {
   requireAuth,
   requireAuthAllowUnverified,
@@ -18,6 +24,19 @@ const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 const TENANT_APP_ORIGIN = process.env.TENANT_APP_ORIGIN ?? APP_URL;
 const NOTIFICATION_SERVICE_URL =
   process.env.NOTIFICATION_SERVICE_URL ?? "http://localhost:4008";
+
+function sha256(input: string): string {
+  return crypto.createHash("sha256").update(input).digest("hex");
+}
+
+function newVerifyToken(): { raw: string; hashed: string; exp: Date } {
+  const raw = crypto.randomBytes(32).toString("hex");
+  return {
+    raw,
+    hashed: sha256(raw),
+    exp: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  };
+}
 
 async function sendNotificationEmail(
   template: string,
@@ -39,9 +58,20 @@ function buildVerifyUrl(token: string): string {
   return `${TENANT_APP_ORIGIN}/verify-email?token=${token}`;
 }
 
+function rejectWeakPassword(res: Response, pw: string): boolean {
+  if (isStrongPassword(pw)) return false;
+  res.status(400).json({
+    error: "WEAK_PASSWORD",
+    message:
+      "Password must be at least 8 chars and include upper, lower, digit, and special character.",
+    checks: passwordChecks(pw),
+  });
+  return true;
+}
+
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string(),
   name: z.string().min(1),
   orgName: z.string().min(1),
 });
@@ -53,6 +83,7 @@ router.post("/register", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Missing or invalid fields" });
   }
   const { email, password, name, orgName } = parsed.data;
+  if (rejectWeakPassword(res, password)) return;
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -67,13 +98,13 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
-    const verifyToken = randomUUID();
-    const verifyTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const verify = newVerifyToken();
 
     const result = await prisma.$transaction(async (tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) => {
       const org = await tx.organization.create({
         data: { name: orgName, status: "TRIAL" },
       });
+      await assertSeatAvailableForLimit(org.id, freePlan.seatLimit, tx);
       const user = await tx.user.create({
         data: {
           email,
@@ -82,8 +113,8 @@ router.post("/register", async (req: Request, res: Response) => {
           role: "ADMIN",
           organizationId: org.id,
           emailVerified: false,
-          verifyToken,
-          verifyTokenExp,
+          verifyToken: verify.hashed,
+          verifyTokenExp: verify.exp,
         },
       });
       const subscription = await tx.subscription.create({
@@ -97,22 +128,18 @@ router.post("/register", async (req: Request, res: Response) => {
       return { user, org, subscription };
     });
 
-    // Send the verification email (fire-and-forget). Failure should not block
-    // registration — the user can request a resend.
     fetch(`${NOTIFICATION_SERVICE_URL}/internal/send-email`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         template: "verifyEmail",
         to: email,
-        data: { name, verifyUrl: buildVerifyUrl(verifyToken) },
+        data: { name, verifyUrl: buildVerifyUrl(verify.raw) },
       }),
     }).catch((err) =>
       console.error("[auth-service] verify email send failed", err)
     );
 
-    // Keep the existing welcome email too — gives the user product context
-    // even before they verify.
     await sendNotificationEmail("welcome", result.user.email, {
       name: result.user.name ?? "",
       orgName: result.org.name,
@@ -121,6 +148,14 @@ router.post("/register", async (req: Request, res: Response) => {
 
     res.status(201).json({ success: true, userId: result.user.id });
   } catch (error: any) {
+    if (error instanceof SeatLimitExceededError || error?.name === "SeatLimitExceededError") {
+      return res.status(402).json({
+        error: "seat_limit_exceeded",
+        message: error.message,
+        current: error.current,
+        limit: error.limit,
+      });
+    }
     res.status(500).json({ error: error.message });
   }
 });
@@ -136,16 +171,20 @@ router.post("/login", async (req: Request, res: Response) => {
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) return res.status(401).json({ error: "Invalid credentials" });
 
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        organizationId: user.organizationId,
-        email: user.email,
-        role: user.role,
-      },
-      SECRET,
-      { expiresIn: "7d" }
-    );
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        error: "EMAIL_NOT_VERIFIED",
+        message: "Please verify your email before signing in.",
+      });
+    }
+
+    const token = signTenantAccessToken({
+      userId: user.id,
+      organizationId: user.organizationId,
+      email: user.email,
+      role: user.role,
+      tokenVersion: (user as any).tokenVersion ?? 0,
+    });
 
     res.json({
       token,
@@ -162,22 +201,65 @@ router.post("/login", async (req: Request, res: Response) => {
   }
 });
 
-// VERIFY EMAIL
-router.get("/verify-email", async (req: Request, res: Response) => {
-  const token = String(req.query.token ?? "");
-  if (!token) return res.status(400).json({ error: "missing token" });
-  const user = await prisma.user.findFirst({
-    where: { verifyToken: token, verifyTokenExp: { gt: new Date() } },
-  });
+// VERIFY EMAIL — POST (preferred) and GET (legacy)
+async function handleVerify(rawToken: string, res: Response) {
+  if (!rawToken) return res.status(400).json({ error: "missing token" });
+  const hashed = sha256(rawToken);
+
+  // Look up by hashed token first, fall back to raw (legacy data written
+  // before this change stored the token raw).
+  let user = await prisma.user.findFirst({ where: { verifyToken: hashed } });
+  if (!user) {
+    user = await prisma.user.findFirst({ where: { verifyToken: rawToken } });
+  }
   if (!user) return res.status(400).json({ error: "invalid or expired token" });
+  if (user.emailVerified) {
+    return res.json({ success: true, alreadyVerified: true, redirect: "/onboarding" });
+  }
+  if (!user.verifyTokenExp || user.verifyTokenExp < new Date()) {
+    return res.status(400).json({ error: "Verification link expired" });
+  }
   await prisma.user.update({
     where: { id: user.id },
     data: { emailVerified: true, verifyToken: null, verifyTokenExp: null },
   });
   res.json({ success: true, redirect: "/onboarding" });
+}
+
+router.get("/verify-email", async (req: Request, res: Response) => {
+  return handleVerify(String(req.query.token ?? ""), res);
 });
 
-// RESEND VERIFICATION EMAIL
+router.post("/verify-email", async (req: Request, res: Response) => {
+  const token = String(req.body?.token ?? "");
+  return handleVerify(token, res);
+});
+
+// RESEND VERIFICATION (public; doesn't reveal whether email exists)
+router.post("/resend-verification", async (req: Request, res: Response) => {
+  const email = String(req.body?.email ?? "");
+  try {
+    if (email) {
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (user && !user.emailVerified) {
+        const v = newVerifyToken();
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { verifyToken: v.hashed, verifyTokenExp: v.exp },
+        });
+        await sendNotificationEmail("verifyEmail", user.email, {
+          name: user.name ?? "",
+          verifyUrl: buildVerifyUrl(v.raw),
+        });
+      }
+    }
+  } catch (err) {
+    console.error("resend-verification error:", err);
+  }
+  res.json({ ok: true });
+});
+
+// AUTHENTICATED RESEND
 router.post(
   "/resend-verify",
   requireAuthAllowUnverified,
@@ -191,17 +273,15 @@ router.post(
         return res.json({ ok: true, alreadyVerified: true });
       }
 
-      const verifyToken = randomUUID();
-      const verifyTokenExp = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
+      const v = newVerifyToken();
       await prisma.user.update({
         where: { id: user.id },
-        data: { verifyToken, verifyTokenExp },
+        data: { verifyToken: v.hashed, verifyTokenExp: v.exp },
       });
 
       await sendNotificationEmail("verifyEmail", user.email, {
         name: user.name ?? "",
-        verifyUrl: buildVerifyUrl(verifyToken),
+        verifyUrl: buildVerifyUrl(v.raw),
       });
 
       res.json({ ok: true });
@@ -218,7 +298,6 @@ const forgotSchema = z.object({ email: z.string().email() });
 router.post("/forgot-password", async (req: Request, res: Response) => {
   const parsed = forgotSchema.safeParse(req.body);
   if (!parsed.success) {
-    // Don't leak validation errors — same generic response either way
     return res.json({ success: true });
   }
   const { email } = parsed.data;
@@ -230,7 +309,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     }
 
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 3600_000); // 1 hour
+    const expiresAt = new Date(Date.now() + 3600_000);
 
     await prisma.passwordResetToken.create({
       data: { userId: user.id, token, expiresAt, used: false },
@@ -245,7 +324,6 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
     res.json({ success: true });
   } catch (error: any) {
     console.error("forgot-password error:", error);
-    // Still return success to avoid leaking info
     res.json({ success: true });
   }
 });
@@ -253,7 +331,7 @@ router.post("/forgot-password", async (req: Request, res: Response) => {
 // RESET PASSWORD
 const resetSchema = z.object({
   token: z.string().min(1),
-  newPassword: z.string().min(8),
+  newPassword: z.string(),
 });
 
 router.post("/reset-password", async (req: Request, res: Response) => {
@@ -262,14 +340,11 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Password must be at least 8 characters." });
   }
   const { token, newPassword } = parsed.data;
+  if (rejectWeakPassword(res, newPassword)) return;
 
   try {
     const record = await prisma.passwordResetToken.findFirst({
-      where: {
-        token,
-        used: false,
-        expiresAt: { gt: new Date() },
-      },
+      where: { token, used: false, expiresAt: { gt: new Date() } },
     });
     if (!record) {
       return res.status(400).json({ error: "Invalid or expired reset link" });
@@ -280,7 +355,7 @@ router.post("/reset-password", async (req: Request, res: Response) => {
     await prisma.$transaction([
       prisma.user.update({
         where: { id: record.userId },
-        data: { password: hashed },
+        data: { password: hashed, tokenVersion: { increment: 1 } as any },
       }),
       prisma.passwordResetToken.update({
         where: { id: record.id },
@@ -332,5 +407,9 @@ router.get("/me", requireAuth, async (req: Request, res: Response) => {
     },
   });
 });
+
+// Suppress unused-warning for SECRET (kept for future direct-sign use)
+void SECRET;
+void jwt;
 
 export default router;

@@ -102,8 +102,12 @@ router.patch("/:id", validateBody(updateSchema), async (req: Request, res: Respo
 router.delete("/:id", async (req: Request, res: Response) => {
   const { organizationId } = (req as AuthRequest).user!;
   try {
-    await prisma.task.deleteMany({ where: { id: req.params.id, organizationId } });
-    res.json({ success: true });
+    const result = await prisma.task.updateMany({
+      where: { id: req.params.id, organizationId, deletedAt: null },
+      data: { deletedAt: new Date() },
+    });
+    if (result.count === 0) return res.status(404).json({ error: "Not found" });
+    res.status(204).end();
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

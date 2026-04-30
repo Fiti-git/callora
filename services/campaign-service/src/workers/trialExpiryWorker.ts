@@ -3,6 +3,28 @@ import { prisma } from "@callora/shared";
 
 const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL!;
 const APP_URL = process.env.TENANT_APP_ORIGIN ?? "http://localhost:3000";
+const PAST_DUE_GRACE_DAYS = 14;
+
+async function audit(
+  organizationId: string,
+  action: string,
+  metadata: Record<string, unknown>
+) {
+  try {
+    await prisma.auditLog.create({
+      data: {
+        actorType: "SYSTEM",
+        actorId: "trialExpiryWorker",
+        organizationId,
+        action,
+        target: organizationId,
+        metadata: metadata as any,
+      },
+    });
+  } catch (err) {
+    console.error("[trial-expiry] audit write failed:", err);
+  }
+}
 
 export async function trialExpiryWorker(_job: Job) {
   const now = new Date();
@@ -57,6 +79,58 @@ export async function trialExpiryWorker(_job: Job) {
     }
   }
 
-  console.log(`[trial-expiry] Sent ${sent} trial expiry emails`);
-  return { sent };
+  // ---- transition expired trials to PAST_DUE ----
+  const expired = await prisma.subscription.findMany({
+    where: {
+      status: { notIn: ["ACTIVE"] },
+      trialEndsAt: { lt: now },
+      organization: { status: "TRIAL" },
+    },
+    include: { organization: true },
+  });
+
+  let pastDued = 0;
+  for (const sub of expired) {
+    if (sub.status === "ACTIVE" || sub.status === "TRIALING") continue;
+    await prisma.organization.update({
+      where: { id: sub.organizationId },
+      data: { status: "PAST_DUE" },
+    });
+    await audit(sub.organizationId, "ORG_STATUS_PAST_DUE", {
+      reason: "trial_expired",
+      trialEndsAt: sub.trialEndsAt,
+    });
+    pastDued++;
+  }
+
+  // ---- PAST_DUE > 14 days -> CANCELED ----
+  const cutoff = new Date(now.getTime() - PAST_DUE_GRACE_DAYS * 86400000);
+  const stalePastDue = await prisma.organization.findMany({
+    where: { status: "PAST_DUE", updatedAt: { lt: cutoff } },
+    include: { subscription: true },
+  });
+
+  let canceled = 0;
+  for (const org of stalePastDue) {
+    await prisma.organization.update({
+      where: { id: org.id },
+      data: { status: "CANCELED" },
+    });
+    if (org.subscription) {
+      await prisma.subscription.update({
+        where: { id: org.subscription.id },
+        data: { status: "CANCELED" },
+      });
+    }
+    await audit(org.id, "ORG_STATUS_CANCELED", {
+      reason: "past_due_grace_expired",
+      graceDays: PAST_DUE_GRACE_DAYS,
+    });
+    canceled++;
+  }
+
+  console.log(
+    `[trial-expiry] sent=${sent} pastDued=${pastDued} canceled=${canceled}`
+  );
+  return { sent, pastDued, canceled };
 }

@@ -1,5 +1,6 @@
 import { fetchWithAuth } from "@/lib/api";
 import { DealBoard } from "@/components/deal-board";
+import { DealsBulkList } from "@/components/deals-bulk-list";
 
 const STAGES = ["PROSPECT", "QUALIFIED", "PROPOSAL", "NEGOTIATION", "WON", "LOST"] as const;
 
@@ -45,6 +46,14 @@ export default async function PipelinePage() {
           <KanbanColumn key={stage} stage={stage} deals={byStage[stage]} />
         ))}
       </div>
+
+      {/* Bulk list (Phase 2 Agent 7) — table view with multi-select. */}
+      {deals.length > 0 ? (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">All deals (bulk)</h2>
+          <DealsBulkList deals={deals} />
+        </div>
+      ) : null}
     </div>
   );
 }

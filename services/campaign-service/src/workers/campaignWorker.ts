@@ -1,11 +1,35 @@
 import { Job } from "bullmq";
-import { prisma, assertWithinQuota, recordUsage } from "@callora/shared";
-import { redisConnection } from "../lib/queue.js";
+import { prisma, assertWithinQuota } from "@callora/shared";
+import { redisConnection, publishCampaignProgress, callQueue } from "../lib/queue.js";
+import {
+  isWithinAllowedWindow,
+  nextAllowedWindow,
+  inferStateFromAreaCode,
+} from "../lib/callWindow.js";
 
-const LEAD_SERVICE_URL = process.env.LEAD_SERVICE_URL!;
+/**
+ * Fire-and-forget campaign worker.
+ *
+ * Per lead:
+ *   1. Check quota and cancellation flag.
+ *   2. POST to calling-service /internal/call to start the Vapi call.
+ *      calling-service creates a CallLog row keyed on vapiCallId. We upsert
+ *      the same row defensively in case calling-service was restarted between
+ *      placing the call and writing the row.
+ *   3. Mark the Lead as CALLED + bump callAttempts.
+ *   4. Move on to the next lead. We do NOT poll — the Vapi webhook drives
+ *      completion via a `callCompleted` BullMQ job consumed by
+ *      callCompletedWorker (Gemini summary, qualified-lead email, etc.).
+ *
+ * Preserved semantics from the previous polling implementation:
+ *   - Quota exhaustion → campaign status PAUSED_QUOTA, return early.
+ *   - Cancellation flag in Redis → campaign status CANCELLED, return early.
+ *   - Missing platform Vapi credentials → campaign status FAILED.
+ *   - Per-lead failures are isolated; the lead is marked FAILED and the
+ *     worker continues with the rest of the campaign.
+ */
+
 const CALLING_SERVICE_URL = process.env.CALLING_SERVICE_URL!;
-const NOTIFICATION_SERVICE_URL = process.env.NOTIFICATION_SERVICE_URL!;
-const APP_URL = process.env.TENANT_APP_ORIGIN ?? "http://localhost:3000";
 
 // Platform-owned infrastructure keys. Tenants no longer supply Vapi/Gemini/
 // Google Maps credentials — Callora is fully managed.
@@ -18,67 +42,9 @@ export interface CampaignCallJobData {
   leadIds: string[];
 }
 
-interface CallResultPayload {
-  status: "IN_PROGRESS" | "COMPLETED" | "NO_ANSWER" | "VOICEMAIL" | "FAILED" | string;
-  duration: number;
-  transcript?: string;
-  summary?: string;
-  cost?: number;
-}
-
-async function pollCallResult(
-  vapiCallId: string,
-  organizationId: string
-): Promise<CallResultPayload> {
-  const deadline = Date.now() + 5 * 60 * 1000; // 5-minute cap (matches monolith Vapi.makeCall behaviour)
-  while (Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, 5000));
-    try {
-      const resp = await fetch(
-        `${CALLING_SERVICE_URL}/internal/call-result/${vapiCallId}?organizationId=${organizationId}`
-      );
-      if (!resp.ok) continue;
-      const data = (await resp.json()) as CallResultPayload;
-      if (data.status !== "IN_PROGRESS") {
-        return data;
-      }
-    } catch (err) {
-      console.warn(`[campaignWorker] poll error for ${vapiCallId}:`, err);
-    }
-  }
-  return { status: "FAILED", duration: 0 };
-}
-
-async function sendQualifiedLeadEmail(payload: {
-  to: string;
-  adminName: string;
-  lead: { businessName: string; phone: string; interestScore: number };
-  campaignName: string;
-  leadUrl: string;
-}) {
-  try {
-    const resp = await fetch(`${NOTIFICATION_SERVICE_URL}/internal/send-email`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        template: "qualifiedLead",
-        to: payload.to,
-        data: {
-          adminName: payload.adminName,
-          lead: payload.lead,
-          campaignName: payload.campaignName,
-          leadUrl: payload.leadUrl,
-        },
-      }),
-    });
-    if (!resp.ok) {
-      console.error(
-        `[campaignWorker] qualifiedLead email failed: HTTP ${resp.status}`
-      );
-    }
-  } catch (err) {
-    console.error(`[campaignWorker] qualifiedLead email error:`, err);
-  }
+interface InitiateCallResponse {
+  callLogId: string;
+  vapiCallId: string;
 }
 
 export async function campaignWorker(job: Job<CampaignCallJobData>) {
@@ -145,9 +111,38 @@ export async function campaignWorker(job: Job<CampaignCallJobData>) {
         continue;
       }
 
+      // ----- Call-window enforcement (Phase 2 Agent 9) -----
+      const state = lead.state ?? inferStateFromAreaCode(lead.phone) ?? null;
+      if (!isWithinAllowedWindow(state)) {
+        const next = nextAllowedWindow(state);
+        const delayMs = Math.max(1, next.getTime() - Date.now());
+        await prisma.lead.update({
+          where: { id: lead.id },
+          data: { status: "PENDING_CALL_WINDOW", nextCallAt: next },
+        });
+        await callQueue.add(
+          "campaign-call",
+          { campaignId, organizationId, leadIds: [lead.id] },
+          { delay: delayMs }
+        );
+        await prisma.auditLog.create({
+          data: {
+            actorType: "SYSTEM",
+            actorId: "campaign-worker",
+            organizationId,
+            targetOrganizationId: organizationId,
+            action: "CALL_DEFERRED_WINDOW",
+            entity: "Lead",
+            entityId: lead.id,
+            metadata: { state, nextCallAt: next.toISOString() } as any,
+          },
+        });
+        continue;
+      }
+
       try {
-        // 1) Start the call via calling-service. Vapi credentials live on
-        // calling-service via env — we no longer forward them per-call.
+        // Initiate the Vapi call via calling-service. Vapi credentials live
+        // on calling-service; we no longer forward them per-call.
         const startResp = await fetch(`${CALLING_SERVICE_URL}/internal/call`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -161,106 +156,88 @@ export async function campaignWorker(job: Job<CampaignCallJobData>) {
           }),
         });
 
+        if (startResp.status === 451) {
+          // Compliance block (consent missing, DNC). Per-lead skip — do NOT
+          // pause the campaign, do NOT count against quota.
+          let body: any = {};
+          try { body = await startResp.json(); } catch { /* ignore */ }
+          const isDnc = body?.error === "dnc_blocked";
+          const leadStatus = isDnc ? "SKIPPED_DNC" : "SKIPPED_NO_CONSENT";
+          const callStatus = isDnc ? "BLOCKED_DNC" : "BLOCKED_NO_CONSENT";
+          await prisma.lead.update({
+            where: { id: lead.id },
+            data: { status: leadStatus },
+          });
+          await prisma.callLog.create({
+            data: { leadId: lead.id, duration: 0, status: callStatus },
+          });
+          await prisma.auditLog.create({
+            data: {
+              actorType: "SYSTEM",
+              actorId: "campaign-worker",
+              organizationId,
+              targetOrganizationId: organizationId,
+              action: isDnc ? "CALL_BLOCKED_DNC" : "CALL_BLOCKED_NO_CONSENT",
+              entity: "Lead",
+              entityId: lead.id,
+              metadata: body as any,
+            },
+          });
+          continue;
+        }
+        if (startResp.status === 429) {
+          // Calling-service refused because the org just crossed its
+          // VAPI_CALL quota. Pause the whole campaign rather than churn
+          // through the remaining leads as FAILED.
+          await prisma.campaign.update({
+            where: { id: campaignId },
+            data: { status: "PAUSED_QUOTA" },
+          });
+          console.warn(
+            `[campaignWorker] campaign ${campaignId} paused — calling-service returned 429`
+          );
+          return { status: "PAUSED_QUOTA", processed: index };
+        }
+
         if (!startResp.ok) {
           throw new Error(
             `calling-service /internal/call returned ${startResp.status}`
           );
         }
-        const { vapiCallId } = (await startResp.json()) as {
-          callLogId: string;
-          vapiCallId: string;
-        };
 
-        // 2) Poll for result until status !== IN_PROGRESS
-        const callResult = await pollCallResult(vapiCallId, organizationId);
-
-        // 3) Qualify if we have a transcript
-        let analysis: {
-          interestScore: number;
-          isQualified: boolean;
-          summary: string;
-        } = {
-          interestScore: 0,
-          isQualified: false,
-          summary: callResult.summary ?? "Call Failed",
-        };
-
-        if (callResult.status === "COMPLETED" && callResult.transcript) {
-          const qResp = await fetch(`${LEAD_SERVICE_URL}/internal/qualify`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              leadId: lead.id,
-              organizationId,
-              transcript: callResult.transcript,
-            }),
-          });
-          if (qResp.ok) {
-            const q = (await qResp.json()) as {
-              interestScore: number;
-              summary: string;
-              status: "QUALIFIED" | "CALLED";
-            };
-            analysis = {
-              interestScore: q.interestScore,
-              isQualified: q.status === "QUALIFIED",
-              summary: q.summary,
-            };
-          } else {
-            console.error(
-              `[campaignWorker] /internal/qualify returned ${qResp.status} for lead ${lead.id}`
-            );
-          }
+        const { vapiCallId } = (await startResp.json()) as InitiateCallResponse;
+        if (!vapiCallId) {
+          throw new Error("calling-service did not return a vapiCallId");
         }
 
-        // calling-service has already created the CallLog (status IN_PROGRESS).
-        // We don't recreate it here — the calling-service is responsible for
-        // updating the CallLog with final status/transcript/summary/cost.
+        // Defensive upsert. calling-service creates the CallLog itself, but
+        // upserting keyed on the unique vapiCallId is idempotent and protects
+        // us against transient races where a retry sees the row already.
+        await prisma.callLog.upsert({
+          where: { vapiCallId },
+          create: {
+            leadId: lead.id,
+            duration: 0,
+            status: "PENDING",
+            vapiCallId,
+          },
+          update: {
+            // Don't downgrade status if calling-service already wrote IN_PROGRESS.
+            leadId: lead.id,
+          },
+        });
 
-        // Decide lead status. lead-service /internal/qualify already updates the
-        // Lead row when QUALIFIED/CALLED, but for non-COMPLETED outcomes (NO_ANSWER,
-        // VOICEMAIL, FAILED) we need to set retry/called state ourselves.
-        if (callResult.status !== "COMPLETED") {
-          const newStatus =
-            callResult.status === "NO_ANSWER" || callResult.status === "VOICEMAIL"
-              ? "PENDING_RETRY"
-              : "CALLED";
-          await prisma.lead.update({
-            where: { id: lead.id },
-            data: {
-              status: newStatus,
-              callAttempts: { increment: 1 },
-            },
-          });
-        } else {
-          // Bump attempt counter; lead-service already wrote status/score/notes.
-          await prisma.lead.update({
-            where: { id: lead.id },
-            data: { callAttempts: { increment: 1 } },
-          });
-        }
+        await prisma.lead.update({
+          where: { id: lead.id },
+          data: {
+            status: "CALLED",
+            callAttempts: { increment: 1 },
+          },
+        });
 
-        await recordUsage(organizationId, "call", 1);
-
-        if (analysis.isQualified && analysis.interestScore >= 60) {
-          const adminUser = await prisma.user.findFirst({
-            where: { organizationId, role: "ADMIN" },
-          });
-          if (adminUser?.email) {
-            const leadUrl = `${APP_URL}/leads/${lead.id}`;
-            await sendQualifiedLeadEmail({
-              to: adminUser.email,
-              adminName: adminUser.name ?? "",
-              lead: {
-                businessName: lead.businessName,
-                phone: lead.phone ?? "",
-                interestScore: analysis.interestScore,
-              },
-              campaignName: campaign.name,
-              leadUrl,
-            });
-          }
-        }
+        // Usage incrementing happens inside calling-service (vapi.initiateCall
+        // → meterAndCharge VAPI_CALL). The campaign worker no longer
+        // double-counts here.
       } catch (leadErr: any) {
         console.error(
           `Lead ${leadId} failed in campaign ${campaignId}:`,
@@ -275,6 +252,14 @@ export async function campaignWorker(job: Job<CampaignCallJobData>) {
         completed: index + 1,
         total: leadIds.length,
       });
+
+      await publishCampaignProgress(campaignId, {
+        event: "lead-dispatched",
+        campaignId,
+        leadId,
+        completed: index + 1,
+        total: leadIds.length,
+      });
     }
 
     await prisma.campaign.update({
@@ -284,7 +269,7 @@ export async function campaignWorker(job: Job<CampaignCallJobData>) {
 
     return { status: "COMPLETED", processed: leadIds.length };
   } catch (err: any) {
-    console.error('[campaignWorker] fatal error for campaign', campaignId, err);
+    console.error("[campaignWorker] fatal error for campaign", campaignId, err);
     await prisma.campaign
       .update({ where: { id: campaignId }, data: { status: "FAILED" } })
       .catch(() => {});

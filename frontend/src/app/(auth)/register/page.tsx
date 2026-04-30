@@ -4,18 +4,22 @@ import { register } from "@/app/actions/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import PasswordChecklist from "@/components/password-checklist";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [password, setPassword] = useState("");
 
   async function handleSubmit(formData: FormData) {
     setError("");
     setLoading(true);
     try {
       await register(formData);
-      router.push("/login");
+      // Send the user to the verify-email-pending page so they know to check
+      // their inbox before they can log in.
+      router.push("/verify-email-pending");
     } catch (err: any) {
       setError(err.message || "Registration failed. Please try again.");
     } finally {
@@ -87,7 +91,10 @@ export default function RegisterPage() {
                 autoComplete="new-password"
                 className={inputClass}
                 placeholder="Choose a strong password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
+              <PasswordChecklist password={password} />
             </div>
 
             {error ? (

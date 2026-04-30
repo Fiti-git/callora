@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { getContact } from "@/app/actions/contacts";
+import { getContact, getContactTimeline } from "@/app/actions/contacts";
 import Card from "@/horizon-ui/components/card";
 import { MdArrowBack } from "react-icons/md";
+import { Timeline } from "@/components/timeline/timeline";
 
 export default async function ContactDetailPage({
   params,
@@ -11,9 +12,15 @@ export default async function ContactDetailPage({
   const { id } = await params;
   let contact: any = null;
   let error: string | null = null;
+  let timeline: any = { events: [] };
 
   try {
     contact = await getContact(id);
+    try {
+      timeline = await getContactTimeline(id);
+    } catch {
+      timeline = { events: [] };
+    }
   } catch (err: any) {
     error = err.message || "Failed to load contact.";
   }
@@ -55,6 +62,11 @@ export default async function ContactDetailPage({
                 <Stat label="Leads" value={contact.leads?.length || 0} />
                 <Stat label="Deals" value={contact.deals?.length || 0} />
                 <Stat label="Tasks" value={contact.tasks?.length || 0} />
+              </div>
+
+              <div className="mt-8">
+                <h2 className="mb-3 text-lg font-bold text-navy-700 dark:text-white">Activity</h2>
+                <Timeline events={timeline.events ?? []} />
               </div>
             </>
           )}

@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - prod-hardening
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install root workspace deps
+        run: npm install --no-audit --no-fund
+      - name: Lint frontend
+        working-directory: frontend
+        run: |
+          npm install --no-audit --no-fund
+          if grep -q '"lint"' package.json; then npm run lint; else echo "no lint script — skipping"; fi
+      - name: Lint admin
+        working-directory: admin
+        run: |
+          npm install --no-audit --no-fund
+          if grep -q '"lint"' package.json; then npm run lint; else echo "no lint script — skipping"; fi
+      - name: Lint backend (TODO — no eslint config yet)
+        working-directory: backend
+        run: |
+          npm install --no-audit --no-fund
+          if [ -f .eslintrc ] || [ -f .eslintrc.json ] || [ -f .eslintrc.cjs ] || grep -q '"lint"' package.json; then
+            npm run lint || true
+          else
+            echo "TODO: add eslint config for backend/ — skipping for now"
+          fi
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install root workspaces (shared + services/*)
+        run: npm install --no-audit --no-fund
+      - name: Build @callora/shared (microservices import its dist)
+        working-directory: shared
+        run: npx tsc -p . --noEmit
+      - name: Typecheck backend
+        working-directory: backend
+        run: |
+          npm install --no-audit --no-fund
+          npx prisma generate
+          npx tsc --noEmit
+      - name: Typecheck frontend
+        working-directory: frontend
+        run: |
+          npm install --no-audit --no-fund
+          npx tsc --noEmit
+      - name: Typecheck admin
+        working-directory: admin
+        run: |
+          npm install --no-audit --no-fund
+          npx tsc --noEmit
+      - name: Typecheck each microservice
+        run: |
+          set -e
+          for s in services/*; do
+            if [ -f "$s/tsconfig.json" ]; then
+              echo "==> $s"
+              (cd "$s" && npx tsc --noEmit)
+            fi
+          done
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: callora_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/callora_test
+      # Dummy hex-style secrets for CI only — never reuse in production.
+      NEXTAUTH_SECRET: "ci0000000000000000000000000000000000000000000000000000000000ci00"
+      PLATFORM_JWT_SECRET: "ci1111111111111111111111111111111111111111111111111111111111ci11"
+      VAPI_WEBHOOK_SECRET: "ci2222222222222222222222222222222222222222222222222222222222ci22"
+      TENANT_APP_ORIGIN: "http://localhost:3000"
+      REDIS_URL: "redis://localhost:6379"
+      CALLING_SERVICE_URL: "http://localhost:4004"
+      NOTIFICATION_SERVICE_URL: "http://localhost:4008"
+      LEAD_SERVICE_URL: "http://localhost:4003"
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install root workspaces
+        run: npm install --no-audit --no-fund
+      - name: Build @callora/shared
+        working-directory: shared
+        run: npx tsc
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+      - name: Apply migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+      - name: Run backend test suite
+        working-directory: backend
+        run: npx vitest run
+      - name: Run campaign-service test suite
+        working-directory: services/campaign-service
+        run: |
+          npm install --no-audit --no-fund
+          npx vitest run
+
+  migrate-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - name: Install backend deps
+        working-directory: backend
+        run: npm install --no-audit --no-fund
+      - name: Validate Prisma schema
+        working-directory: backend
+        run: npx prisma validate
+      - name: Detect schema/migrations drift
+        working-directory: backend
+        # --exit-code makes the command exit non-zero if there is *any* diff
+        # between the migration history and the schema. Fails CI if a dev
+        # changes schema.prisma without committing a matching migration.
+        run: |
+          npx prisma migrate diff \
+            --from-migrations prisma/migrations \
+            --to-schema-datamodel prisma/schema.prisma \
+            --exit-code

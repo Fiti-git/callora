@@ -103,7 +103,7 @@ router.post("/call", async (req: Request, res: Response) => {
     // Override firstMessage on VapiService if provided
     const callResult = await (firstMessage
       ? vapi.makeCallWithMessage(phone, name, firstMessage)
-      : vapi.makeCall(phone, name, orgAiConfig));
+      : vapi.makeCall(phone, name, orgAiConfig, organizationId));
 
     let analysis: any = {
       interestScore: 0,
@@ -114,21 +114,38 @@ router.post("/call", async (req: Request, res: Response) => {
     };
 
     if (callResult.status === "COMPLETED" && callResult.transcript) {
-      analysis = await gemini.qualifyLead(callResult.transcript, name);
+      analysis = await gemini.qualifyLead(callResult.transcript, name, organizationId);
     }
 
-    await prisma.callLog.create({
-      data: {
-        leadId: lead.id,
-        duration: callResult.durationSeconds,
-        status: callResult.status,
-        transcript: callResult.transcript,
-        summary: analysis.summary,
-        vapiCallId: callResult.vapiCallId ?? null,
-        cost: callResult.cost ?? null,
-        costBreakdown: (callResult.costBreakdown as any) ?? undefined,
-      },
-    });
+    // CallLog is now keyed by vapiCallId so the webhook can upsert it.
+    if (callResult.vapiCallId) {
+      await prisma.callLog.upsert({
+        where: { vapiCallId: callResult.vapiCallId },
+        create: {
+          leadId: lead.id,
+          duration: callResult.durationSeconds,
+          status: callResult.status,
+          transcript: callResult.transcript,
+          summary: analysis.summary,
+          vapiCallId: callResult.vapiCallId,
+          cost: callResult.cost ?? null,
+          costBreakdown: (callResult.costBreakdown as any) ?? undefined,
+        },
+        update: { leadId: lead.id, status: callResult.status },
+      });
+    } else {
+      await prisma.callLog.create({
+        data: {
+          leadId: lead.id,
+          duration: callResult.durationSeconds,
+          status: callResult.status,
+          transcript: callResult.transcript,
+          summary: analysis.summary,
+          cost: callResult.cost ?? null,
+          costBreakdown: (callResult.costBreakdown as any) ?? undefined,
+        },
+      });
+    }
 
     await prisma.lead.update({
       where: { id: lead.id },

@@ -1,4 +1,5 @@
 import axios from "axios";
+import { meterAndCharge } from "@callora/shared";
 
 export interface Lead {
   id: string;
@@ -17,7 +18,12 @@ export class PlacesService {
     this.apiKey = apiKey;
   }
 
-  async findLeads(query: string): Promise<Lead[]> {
+  /**
+   * When `organizationId` is supplied, every returned result is metered
+   * against the org's PLACES quota via `meterAndCharge`. Throws
+   * QuotaExceededError on overage.
+   */
+  async findLeads(query: string, organizationId?: string): Promise<Lead[]> {
     if (!this.apiKey) {
       throw new Error("Google Maps API Key is missing for this organization.");
     }
@@ -38,7 +44,7 @@ export class PlacesService {
         }
       );
 
-      return (response.data.places || []).map((place: any) => ({
+      const results = (response.data.places || []).map((place: any) => ({
         id: place.id,
         name: place.displayName?.text,
         address: place.formattedAddress,
@@ -48,7 +54,14 @@ export class PlacesService {
         types: place.types,
         openNow: place.currentOpeningHours?.openNow,
       }));
+
+      if (organizationId && results.length > 0) {
+        await meterAndCharge(organizationId, "PLACES", results.length);
+      }
+
+      return results;
     } catch (error: any) {
+      if (error?.name === "QuotaExceededError") throw error;
       console.error("Places API Error:", error.response?.data || error.message);
       throw new Error(
         `Google Places API Failed: ${

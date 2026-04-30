@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { resendVerificationEmail } from "@/app/actions/auth";
+import {
+  resendVerificationEmail,
+  resendVerificationEmailPublic,
+} from "@/app/actions/auth";
 
 export default function VerifyEmailPendingClient({
   email,
@@ -17,13 +20,17 @@ export default function VerifyEmailPendingClient({
   async function handleResend() {
     setState("sending");
     setMessage("");
-    const result = await resendVerificationEmail();
+    // If we have an email (e.g. came straight from /register without a session),
+    // use the public endpoint. Otherwise fall back to the authenticated one.
+    const result = email
+      ? await resendVerificationEmailPublic(email)
+      : await resendVerificationEmail();
     if ("error" in result && result.error) {
       setState("error");
       setMessage(result.error);
       return;
     }
-    if (result.alreadyVerified) {
+    if ("alreadyVerified" in result && result.alreadyVerified) {
       setState("sent");
       setMessage("Your email is already verified. Refresh to continue.");
       return;

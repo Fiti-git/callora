@@ -36,10 +36,17 @@ function buildAuthMiddleware(enforceVerified: boolean) {
 
       const fullUser = await prisma.user.findUnique({
         where: { id: userId },
-        select: { emailVerified: true },
+        select: { emailVerified: true, tokenVersion: true } as any,
       });
       if (!fullUser) {
         return res.status(401).json({ error: "user not found" });
+      }
+      // Token-revocation check (B11) — mirrors backend monolith middleware.
+      const claimedVersion =
+        typeof decoded.tokenVersion === "number" ? decoded.tokenVersion : 0;
+      const currentVersion = (fullUser as any).tokenVersion ?? 0;
+      if (claimedVersion !== currentVersion) {
+        return res.status(401).json({ error: "Unauthorized: Token revoked" });
       }
       if (enforceVerified && !fullUser.emailVerified) {
         return res.status(403).json({

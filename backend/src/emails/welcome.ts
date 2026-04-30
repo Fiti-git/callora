@@ -62,7 +62,7 @@ export function welcomeEmail(
           <strong>${orgName}</strong> is now live on Callora. Here's how to get your first qualified lead in the next 48 hours:
         </p>
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 8px;">
-          ${step(1, "Connect your API keys", "Add your Google Maps, Gemini, and Vapi keys in Settings to unlock the full pipeline.")}
+          ${step(1, "Add your first $25 in calling credits", "Drop in a card to unlock outbound calling and lead discovery for your account.")}
           ${step(2, "Create your first campaign", "Pick a business category, set a radius, and let Callora discover your leads automatically.")}
           ${step(3, "Launch and let the AI call", "Your AI agent calls, qualifies, and logs every conversation while you focus on closing.")}
         </table>

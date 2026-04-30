@@ -1,6 +1,11 @@
 import "dotenv/config";
+import { startOtel } from "@callora/shared";
+if (process.env.NODE_ENV !== "test") startOtel({ serviceName: "calling-service" });
+
+import "./lib/env.js"; // boot-time env validation, fails loud on missing vars
 import express from "express";
 import cors from "cors";
+import { prisma, makeHealthHandler } from "@callora/shared";
 import vapiSyncRouter from "./routes/vapi-sync.js";
 import internalRouter from "./routes/internal.js";
 import webhookRouter from "./routes/webhook.js";
@@ -16,12 +21,20 @@ app.use(
     credentials: true,
   })
 );
+// Vapi public webhook FIRST — needs raw body for HMAC signature verification.
+// The router itself attaches express.raw() to its /webhook handler.
+app.use("/api/vapi", webhookRouter);
+
 app.use(express.json({ limit: "5mb" }));
 
-app.get("/health", (_req, res) => res.json({ service: SERVICE, status: "ok" }));
+app.get(
+  "/health",
+  makeHealthHandler({
+    serviceName: SERVICE,
+    pingDb: () => prisma.$queryRaw`SELECT 1`,
+  })
+);
 
-// Vapi public webhook — NO auth (Vapi calls from outside)
-app.use("/api/vapi", webhookRouter);
 // Manual sync — WITH auth
 app.use("/api/vapi", authenticate, vapiSyncRouter);
 // Internal service-to-service — NO auth (cluster-internal)

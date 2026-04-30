@@ -1,5 +1,7 @@
 import { platformFetch } from "@/lib/api";
 import StatusControls from "./StatusControls";
+import AdminTools from "./AdminTools";
+import BillingModeControl from "./BillingModeControl";
 
 export default async function TenantDetail({ params }: { params: { id: string } }) {
   const [org, plans] = await Promise.all([
@@ -30,6 +32,10 @@ export default async function TenantDetail({ params }: { params: { id: string } 
       </div>
 
       <StatusControls orgId={org.id} currentStatus={org.status} plans={plans} currentPlanId={org.subscription?.planId} />
+
+      <BillingModeControl orgId={org.id} currentBillingMode={org.billingMode} />
+
+      <AdminTools orgId={org.id} />
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Users</h2>

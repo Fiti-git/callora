@@ -20,6 +20,7 @@ enum OrgStatus {
   PAST_DUE
   SUSPENDED
   CANCELED
+  PAUSED_NO_CREDIT
 }
 
 enum PlanTier {
@@ -37,25 +38,67 @@ enum SubStatus {
   INCOMPLETE
 }
 
+enum DunningStatus {
+  ACTIVE
+  RETRY_SCHEDULED
+  WARNED
+  SUSPENDED
+  RESOLVED
+  CANCELED
+}
+
+// Model B PAYG (Phase 5 Agent M1). Mirror of backend/prisma/schema.prisma.
+enum BillingMode {
+  PAYG
+  SUBSCRIPTION
+  BYOK
+}
+
+enum ProvisioningStatus {
+  PENDING
+  PROVISIONING
+  READY
+  FAILED
+  SUSPENDED
+  DEPROVISIONED
+}
+
 model User {
-  id             String       @id @default(cuid())
-  email          String       @unique
-  password       String
-  name           String?
-  role           Role         @default(MEMBER)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  emailVerified  Boolean      @default(false)
-  verifyToken    String?      @unique
-  verifyTokenExp DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                 String       @id @default(cuid())
+  email              String       @unique
+  password           String
+  name               String?
+  role               Role         @default(MEMBER)
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id])
+  emailVerified      Boolean      @default(false)
+  verifyToken        String?      @unique
+  verifyTokenExp     DateTime?
+  // Bumped on password reset to invalidate every JWT signed with the old value.
+  tokenVersion       Int          @default(0)
+  // 2FA (TOTP) — Phase 1 Agent 3. See backend/prisma/schema.prisma for notes.
+  twoFASecret        String?
+  twoFAEnabled       Boolean      @default(false)
+  twoFARecoveryCodes String[]
+  // SSO (Phase 3 Agent 12).
+  lastLoginAt        DateTime?
+  ssoProvider        String?
+  ssoSubject         String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 
   assignedLeads       Lead[]               @relation("LeadAssignee")
   assignedTasks       Task[]               @relation("TaskAssignee")
   assignedDeals       Deal[]               @relation("DealAssignee")
+  ownedDeals          Deal[]               @relation("DealOwner")
+  ownedContacts       Contact[]            @relation("ContactOwner")
+  dealHistories       DealHistory[]
   notes               Note[]
   passwordResetTokens PasswordResetToken[]
+  emailCampaigns      EmailCampaign[]
+  publicApiKeys       PublicApiKey[]
+
+  @@index([ssoProvider, ssoSubject])
 }
 
 model PasswordResetToken {
@@ -69,27 +112,52 @@ model PasswordResetToken {
 }
 
 model Organization {
-  id              String        @id @default(cuid())
-  name            String
-  status          OrgStatus     @default(TRIAL)
-  aiCallerName    String        @default("Alex")
-  aiCallerCompany String        @default("")
-  aiCallerPhone   String        @default("")
-  aiSystemPrompt  String?
-  onboardingStep  String        @default("verify_email") // verify_email | choose_plan | setup_caller | complete
-  apiKeys         ApiKey?
-  users           User[]
-  campaigns       Campaign[]
-  leads           Lead[]
-  blacklist       Blacklist[]
-  contacts        Contact[]
-  notes           Note[]
-  tasks           Task[]
-  deals           Deal[]
-  subscription    Subscription?
-  usage           UsageRecord[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id                  String               @id @default(cuid())
+  name                String
+  status              OrgStatus            @default(TRIAL)
+  aiCallerName        String               @default("Alex")
+  aiCallerCompany     String               @default("")
+  aiCallerPhone       String               @default("")
+  aiSystemPrompt      String?
+  onboardingStep      String               @default("verify_email") // verify_email | choose_plan | setup_caller | complete
+  vapiPhoneNumberId   String? // Vapi phone-number object ID (provisioned on Stripe checkout)
+  vapiPhoneNumber     String? // E.164 number shown to the tenant e.g. +14155551234
+  gdprDeletedAt       DateTime?
+  // Phase 3 Agent 12 — Zapier instant-trigger token.
+  zapierTriggerToken  String?              @unique
+  // Model B PAYG (Agent M1).
+  billingMode         BillingMode          @default(PAYG)
+  apiKeys             ApiKey?
+  provisioning        TenantProvisioning?
+  creditLedger        CreditLedger?
+  creditTransactions  CreditTransaction[]
+  users               User[]
+  campaigns           Campaign[]
+  leads               Lead[]
+  blacklist           Blacklist[]
+  contacts            Contact[]
+  notes               Note[]
+  tasks               Task[]
+  deals               Deal[]
+  dealHistories       DealHistory[]
+  subscription        Subscription?
+  usage               UsageRecord[]
+  dunningStates       DunningState[]
+  dncEntries          DNCEntry[]
+  emailSuppressions   EmailSuppression[]
+  emailCampaigns      EmailCampaign[]
+  emailRecipientLists EmailRecipientList[]
+  emailSends          EmailSend[]
+  emailTemplates      EmailTemplate[]
+  emailAutomations    EmailAutomation[]
+  emailAutomationRuns EmailAutomationRun[]
+  tenantWebhooks      TenantWebhook[]
+  webhookDeliveries   WebhookDelivery[]
+  publicApiKeys       PublicApiKey[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  @@index([gdprDeletedAt])
 }
 
 model PlatformUser {
@@ -104,17 +172,22 @@ model PlatformUser {
 }
 
 model Plan {
-  id               String         @id @default(cuid())
-  tier             PlanTier       @unique
-  name             String
-  stripePriceId    String         @unique
-  monthlyCallQuota Int
-  monthlyLeadQuota Int
-  seatLimit        Int
-  priceCents       Int
-  subscriptions    Subscription[]
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id                      String         @id @default(cuid())
+  tier                    PlanTier       @unique
+  name                    String
+  stripePriceId           String         @unique
+  monthlyCallQuota        Int
+  monthlyLeadQuota        Int
+  seatLimit               Int
+  priceCents              Int
+  maxCallsPerMonth        Int?
+  maxPlacesPerMonth       Int?
+  maxGeminiTokensPerMonth Int?
+  maxEmailsPerMonth       Int?
+  maxApiCallsPerMonth     Int?
+  subscriptions           Subscription[]
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
 }
 
 model Subscription {
@@ -133,32 +206,59 @@ model Subscription {
 }
 
 model UsageRecord {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  periodStart    DateTime
-  periodEnd      DateTime
-  callsMade      Int          @default(0)
-  leadsScraped   Int          @default(0)
-  aiTokens       Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  periodStart       DateTime
+  periodEnd         DateTime
+  callsMade         Int          @default(0)
+  leadsScraped      Int          @default(0)
+  aiTokens          Int          @default(0)
+  placesScraped     Int          @default(0)
+  emailsSent        Int          @default(0)
+  apiCallsThisMonth Int          @default(0)
+  vapiSpendCents    Int          @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   @@unique([organizationId, periodStart])
 }
 
 model AuditLog {
-  id             String   @id @default(cuid())
-  actorType      String
-  actorId        String
-  organizationId String?
-  action         String
-  target         String?
-  metadata       Json?
-  createdAt      DateTime @default(now())
+  id                   String   @id @default(cuid())
+  actorType            String
+  actorId              String
+  organizationId       String?
+  targetOrganizationId String?
+  action               String
+  entity               String?
+  entityId             String?
+  target               String?
+  metadata             Json?
+  createdAt            DateTime @default(now())
 
   @@index([organizationId, createdAt])
+  @@index([targetOrganizationId, createdAt])
   @@index([actorType, actorId])
+  @@index([entity, entityId])
+}
+
+// See backend/prisma/schema.prisma for full doc. Mirrored here so the shared
+// Prisma client used by microservices has the same model.
+model EmailLog {
+  id                String   @id @default(cuid())
+  organizationId    String?
+  recipient         String
+  subject           String
+  template          String?
+  status            String
+  providerMessageId String?
+  error             String?
+  createdAt         DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([recipient])
+  @@index([status])
 }
 
 model ApiKey {
@@ -187,24 +287,38 @@ model Campaign {
   maxRetryAttempts  Int @default(3)
   retryDelayHours   Int @default(24)
   followUpDelayDays Int @default(3)
+
+  deletedAt DateTime?
+
+  @@index([deletedAt])
 }
 
 model Contact {
-  id             String       @id @default(cuid())
-  businessName   String
-  phone          String
-  address        String?
-  email          String?
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  leads          Lead[]
-  notes          Note[]
-  tasks          Task[]
-  deals          Deal[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                  String                     @id @default(cuid())
+  businessName        String
+  phone               String
+  address             String?
+  email               String?
+  tags                String[]                   @default([])
+  ownerId             String?
+  owner               User?                      @relation("ContactOwner", fields: [ownerId], references: [id])
+  organizationId      String
+  organization        Organization               @relation(fields: [organizationId], references: [id])
+  leads               Lead[]
+  notes               Note[]
+  tasks               Task[]
+  deals               Deal[]
+  emailListMembers    EmailRecipientListMember[]
+  emailSends          EmailSend[]
+  emailAutomationRuns EmailAutomationRun[]
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  deletedAt DateTime?
 
   @@unique([phone, organizationId])
+  @@index([deletedAt])
+  @@index([ownerId])
 }
 
 model Lead {
@@ -233,6 +347,23 @@ model Lead {
   assignedTo   User?    @relation("LeadAssignee", fields: [assignedToId], references: [id])
   leadNotes    Note[]
   tasks        Task[]
+
+  // TCPA compliance (Phase 2 Agent 9).
+  consentGiven     Boolean   @default(false)
+  consentTimestamp DateTime?
+  consentSource    String?
+  consentIpAddress String?
+  doNotCall        Boolean   @default(false)
+  doNotCallReason  String?
+  doNotCallAt      DateTime?
+  state            String?
+  timezone         String?
+
+  deletedAt DateTime?
+
+  @@index([deletedAt])
+  @@index([doNotCall])
+  @@index([state])
 }
 
 model CallLog {
@@ -245,9 +376,13 @@ model CallLog {
   summary    String?
   createdAt  DateTime @default(now())
 
-  vapiCallId    String?
+  vapiCallId    String? @unique
   cost          Float?
   costBreakdown Json?
+
+  deletedAt DateTime?
+
+  @@index([deletedAt])
 }
 
 model Note {
@@ -265,8 +400,11 @@ model Note {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
+  deletedAt DateTime?
+
   @@index([leadId])
   @@index([contactId])
+  @@index([deletedAt])
 }
 
 model Task {
@@ -287,27 +425,344 @@ model Task {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
+  deletedAt DateTime?
+
   @@index([organizationId, completed, dueDate])
+  @@index([deletedAt])
 }
 
 model Deal {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   title          String
   value          Float?
   probability    Int?
-  stage          String       @default("PROSPECT")
+  stage          String        @default("PROSPECT")
   closeDate      DateTime?
   notes          String?
   contactId      String
-  contact        Contact      @relation(fields: [contactId], references: [id])
+  contact        Contact       @relation(fields: [contactId], references: [id])
   assignedToId   String?
-  assignedTo     User?        @relation("DealAssignee", fields: [assignedToId], references: [id])
+  assignedTo     User?         @relation("DealAssignee", fields: [assignedToId], references: [id])
+  ownerId        String?
+  owner          User?         @relation("DealOwner", fields: [ownerId], references: [id])
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  histories      DealHistory[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  deletedAt DateTime?
 
   @@index([organizationId, stage])
+  @@index([deletedAt])
+  @@index([ownerId])
+}
+
+model DealHistory {
+  id             String   @id @default(cuid())
+  dealId         String
+  organizationId String
+  fromStage      String?
+  toStage        String
+  changedById    String?
+  reason         String?
+  createdAt      DateTime @default(now())
+
+  deal         Deal         @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  changedBy    User?        @relation(fields: [changedById], references: [id])
+
+  @@index([dealId, createdAt])
+  @@index([organizationId, createdAt])
+}
+
+// Dunning state machine — tracks failed-invoice retry cycles. See
+// backend/src/workers/dunningWorker.ts for the cadence + transitions.
+model DunningState {
+  id              String        @id @default(cuid())
+  organizationId  String
+  invoiceId       String        @unique
+  subscriptionId  String?
+  attempt         Int           @default(0)
+  status          DunningStatus @default(ACTIVE)
+  firstFailedAt   DateTime      @default(now())
+  nextActionAt    DateTime
+  lastEmailSentAt DateTime?
+  resolvedAt      DateTime?
+  amountDueCents  Int?
+  currency        String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([nextActionAt, status])
+}
+
+// Stripe webhook idempotency record. Same shape as backend/prisma/schema.prisma.
+model StripeWebhookEvent {
+  id          String    @id
+  type        String
+  livemode    Boolean   @default(false)
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([processedAt])
+  @@index([type])
+}
+
+// TCPA call-window config (Phase 2 Agent 9). See backend/prisma/schema.prisma.
+model CallWindowConfig {
+  id          String   @id @default(cuid())
+  state       String   @unique
+  allowedFrom String
+  allowedTo   String
+  timezone    String
+  source      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DNCEntry {
+  id             String   @id @default(cuid())
+  phoneHash      String
+  organizationId String?
+  source         String
+  reason         String?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([phoneHash, organizationId])
+  @@index([organizationId, createdAt])
+}
+
+model EmailSuppression {
+  id             String   @id @default(cuid())
+  email          String
+  organizationId String?
+  reason         String
+  source         String?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([email, organizationId])
+  @@index([organizationId, createdAt])
+}
+
+model ResendWebhookEvent {
+  id          String    @id
+  type        String
+  receivedAt  DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([processedAt])
+  @@index([type])
+}
+
+// ====================================================================
+// Email Marketing (Phase 3 Agent 10) — mirrored from backend/prisma/schema.prisma
+// ====================================================================
+
+enum EmailCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  PAUSED
+  FAILED
+}
+
+enum EmailSendStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  COMPLAINED
+  UNSUBSCRIBED
+  FAILED
+}
+
+enum EmailRecipientSource {
+  MANUAL
+  CSV_IMPORT
+  CAMPAIGN
+  API
+}
+
+enum EmailAutomationTrigger {
+  LEAD_QUALIFIED
+  DEAL_WON
+  CONTACT_CREATED
+  CAMPAIGN_COMPLETE
+}
+
+model EmailCampaign {
+  id                String              @id @default(cuid())
+  organizationId    String
+  name              String
+  subject           String
+  previewText       String?
+  htmlBody          String
+  textBody          String?
+  status            EmailCampaignStatus @default(DRAFT)
+  scheduledAt       DateTime?
+  sentAt            DateTime?
+  fromName          String
+  fromEmail         String
+  replyTo           String?
+  totalRecipients   Int                 @default(0)
+  totalSent         Int                 @default(0)
+  totalDelivered    Int                 @default(0)
+  totalOpened       Int                 @default(0)
+  totalClicked      Int                 @default(0)
+  totalBounced      Int                 @default(0)
+  totalUnsubscribed Int                 @default(0)
+  totalComplained   Int                 @default(0)
+  createdById       String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  deletedAt         DateTime?
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  recipientLists EmailCampaignList[]
+  sends          EmailSend[]
+  createdBy      User?               @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId, status])
+  @@index([deletedAt])
+}
+
+model EmailRecipientList {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  memberCount    Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      EmailRecipientListMember[]
+  campaigns    EmailCampaignList[]
+
+  @@index([organizationId])
+  @@index([deletedAt])
+}
+
+model EmailCampaignList {
+  campaignId String
+  listId     String
+  campaign   EmailCampaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  list       EmailRecipientList @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, listId])
+}
+
+model EmailRecipientListMember {
+  id             String               @id @default(cuid())
+  listId         String
+  contactId      String?
+  email          String
+  source         EmailRecipientSource
+  subscribedAt   DateTime             @default(now())
+  unsubscribedAt DateTime?
+
+  list    EmailRecipientList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  contact Contact?           @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@unique([listId, email])
+  @@index([listId, unsubscribedAt])
+  @@index([email])
+}
+
+model EmailSend {
+  id                String          @id @default(cuid())
+  campaignId        String
+  contactId         String?
+  organizationId    String
+  email             String
+  status            EmailSendStatus @default(QUEUED)
+  providerMessageId String?         @unique
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  clickedAt         DateTime?
+  bouncedAt         DateTime?
+  complainedAt      DateTime?
+  unsubscribedAt    DateTime?
+  failedAt          DateTime?
+  errorMessage      String?
+  createdAt         DateTime        @default(now())
+
+  campaign     EmailCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact      Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId, status])
+  @@index([organizationId, status, createdAt])
+  @@index([providerMessageId])
+}
+
+model EmailTemplate {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  subject        String
+  htmlBody       String
+  textBody       String?
+  category       String?
+  isDefault      Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, category])
+  @@index([deletedAt])
+}
+
+model EmailAutomation {
+  id             String                 @id @default(cuid())
+  organizationId String
+  name           String
+  trigger        EmailAutomationTrigger
+  active         Boolean                @default(false)
+  sequence       Json
+  stats          Json                   @default("{}")
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  runs         EmailAutomationRun[]
+
+  @@index([organizationId, active])
+  @@index([deletedAt])
+}
+
+model EmailAutomationRun {
+  id             String   @id @default(cuid())
+  automationId   String
+  organizationId String
+  contactId      String?
+  triggeredAt    DateTime @default(now())
+  currentStep    Int      @default(0)
+  status         String
+  context        Json
+
+  automation   EmailAutomation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  contact      Contact?        @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([automationId, status])
+  @@index([organizationId, triggeredAt])
 }
 
 model Blacklist {
@@ -317,4 +772,143 @@ model Blacklist {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   createdAt      DateTime     @default(now())
+
+  deletedAt DateTime?
+
+  @@index([deletedAt])
+}
+
+// ====================================================================
+// Phase 3 Agent 12 — Per-tenant webhooks + public API.
+// ====================================================================
+
+enum WebhookEvent {
+  LEAD_QUALIFIED
+  CALL_COMPLETED
+  DEAL_WON
+  CAMPAIGN_COMPLETED
+  EMAIL_OPENED
+  EMAIL_CLICKED
+}
+
+model TenantWebhook {
+  id             String         @id @default(cuid())
+  organizationId String
+  url            String
+  events         WebhookEvent[]
+  secret         String
+  active         Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  deliveries   WebhookDelivery[]
+
+  @@index([organizationId, active])
+  @@index([deletedAt])
+}
+
+model WebhookDelivery {
+  id             String       @id @default(cuid())
+  webhookId      String
+  organizationId String
+  event          WebhookEvent
+  payload        Json
+  status         String
+  responseCode   Int?
+  responseBody   String?
+  attempts       Int          @default(0)
+  lastAttemptAt  DateTime?
+  createdAt      DateTime     @default(now())
+
+  webhook      TenantWebhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId, status])
+  @@index([organizationId, createdAt])
+  @@index([status, lastAttemptAt])
+}
+
+model PublicApiKey {
+  id             String    @id @default(cuid())
+  organizationId String
+  name           String
+  keyHash        String    @unique
+  prefix         String
+  scopes         String[]  @default(["read"])
+  lastUsedAt     DateTime?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  revokedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId, revokedAt])
+  @@index([prefix])
+}
+
+// ====================================================================
+// Phase 5 Agent M1 — Model B PAYG: Provisioning + Credit ledger.
+// (Mirror of backend/prisma/schema.prisma — see that file for canonical docs.)
+// Soft-delete: NONE of these models are soft-delete candidates. CreditTransaction
+// is immutable accounting history; TenantProvisioning + CreditLedger are 1:1
+// with Organization and follow its lifecycle.
+// ====================================================================
+
+model TenantProvisioning {
+  id                     String             @id @default(cuid())
+  organizationId         String             @unique
+  status                 ProvisioningStatus @default(PENDING)
+  vapiAssistantId        String?
+  vapiPhoneNumberId      String?
+  vapiPhoneE164          String?
+  stripeCustomerId       String?
+  defaultPaymentMethodId String?
+  failureReason          String?
+  steps                  Json               @default("{}")
+  provisionedAt          DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+model CreditLedger {
+  id                         String    @id @default(cuid())
+  organizationId             String    @unique
+  balanceCents               Int       @default(0)
+  lifetimeAddedCents         Int       @default(0)
+  lifetimeSpentCents         Int       @default(0)
+  autoRechargeEnabled        Boolean   @default(true)
+  autoRechargeThresholdCents Int       @default(1000)
+  autoRechargeAmountCents    Int       @default(2500)
+  lastAutoRechargeAt         DateTime?
+  lowBalanceAlertSentAt      DateTime?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transactions CreditTransaction[]
+}
+
+model CreditTransaction {
+  id                String   @id @default(cuid())
+  ledgerId          String
+  organizationId    String
+  kind              String
+  amountCents       Int
+  balanceAfterCents Int
+  ref               String?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  ledger       CreditLedger @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, createdAt])
+  @@index([ref])
 }

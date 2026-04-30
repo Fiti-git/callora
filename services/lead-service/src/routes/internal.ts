@@ -4,6 +4,7 @@ import {
   assertWithinQuota,
   recordUsage,
   QuotaError,
+  QuotaExceededError,
 } from "@callora/shared";
 import { GeminiService } from "../services/gemini.js";
 import { PlacesService } from "../services/places.js";
@@ -59,7 +60,11 @@ router.post("/qualify", async (req: Request, res: Response) => {
     }
 
     const gemini = new GeminiService(GEMINI_API_KEY);
-    const analysis = await gemini.qualifyLead(transcript, lead.businessName);
+    const analysis = await gemini.qualifyLead(
+      transcript,
+      lead.businessName,
+      organizationId
+    );
 
     const newStatus = analysis.isQualified ? "QUALIFIED" : "CALLED";
 
@@ -78,6 +83,16 @@ router.post("/qualify", async (req: Request, res: Response) => {
       status: newStatus,
     });
   } catch (error: any) {
+    if (error instanceof QuotaExceededError || error?.name === "QuotaExceededError") {
+      return res.status(429).json({
+        error: "quota_exceeded",
+        message: error.message,
+        kind: error.kind,
+        current: error.current,
+        limit: error.limit,
+        units: error.units,
+      });
+    }
     console.error("[lead-service] /internal/qualify error:", error);
     res.status(500).json({ error: "Qualification failed" });
   }
@@ -112,7 +127,7 @@ router.post("/scrape", async (req: Request, res: Response) => {
 
     const places = new PlacesService(GOOGLE_MAPS_API_KEY);
     const query = `${keyword} in ${location}`;
-    const results = await places.findLeads(query);
+    const results = await places.findLeads(query, organizationId);
     const limited = results.slice(0, maxResults ?? 20);
 
     const created: string[] = [];
@@ -151,6 +166,16 @@ router.post("/scrape", async (req: Request, res: Response) => {
   } catch (error: any) {
     if (error instanceof QuotaError) {
       return res.status(402).json({ error: "quota_exceeded", message: error.message });
+    }
+    if (error instanceof QuotaExceededError || error?.name === "QuotaExceededError") {
+      return res.status(429).json({
+        error: "quota_exceeded",
+        message: error.message,
+        kind: error.kind,
+        current: error.current,
+        limit: error.limit,
+        units: error.units,
+      });
     }
     console.error("[lead-service] /internal/scrape error:", error);
     res.status(500).json({ error: "Scrape failed" });

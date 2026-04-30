@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { meterAndCharge } from "@callora/shared";
 
 export interface QualificationResult {
   sentiment: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
@@ -6,6 +7,15 @@ export interface QualificationResult {
   summary: string;
   nextSteps: string;
   isQualified: boolean;
+}
+
+function tokensUsed(prompt: string, responseText: string, result: any): number {
+  const meta = result?.response?.usageMetadata;
+  const total =
+    meta?.totalTokenCount ??
+    (meta?.promptTokenCount ?? 0) + (meta?.candidatesTokenCount ?? 0);
+  if (typeof total === "number" && total > 0) return total;
+  return Math.max(1, Math.ceil((prompt.length + (responseText?.length ?? 0)) / 4));
 }
 
 export class GeminiService {
@@ -22,7 +32,10 @@ export class GeminiService {
     }
   }
 
-  async generateSearchQueries(userPrompt: string): Promise<string[]> {
+  async generateSearchQueries(
+    userPrompt: string,
+    organizationId?: string
+  ): Promise<string[]> {
     if (!this.apiKey) return [userPrompt];
 
     const prompt = `
@@ -36,6 +49,13 @@ export class GeminiService {
     try {
       const result = await this.model.generateContent(prompt);
       const text = result.response.text();
+      if (organizationId) {
+        await meterAndCharge(
+          organizationId,
+          "GEMINI_TOKEN",
+          tokensUsed(prompt, text, result)
+        );
+      }
       const cleanText = text
         .replace(/```json/g, "")
         .replace(/```/g, "")
@@ -46,12 +66,17 @@ export class GeminiService {
 
       return JSON.parse(jsonStr);
     } catch (error: any) {
+      if (error?.name === "QuotaExceededError") throw error;
       console.error("Gemini Search Query Error:", error.message);
       return [userPrompt];
     }
   }
 
-  async filterLeads(leads: any[], userPrompt: string): Promise<string[]> {
+  async filterLeads(
+    leads: any[],
+    userPrompt: string,
+    organizationId?: string
+  ): Promise<string[]> {
     if (!this.apiKey || leads.length === 0) return leads.map((l) => l.id);
 
     const minimalLeads = leads.map((l) => ({
@@ -81,6 +106,13 @@ export class GeminiService {
     try {
       const result = await this.model.generateContent(prompt);
       const text = result.response.text();
+      if (organizationId) {
+        await meterAndCharge(
+          organizationId,
+          "GEMINI_TOKEN",
+          tokensUsed(prompt, text, result)
+        );
+      }
       const cleanText = text
         .replace(/```json/g, "")
         .replace(/```/g, "")
@@ -91,6 +123,7 @@ export class GeminiService {
 
       return JSON.parse(jsonStr);
     } catch (error: any) {
+      if (error?.name === "QuotaExceededError") throw error;
       console.error("Gemini Filtering Error:", error.message);
       return leads.map((l) => l.id);
     }
@@ -98,7 +131,8 @@ export class GeminiService {
 
   async qualifyLead(
     transcript: string,
-    businessName: string
+    businessName: string,
+    organizationId?: string
   ): Promise<QualificationResult> {
     if (!this.apiKey) {
       throw new Error("Gemini API Key missing.");
@@ -130,20 +164,22 @@ export class GeminiService {
     try {
       const result = await this.model.generateContent(prompt);
       const text = result.response.text();
+      if (organizationId) {
+        await meterAndCharge(
+          organizationId,
+          "GEMINI_TOKEN",
+          tokensUsed(prompt, text, result)
+        );
+      }
       const cleanText = text
         .replace(/```json/g, "")
         .replace(/```/g, "")
         .trim();
       return JSON.parse(cleanText);
     } catch (error: any) {
-      console.error("Gemini Qualification Error:", error.message);
-      return {
-        sentiment: "NEUTRAL",
-        interestScore: 0,
-        summary: `Error analyzing: ${error.message}`,
-        nextSteps: "Manual Review",
-        isQualified: false,
-      };
+      if (error?.name === "QuotaExceededError") throw error;
+      // Per project rules, qualification must fail loud — don't fabricate.
+      throw new Error(`AI service unavailable: ${error.message}`);
     }
   }
 }

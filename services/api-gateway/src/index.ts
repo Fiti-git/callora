@@ -1,4 +1,7 @@
 import "dotenv/config";
+import { startOtel, makeHealthHandler } from "./observability";
+startOtel("api-gateway");
+
 import express, { type RequestHandler } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -73,10 +76,9 @@ app.use(
   })
 );
 
-// Health check (before any auth)
-app.get("/health", (_req, res) => {
-  res.json({ service: SERVICE, status: "ok" });
-});
+// Health check (before any auth). The gateway doesn't own DB/queue itself,
+// so it just reports its own uptime + version.
+app.get("/health", makeHealthHandler({ serviceName: SERVICE }));
 
 // ---------------------------------------------------------------------------
 // Stripe webhook MUST be proxied with the raw body intact.

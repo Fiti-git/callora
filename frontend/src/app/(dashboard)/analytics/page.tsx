@@ -5,11 +5,22 @@ import { CostTrendChart } from "./CostTrendChart";
 import { CostBreakdownChart } from "./CostBreakdownChart";
 import { FunnelDisplay } from "./FunnelDisplay";
 import { CampaignTable } from "./CampaignTable";
+import { DateRangePicker } from "./DateRangePicker";
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string; to?: string }>;
+}) {
+  const sp = await searchParams;
+  const qs = new URLSearchParams();
+  if (sp.from) qs.set("from", sp.from);
+  if (sp.to) qs.set("to", sp.to);
+  const path = qs.toString() ? `/analytics?${qs.toString()}` : "/analytics";
+
   let data: any;
   try {
-    data = await fetchWithAuth("/analytics");
+    data = await fetchWithAuth(path);
   } catch (error) {
     console.error("Analytics Fetch Error:", error);
     return (
@@ -25,11 +36,14 @@ export default async function AnalyticsPage() {
 
   return (
     <div className="p-6 space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Analytics</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Call performance and cost breakdown across all campaigns.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Analytics</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Call performance and cost breakdown across all campaigns.
+          </p>
+        </div>
+        <DateRangePicker />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

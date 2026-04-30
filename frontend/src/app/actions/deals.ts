@@ -58,3 +58,29 @@ export async function deleteDeal(id: string) {
   revalidatePath("/pipeline");
   return result;
 }
+
+// ---------------------------------------------------------------------------
+// Bulk operations (Phase 2 Agent 7).
+// ---------------------------------------------------------------------------
+export async function bulkDealStatus(ids: string[], status: string) {
+  const result = await fetchWithAuth("/deals/bulk-status", {
+    method: "POST",
+    body: JSON.stringify({ ids, status }),
+  });
+  revalidatePath("/pipeline");
+  return result;
+}
+
+export async function bulkAssignDealOwner(ids: string[], ownerId: string) {
+  const result = await fetchWithAuth("/deals/bulk-assign", {
+    method: "POST",
+    body: JSON.stringify({ ids, ownerId }),
+  });
+  revalidatePath("/pipeline");
+  return result;
+}
+
+export async function getDealTimeline(id: string, cursor?: string) {
+  const q = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  return fetchWithAuth(`/deals/${id}/timeline${q}`);
+}
