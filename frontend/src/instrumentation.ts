@@ -7,4 +7,6 @@ export async function register() {
   }
 }
 
-export { onRequestError } from "@sentry/nextjs";
+// Newer @sentry/nextjs renamed onRequestError → captureRequestError, then
+// re-exports it AS onRequestError for the Next.js hook contract.
+export { captureRequestError as onRequestError } from "@sentry/nextjs";
