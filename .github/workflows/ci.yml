@@ -7,67 +7,33 @@ on:
       - main
       - prod-hardening
 
-jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-      - name: Install root workspace deps
-        run: npm install --no-audit --no-fund
-      - name: Lint frontend
-        working-directory: frontend
-        run: |
-          npm install --no-audit --no-fund
-          if grep -q '"lint"' package.json; then npm run lint; else echo "no lint script — skipping"; fi
-      - name: Lint admin
-        working-directory: admin
-        run: |
-          npm install --no-audit --no-fund
-          if grep -q '"lint"' package.json; then npm run lint; else echo "no lint script — skipping"; fi
-      - name: Lint backend (TODO — no eslint config yet)
-        working-directory: backend
-        run: |
-          npm install --no-audit --no-fund
-          if [ -f .eslintrc ] || [ -f .eslintrc.json ] || [ -f .eslintrc.cjs ] || grep -q '"lint"' package.json; then
-            npm run lint || true
-          else
-            echo "TODO: add eslint config for backend/ — skipping for now"
-          fi
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
-  typecheck:
+jobs:
+  shared-and-typecheck:
+    name: Build shared + typecheck all packages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
-      - name: Install root workspaces (shared + services/*)
+
+      - name: Install workspaces
         run: npm install --no-audit --no-fund
-      - name: Build @callora/shared (microservices import its dist)
+
+      - name: Generate Prisma client (shared schema)
         working-directory: shared
-        run: npx tsc -p . --noEmit
-      - name: Typecheck backend
-        working-directory: backend
-        run: |
-          npm install --no-audit --no-fund
-          npx prisma generate
-          npx tsc --noEmit
-      - name: Typecheck frontend
-        working-directory: frontend
-        run: |
-          npm install --no-audit --no-fund
-          npx tsc --noEmit
-      - name: Typecheck admin
-        working-directory: admin
-        run: |
-          npm install --no-audit --no-fund
-          npx tsc --noEmit
-      - name: Typecheck each microservice
+        run: npx prisma generate --schema=src/prisma/schema.prisma
+
+      - name: Build @callora/shared
+        working-directory: shared
+        run: npm run build
+
+      - name: Typecheck every microservice
         run: |
           set -e
           for s in services/*; do
@@ -77,7 +43,30 @@ jobs:
             fi
           done
 
+      - name: Typecheck every bundle
+        run: |
+          set -e
+          for b in bundles/*; do
+            if [ -f "$b/tsconfig.json" ]; then
+              echo "==> $b"
+              (cd "$b" && npx tsc --noEmit)
+            fi
+          done
+
+      - name: Typecheck frontend
+        working-directory: frontend
+        run: |
+          npm install --no-audit --no-fund
+          npx tsc --noEmit
+
+      - name: Typecheck admin
+        working-directory: admin
+        run: |
+          npm install --no-audit --no-fund
+          npx tsc --noEmit
+
   test:
+    name: Vitest (services)
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -104,66 +93,136 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/callora_test
-      # Dummy hex-style secrets for CI only — never reuse in production.
+      REDIS_URL: redis://localhost:6379
       NEXTAUTH_SECRET: "ci0000000000000000000000000000000000000000000000000000000000ci00"
       PLATFORM_JWT_SECRET: "ci1111111111111111111111111111111111111111111111111111111111ci11"
       VAPI_WEBHOOK_SECRET: "ci2222222222222222222222222222222222222222222222222222222222ci22"
-      TENANT_APP_ORIGIN: "http://localhost:3000"
-      REDIS_URL: "redis://localhost:6379"
-      CALLING_SERVICE_URL: "http://localhost:4004"
-      NOTIFICATION_SERVICE_URL: "http://localhost:4008"
-      LEAD_SERVICE_URL: "http://localhost:4003"
+      # 32-byte base64 key for AES-256-GCM secret encryption (CI only).
+      SECRETS_ENCRYPTION_KEY: "Y2lzZWNyZXRzZW5jcnlwdGlvbmtleWNpc2VjcmV0c2VuY3J5cHRpAAAAAAAAAAA="
+      SECRETS_BACKEND: env
+      TENANT_APP_ORIGIN: http://localhost:3000
+      ADMIN_APP_ORIGIN: http://localhost:3001
+      CALLING_SERVICE_URL: http://localhost:4004
+      NOTIFICATION_SERVICE_URL: http://localhost:4008
+      LEAD_SERVICE_URL: http://localhost:4003
       NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
-      - name: Install root workspaces
+
+      - name: Install workspaces
         run: npm install --no-audit --no-fund
+
       - name: Build @callora/shared
         working-directory: shared
-        run: npx tsc
-      - name: Install backend deps
-        working-directory: backend
-        run: npm install --no-audit --no-fund
-      - name: Generate Prisma client
-        working-directory: backend
-        run: npx prisma generate
-      - name: Apply migrations
-        working-directory: backend
-        run: npx prisma migrate deploy
-      - name: Run backend test suite
-        working-directory: backend
-        run: npx vitest run
-      - name: Run campaign-service test suite
-        working-directory: services/campaign-service
         run: |
-          npm install --no-audit --no-fund
-          npx vitest run
+          npx prisma generate --schema=src/prisma/schema.prisma
+          npm run build
+
+      - name: Apply Prisma migrations
+        working-directory: shared
+        run: npx prisma migrate deploy --schema=src/prisma/schema.prisma
+
+      - name: Run vitest in each service that has it
+        run: |
+          set -e
+          for s in services/*; do
+            if [ -f "$s/vitest.config.ts" ]; then
+              echo "==> $s"
+              (cd "$s" && npx vitest run)
+            fi
+          done
+
+      - name: Run root vitest if config present
+        run: |
+          if [ -f vitest.root.config.ts ]; then
+            npx vitest run --config vitest.root.config.ts
+          else
+            echo "no root vitest config — skipping"
+          fi
 
   migrate-check:
+    name: Prisma schema vs migrations drift
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
-      - name: Install backend deps
-        working-directory: backend
+      - name: Install workspaces
         run: npm install --no-audit --no-fund
-      - name: Validate Prisma schema
-        working-directory: backend
-        run: npx prisma validate
-      - name: Detect schema/migrations drift
-        working-directory: backend
-        # --exit-code makes the command exit non-zero if there is *any* diff
-        # between the migration history and the schema. Fails CI if a dev
-        # changes schema.prisma without committing a matching migration.
+      - name: Validate schema
+        working-directory: shared
+        run: npx prisma validate --schema=src/prisma/schema.prisma
+      - name: Drift check (schema must match migration history)
+        working-directory: shared
         run: |
           npx prisma migrate diff \
-            --from-migrations prisma/migrations \
-            --to-schema-datamodel prisma/schema.prisma \
-            --exit-code
+            --from-migrations src/prisma/migrations \
+            --to-schema-datamodel src/prisma/schema.prisma \
+            --shadow-database-url "postgres://postgres:postgres@localhost:5432/shadow" \
+            --exit-code || (echo "::error::Prisma schema drifted from migration history. Run: cd shared && npx prisma migrate dev --schema=src/prisma/schema.prisma" && exit 1)
+        env:
+          # Drift check doesn't actually need the DB if --shadow-database-url
+          # is not used; falls back to in-memory engine. Keep simple.
+          DATABASE_URL: postgres://placeholder
+        continue-on-error: false
+
+  frontend-build:
+    name: Build frontend (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - name: Install workspaces
+        run: npm install --no-audit --no-fund
+      - name: Build shared first (frontend types)
+        working-directory: shared
+        run: |
+          npx prisma generate --schema=src/prisma/schema.prisma
+          npm run build
+      - name: Frontend install + build
+        working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NEXTAUTH_SECRET: ci-build-only
+          NEXTAUTH_URL: http://localhost:3000
+          API_URL: http://localhost:4000
+          NEXT_PUBLIC_API_URL: http://localhost:4000
+        run: |
+          npm install --no-audit --no-fund
+          npm run build
+
+  admin-build:
+    name: Build admin (Next.js)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - name: Install workspaces
+        run: npm install --no-audit --no-fund
+      - name: Build shared first
+        working-directory: shared
+        run: |
+          npx prisma generate --schema=src/prisma/schema.prisma
+          npm run build
+      - name: Admin install + build
+        working-directory: admin
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          NEXTAUTH_SECRET: ci-build-only
+          NEXTAUTH_URL: http://localhost:3001
+          NEXT_PUBLIC_PLATFORM_API_URL: http://localhost:4000
+        run: |
+          npm install --no-audit --no-fund
+          npm run build

@@ -8,6 +8,15 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { createProxyMiddleware, type Options } from "http-proxy-middleware";
 import tenantAuth from "./middleware/tenantAuth";
+import {
+  signupIpLimiter,
+  forgotPasswordIpLimiter,
+} from "./middleware/rateLimitIp";
+import {
+  campaignsHourLimiter,
+  callsMinuteLimiter,
+} from "./middleware/rateLimitOrg";
+import { spendCap } from "./middleware/spendCap";
 
 const app = express();
 const SERVICE = "api-gateway";
@@ -96,6 +105,19 @@ app.post(
   createProxyMiddleware(stripeWebhookProxy) as unknown as RequestHandler
 );
 
+// ---------------------------------------------------------------------------
+// Resend webhook MUST also be proxied with the raw body intact (HMAC sig).
+// Same pattern as Stripe — register BEFORE express.json().
+// ---------------------------------------------------------------------------
+const resendWebhookProxy: Options = {
+  target: NOTIFICATION_SERVICE_URL,
+  changeOrigin: true,
+};
+app.post(
+  "/api/email/webhook/resend",
+  createProxyMiddleware(resendWebhookProxy) as unknown as RequestHandler
+);
+
 // JSON parsing for everything else
 app.use(express.json());
 
@@ -123,16 +145,87 @@ const tenantProxy = (target: string): RequestHandler =>
     changeOrigin: true,
   }) as unknown as RequestHandler;
 
+// Per-IP rate limits on signup + password-reset BEFORE the generic /api/auth proxy.
+// These only run for the specific paths/methods.
+app.post("/api/auth/register", signupIpLimiter);
+app.post("/api/auth/forgot-password", forgotPasswordIpLimiter);
+
 app.use("/api/auth", authLimiter, tenantProxy(AUTH_SERVICE_URL));
-app.use("/api/campaigns", apiLimiter, tenantAuth, tenantProxy(CAMPAIGN_SERVICE_URL));
-app.use("/api/leads", apiLimiter, tenantAuth, tenantProxy(LEAD_SERVICE_URL));
-app.use("/api/vapi", apiLimiter, tenantAuth, tenantProxy(CALLING_SERVICE_URL));
+
+// /api/me lives in auth-service. It uses its OWN permissive auth so that
+// PAST_DUE/SUSPENDED orgs can still poll status + onboarding state — we do
+// not run tenantAuth here (which would 402 those orgs).
+app.use("/api/me", apiLimiter, tenantProxy(AUTH_SERVICE_URL));
+
+// Tenant audit-log viewer (org-scoped reads) — lives in auth-service since
+// it's an account-level read with no domain dependencies.
+app.use("/api/audit-log", apiLimiter, tenantAuth, tenantProxy(AUTH_SERVICE_URL));
+
+// Tenant-facing developer API key CRUD lives in auth-service. JWT-protected:
+// only the tenant who owns the key can list/create/revoke their own keys.
+app.use(
+  "/api/developer",
+  apiLimiter,
+  tenantAuth,
+  tenantProxy(AUTH_SERVICE_URL)
+);
+
+// Public API v1 — external integrations (Zapier-style). Auth is via the
+// tenant's publishable API key (`cal_*`), validated INSIDE lead-service.
+// We deliberately do NOT run tenantAuth here (it would reject the api-key
+// bearer token); the gateway just rate-limits + proxies.
+app.use("/api/v1", apiLimiter, tenantProxy(LEAD_SERVICE_URL));
+
+// Campaigns: per-org hourly cap on POST (campaign creation) + spend cap on
+// "campaign-run" trigger endpoint.
+app.use(
+  "/api/campaigns",
+  apiLimiter,
+  tenantAuth,
+  campaignsHourLimiter,
+  spendCap({ action: "campaign-run" }),
+  tenantProxy(CAMPAIGN_SERVICE_URL)
+);
+
+// Leads: spend cap on lead-scrape POST.
+app.use(
+  "/api/leads",
+  apiLimiter,
+  tenantAuth,
+  spendCap({ action: "lead-scrape" }),
+  tenantProxy(LEAD_SERVICE_URL)
+);
+
+// Vapi/calling: per-minute call cap + spend cap on call-trigger POST.
+app.use(
+  "/api/vapi",
+  apiLimiter,
+  tenantAuth,
+  callsMinuteLimiter,
+  spendCap({ action: "call-trigger" }),
+  tenantProxy(CALLING_SERVICE_URL)
+);
+
+// One-shot demo call flow lives in calling-service.
+app.use(
+  "/api/demo",
+  apiLimiter,
+  tenantAuth,
+  callsMinuteLimiter,
+  spendCap({ action: "call-trigger" }),
+  tenantProxy(CALLING_SERVICE_URL)
+);
+
+// TCPA/CAN-SPAM compliance routes (DNC + email suppressions).
+app.use("/api/compliance", apiLimiter, tenantAuth, tenantProxy(CALLING_SERVICE_URL));
 
 // CRM service hosts multiple resource paths
 app.use("/api/contacts", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
 app.use("/api/notes", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
 app.use("/api/tasks", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
 app.use("/api/deals", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
+// GDPR export + delete live next to the tenant CRUD they touch.
+app.use("/api/privacy", apiLimiter, tenantAuth, tenantProxy(CRM_SERVICE_URL));
 
 // Remaining /api/billing/* (webhook already handled above)
 app.use("/api/billing", apiLimiter, tenantAuth, tenantProxy(BILLING_SERVICE_URL));
@@ -143,9 +236,29 @@ app.use("/api/analytics", apiLimiter, tenantAuth, tenantProxy(ANALYTICS_SERVICE_
 app.use("/api/settings", apiLimiter, tenantAuth, tenantProxy(CAMPAIGN_SERVICE_URL));
 app.use("/api/blacklist", apiLimiter, tenantAuth, tenantProxy(LEAD_SERVICE_URL));
 
-// Notification service is referenced for completeness but is NOT exposed
-// publicly — services call it directly over the internal Docker network.
-void NOTIFICATION_SERVICE_URL;
+// Email compliance + email marketing live on notification-service.
+// `/api/email/webhook/resend` is already proxied above (raw body) — these
+// JSON-bodied routes are mounted after express.json().
+//   - /api/email/unsubscribe (GET/POST)
+//   - /api/email-marketing/{campaigns,lists,templates,automations,...}
+// The unsubscribe endpoints carry their own JWT (no bearer auth), so we
+// proxy without tenantAuth. The /api/email-marketing/* tree is JWT-bearer
+// authenticated INSIDE notification-service, so we still attach tenantAuth
+// at the gateway for consistency + rate limiting.
+app.use(
+  "/api/email-marketing",
+  apiLimiter,
+  tenantAuth,
+  tenantProxy(NOTIFICATION_SERVICE_URL)
+);
+app.use("/api/email", apiLimiter, tenantProxy(NOTIFICATION_SERVICE_URL));
+
+// Tenant outbound webhook management lives in crm-service (CRM events out).
+app.use(
+  "/api/webhooks",
+  apiLimiter,
+  tenantProxy(CRM_SERVICE_URL)
+);
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console

@@ -3,9 +3,10 @@
  * Mirrors backend/src/lib/env.ts. Fails loud on missing required vars.
  */
 
+// VAPI_PRIVATE_KEY is now resolved lazily through getServiceSecret() so it
+// no longer needs to be present in env at boot when SECRETS_BACKEND=aws.
 const REQUIRED_ENV = [
   "DATABASE_URL",
-  "VAPI_PRIVATE_KEY",
   "VAPI_WEBHOOK_SECRET",
   "REDIS_URL",
 ] as const;

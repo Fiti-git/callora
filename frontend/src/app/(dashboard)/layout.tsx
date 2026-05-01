@@ -10,6 +10,7 @@ import {
 import { getBillingStatus } from "@/app/actions/billing-status";
 import BillingStatusBanner from "@/components/billing-status-banner";
 import CreditBanners from "@/components/credit-banners";
+import TrialBanner from "@/components/TrialBanner";
 
 export default async function DashboardLayout({
   children,
@@ -48,6 +49,7 @@ export default async function DashboardLayout({
   return (
     <ToastProvider>
       <BillingStatusBanner orgStatus={billing?.orgStatus} />
+      <TrialBanner />
       <CreditBanners
         isOutOfCredits={billing?.payg?.isOutOfCredits}
         isLowBalance={billing?.payg?.isLowBalance}

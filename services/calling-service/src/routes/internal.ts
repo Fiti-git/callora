@@ -1,67 +1,134 @@
 import express, { Request, Response } from "express";
 import { prisma } from "@callora/shared";
 import { VapiService, VapiOrgConfig } from "../services/vapi.js";
-import { VapiProvisioningService } from "../services/vapiProvisioning.js";
+import { numbersQueue } from "../lib/numberQueue.js";
+import { requireInternalAuth } from "../middleware/internalAuth.js";
 
 const router = express.Router();
 
-// Platform-owned Vapi credentials. Tenants no longer supply their own.
-const VAPI_KEY = process.env.VAPI_PRIVATE_KEY!;
-// Fallback phone ID used in local dev before a number is provisioned per-org
-const VAPI_PHONE_ID_FALLBACK = process.env.VAPI_PHONE_NUMBER_ID ?? "";
+// All /internal endpoints require the shared internal token (if configured).
+router.use(requireInternalAuth);
+
+/* ---------------------------------------------------------------- */
+/* Number provisioning (async via BullMQ)                           */
+/* ---------------------------------------------------------------- */
 
 /**
- * POST /internal/provision-number
- *
- * Called by billing-service after Stripe checkout.session.completed.
- * Buys a dedicated Vapi phone number for the org and persists the result.
- *
- * Body: { organizationId: string, orgName: string, areaCode?: string }
- * Returns: { phoneNumberId, phoneNumber }
+ * POST /internal/numbers/provision { orgId }
+ * Enqueues a "provision" job. Idempotent — the worker no-ops if the org
+ * already has an ACTIVE OrgVapiNumber.
  */
-router.post("/provision-number", async (req: Request, res: Response) => {
-  const { organizationId, orgName, areaCode } = req.body as {
-    organizationId?: string;
-    orgName?: string;
+router.post("/numbers/provision", async (req: Request, res: Response) => {
+  const { orgId, areaCode } = (req.body ?? {}) as {
+    orgId?: string;
     areaCode?: string;
   };
+  if (!orgId) return res.status(400).json({ error: "orgId required" });
+  const cleanAreaCode =
+    typeof areaCode === "string" && /^\d{3}$/.test(areaCode) ? areaCode : undefined;
+  const job = await numbersQueue.add(
+    "provision",
+    { orgId, areaCode: cleanAreaCode },
+    { jobId: `provision:${orgId}` }
+  );
+  res.status(202).json({ enqueued: true, jobId: job.id });
+});
 
-  if (!organizationId || !orgName) {
-    return res.status(400).json({ error: "organizationId and orgName are required" });
-  }
+/**
+ * POST /internal/numbers/release { orgId }
+ * Enqueues a "release" job.
+ */
+router.post("/numbers/release", async (req: Request, res: Response) => {
+  const { orgId } = (req.body ?? {}) as { orgId?: string };
+  if (!orgId) return res.status(400).json({ error: "orgId required" });
+  const job = await numbersQueue.add(
+    "release",
+    { orgId },
+    { jobId: `release:${orgId}:${Date.now()}` }
+  );
+  res.status(202).json({ enqueued: true, jobId: job.id });
+});
 
-  if (!VAPI_KEY) {
-    return res.status(500).json({ error: "VAPI_PRIVATE_KEY not configured on platform" });
-  }
-
+/**
+ * POST /internal/numbers/pool { areaCode? }
+ * Synchronously buys a new POOL number with the given area code.
+ * Used by the platform-service admin pool-management UI.
+ */
+router.post("/numbers/pool", async (req: Request, res: Response) => {
+  const { areaCode } = (req.body ?? {}) as { areaCode?: string };
   try {
-    // Idempotent — if the org already has a number, return it
-    const org = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: { vapiPhoneNumberId: true, vapiPhoneNumber: true },
-    });
-
-    if (org?.vapiPhoneNumberId && org?.vapiPhoneNumber) {
-      return res.json({
-        phoneNumberId: org.vapiPhoneNumberId,
-        phoneNumber: org.vapiPhoneNumber,
-        alreadyProvisioned: true,
-      });
-    }
-
-    const provisioner = new VapiProvisioningService(VAPI_KEY);
-    const { id, number } = await provisioner.buyPhoneNumber(orgName, areaCode ?? "415");
-
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: { vapiPhoneNumberId: id, vapiPhoneNumber: number },
-    });
-
-    console.log(`[calling-service] provisioned number ${number} (${id}) for org ${organizationId}`);
-    return res.json({ phoneNumberId: id, phoneNumber: number });
+    const { addPoolNumber } = await import("../services/numberProvisioner.js");
+    const id = await addPoolNumber(areaCode);
+    res.status(201).json({ id });
   } catch (err: any) {
-    console.error("[calling-service] /internal/provision-number error:", {
-      status: err?.response?.status,
+    console.error("[/internal/numbers/pool] error:", {
+      code: err?.code,
+      message: err?.message,
+    });
+    res.status(500).json({ error: err?.message || "Failed to add pool number" });
+  }
+});
+
+/**
+ * POST /internal/numbers/pool/:id/rotate
+ * Enqueues a rotate-one job for the given POOL row.
+ */
+router.post("/numbers/pool/:id/rotate", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const job = await numbersQueue.add(
+    "rotate-one",
+    { poolRowId: id },
+    { jobId: `rotate-one:${id}:${Date.now()}` }
+  );
+  res.status(202).json({ enqueued: true, jobId: job.id });
+});
+
+/**
+ * GET /internal/numbers/:orgId
+ * Returns the org's currently assigned number (ACTIVE row only).
+ */
+router.get("/numbers/:orgId", async (req: Request, res: Response) => {
+  const { orgId } = req.params;
+  const row = await prisma.orgVapiNumber.findUnique({
+    where: { organizationId: orgId },
+  });
+  if (!row) return res.status(404).json({ error: "no number for org" });
+  res.json({
+    organizationId: row.organizationId,
+    vapiPhoneNumberId: row.vapiPhoneNumberId,
+    e164: row.e164,
+    status: row.status,
+    areaCode: row.areaCode,
+    provisionedAt: row.provisionedAt,
+    releasedAt: row.releasedAt,
+  });
+});
+
+/* ---------------------------------------------------------------- */
+/* Legacy synchronous provisioning (kept for billing-service callers) */
+/* ---------------------------------------------------------------- */
+
+/**
+ * POST /internal/provision-number — synchronous variant retained for
+ * backwards compatibility. Prefer POST /internal/numbers/provision.
+ */
+router.post("/provision-number", async (req: Request, res: Response) => {
+  const { organizationId } = (req.body ?? {}) as { organizationId?: string };
+  if (!organizationId) {
+    return res.status(400).json({ error: "organizationId is required" });
+  }
+  try {
+    const { provisionDedicated } = await import(
+      "../services/numberProvisioner.js"
+    );
+    const out = await provisionDedicated(organizationId);
+    res.json({
+      phoneNumberId: out.vapiPhoneNumberId,
+      phoneNumber: out.e164,
+      alreadyProvisioned: out.alreadyProvisioned,
+    });
+  } catch (err: any) {
+    console.error("[/internal/provision-number] error:", {
       code: err?.code,
       message: err?.message,
     });
@@ -69,14 +136,15 @@ router.post("/provision-number", async (req: Request, res: Response) => {
   }
 });
 
+/* ---------------------------------------------------------------- */
+/* Place a call                                                     */
+/* ---------------------------------------------------------------- */
+
 /**
  * POST /internal/call
  * Body: { leadId, organizationId, aiCallerName, aiCallerCompany,
  *         aiCallerPhone, aiSystemPrompt? }
  * Returns: { callLogId, vapiCallId }
- *
- * Vapi credentials are read from process.env (VAPI_PRIVATE_KEY /
- * VAPI_PHONE_NUMBER_ID) — they are platform-level, not tenant-supplied.
  */
 router.post("/call", async (req: Request, res: Response) => {
   try {
@@ -95,33 +163,14 @@ router.post("/call", async (req: Request, res: Response) => {
       });
     }
 
-    if (!VAPI_KEY) {
-      return res.status(500).json({
-        error: "Platform Vapi credentials are not configured (VAPI_PRIVATE_KEY)",
-      });
-    }
-
-    const [lead, org] = await Promise.all([
-      prisma.lead.findFirst({ where: { id: leadId, organizationId } }),
-      prisma.organization.findUnique({
-        where: { id: organizationId },
-        select: { vapiPhoneNumberId: true },
-      }),
-    ]);
-
+    const lead = await prisma.lead.findFirst({
+      where: { id: leadId, organizationId },
+    });
     if (!lead) {
       return res.status(404).json({ error: "Lead not found for organization" });
     }
     if (!lead.phone) {
       return res.status(400).json({ error: "Lead has no phone number" });
-    }
-
-    // Use the org-specific provisioned number, fall back to env var for local dev
-    const phoneNumberId = org?.vapiPhoneNumberId || VAPI_PHONE_ID_FALLBACK;
-    if (!phoneNumberId) {
-      return res.status(500).json({
-        error: "No Vapi phone number provisioned for this organization. Complete Stripe checkout first.",
-      });
     }
 
     const orgConfig: VapiOrgConfig = {
@@ -131,7 +180,7 @@ router.post("/call", async (req: Request, res: Response) => {
       aiSystemPrompt: aiSystemPrompt ?? null,
     };
 
-    const vapi = new VapiService(VAPI_KEY, phoneNumberId);
+    const vapi = new VapiService();
     const { vapiCallId } = await vapi.initiateCall(
       lead.phone,
       lead.businessName,
@@ -139,9 +188,6 @@ router.post("/call", async (req: Request, res: Response) => {
       organizationId
     );
 
-    // Idempotent: if a previous attempt for the same vapiCallId crashed after
-    // Vapi accepted the call but before we returned, the unique constraint
-    // protects against duplicate rows.
     const callLog = await prisma.callLog.upsert({
       where: { vapiCallId },
       update: { leadId: lead.id, status: "IN_PROGRESS" },
@@ -165,6 +211,13 @@ router.post("/call", async (req: Request, res: Response) => {
         units: err.units,
       });
     }
+    if (err?.name === "TrialCallCapExceededError") {
+      return res.status(429).json({
+        error: "trial_call_cap_exceeded",
+        message: err.message,
+        cap: err.cap,
+      });
+    }
     if (err?.name === "ConsentRequiredError") {
       return res.status(451).json({
         error: "consent_required",
@@ -181,8 +234,19 @@ router.post("/call", async (req: Request, res: Response) => {
         leadId: err.leadId,
       });
     }
+    if (err?.name === "NoAvailableNumberError") {
+      return res.status(503).json({
+        error: "no_available_number",
+        message: err.message,
+      });
+    }
+    if (err?.name === "NumberNotProvisionedError") {
+      return res.status(503).json({
+        error: "number_not_provisioned",
+        message: err.message,
+      });
+    }
     console.error("[/internal/call] error:", {
-      status: err?.response?.status,
       code: err?.code,
       message: err?.message,
     });
@@ -191,10 +255,5 @@ router.post("/call", async (req: Request, res: Response) => {
       .json({ error: err.message || "Failed to place call" });
   }
 });
-
-// NOTE: GET /internal/call-result was removed during the fire-and-forget refactor.
-// The calling-service no longer exposes a polling endpoint. Final call state
-// arrives via the Vapi webhook (POST /api/vapi/webhook), which updates the
-// CallLog and enqueues a `callCompleted` job for the campaign-service worker.
 
 export default router;

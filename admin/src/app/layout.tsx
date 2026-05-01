@@ -18,7 +18,12 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <Link className="block hover:text-cyan-400" href="/">Dashboard</Link>
               <Link className="block hover:text-cyan-400" href="/tenants">Tenants</Link>
               <Link className="block hover:text-cyan-400" href="/plans">Plans</Link>
+              <Link className="block hover:text-cyan-400" href="/numbers">Number Pool</Link>
+              <Link className="block hover:text-cyan-400" href="/spend-caps">Spend Caps</Link>
+              <Link className="block hover:text-cyan-400" href="/anomalies">Anomalies</Link>
+              <Link className="block hover:text-cyan-400" href="/dnc">DNC List</Link>
               <Link className="block hover:text-cyan-400" href="/audit">Audit Log</Link>
+              <Link className="block hover:text-cyan-400" href="/secrets">Secrets</Link>
             </aside>
             <main className="flex-1 p-8">{children}</main>
           </div>

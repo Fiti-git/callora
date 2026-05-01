@@ -63,6 +63,13 @@ enum ProvisioningStatus {
   DEPROVISIONED
 }
 
+// Platform-owned Vapi number lifecycle (Phase 6 — tenant key removal).
+enum VapiNumberStatus {
+  ACTIVE
+  RELEASED
+  POOL
+}
+
 model User {
   id             String       @id @default(cuid())
   email          String       @unique
@@ -127,7 +134,8 @@ model Organization {
   zapierTriggerToken String?   @unique
   // Model B PAYG (Agent M1).
   billingMode  BillingMode   @default(PAYG)
-  apiKeys      ApiKey?
+  vapiNumber         OrgVapiNumber?
+  spendCap           SpendCap?
   provisioning       TenantProvisioning?
   creditLedger       CreditLedger?
   creditTransactions CreditTransaction[]
@@ -259,16 +267,6 @@ model EmailLog {
   @@index([organizationId, createdAt])
   @@index([recipient])
   @@index([status])
-}
-
-model ApiKey {
-  id             String       @id @default(cuid())
-  googleMapsKey  String?
-  geminiKey      String?
-  vapiKey        String?
-  vapiPhoneId    String?
-  organizationId String       @unique
-  organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
 model Campaign {
@@ -911,4 +909,83 @@ model CreditTransaction {
 
   @@index([organizationId, createdAt])
   @@index([ref])
+}
+
+// ====================================================================
+// Phase 6 — Platform-owned API key infrastructure.
+// All third-party API keys (Google Places, Gemini, Vapi) are owned by
+// Callora at the platform level. Tenants no longer store their own keys.
+// Trial users share a pool Vapi number; paid users get a dedicated
+// provisioned number tracked here.
+// ====================================================================
+
+model OrgVapiNumber {
+  id                String           @id @default(cuid())
+  organizationId    String           @unique
+  vapiPhoneNumberId String
+  e164              String
+  provider          String           @default("vapi")
+  status            VapiNumberStatus @default(POOL)
+  monthlyCostCents  Int
+  provisionedAt     DateTime
+  releasedAt        DateTime?
+  spamScore         Float?
+  lastRotatedAt     DateTime?
+  areaCode          String?
+
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([areaCode])
+}
+
+model SpendCap {
+  id                 String   @id @default(cuid())
+  organizationId     String   @unique
+  dailyCapCents      Int
+  monthlyCapCents    Int
+  currentDayCents    Int      @default(0)
+  currentMonthCents  Int      @default(0)
+  lastDayResetAt     DateTime
+  lastMonthResetAt   DateTime
+
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// Platform-wide DNC scrub cache (FTC list, complaint feedback, manual adds).
+// Distinct from per-tenant DNCEntry above which stores hashed phone numbers
+// scoped to an organization.
+model DncEntry {
+  id        String    @id @default(cuid())
+  phoneE164 String    @unique
+  source    String
+  addedAt   DateTime  @default(now())
+  expiresAt DateTime?
+
+  @@index([source])
+  @@index([expiresAt])
+}
+
+// Audit trail for platform-level secret fetches from the key vault.
+model KeyAccessLog {
+  id        String   @id @default(cuid())
+  service   String
+  keyName   String
+  fetchedAt DateTime @default(now())
+  success   Boolean
+
+  @@index([service, fetchedAt])
+}
+
+// Platform-owned secrets editable from the admin UI. Values are AES-256-GCM
+// encrypted at rest with SECRETS_ENCRYPTION_KEY (32-byte base64).
+// Read by the `db` SecretBackend; falls back to env for bootstrap secrets
+// (DATABASE_URL, NEXTAUTH_SECRET, PLATFORM_JWT_SECRET, SECRETS_ENCRYPTION_KEY).
+model PlatformSecret {
+  key            String   @id
+  valueEncrypted String   // base64(iv || authTag || ciphertext)
+  description    String?
+  updatedBy      String?
+  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now())
 }

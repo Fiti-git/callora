@@ -6,6 +6,8 @@ import {
   createCheckoutSession,
   createPortalSession,
   verifyWebhook,
+  ensureMeteredItems,
+  clearMeterItemCacheForOrg,
 } from "../services/stripe.js";
 
 const router = express.Router();
@@ -119,7 +121,7 @@ export const webhookHandler = async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string;
   let event;
   try {
-    event = verifyWebhook(req.body as Buffer, sig);
+    event = await verifyWebhook(req.body as Buffer, sig);
   } catch (err: any) {
     console.error("stripe webhook verify failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -221,11 +223,29 @@ async function handleStripeEvent(event: any) {
           stripeSubscriptionId: sub.id,
         },
       });
+
+      // Make sure all 3 metered items are attached, and refresh the in-memory
+      // meter→subscriptionItem cache for this org.
+      try {
+        clearMeterItemCacheForOrg(organizationId);
+        await ensureMeteredItems(sub.id, organizationId);
+      } catch (err) {
+        console.error(
+          `[billing] ensureMeteredItems failed for org ${organizationId}:`,
+          err
+        );
+      }
+
       if (status === "ACTIVE") {
         await prisma.organization.update({
           where: { id: organizationId },
           data: { status: "ACTIVE" },
         });
+
+        // Provision a Vapi number if the org doesn't already have one.
+        triggerProvisionNumber(organizationId).catch((err) =>
+          console.error("[billing] provision trigger failed:", err)
+        );
       }
       break;
     }
@@ -241,6 +261,11 @@ async function handleStripeEvent(event: any) {
         where: { id: organizationId },
         data: { status: "CANCELED" },
       });
+      clearMeterItemCacheForOrg(organizationId);
+      // Release the dedicated Vapi number — fire and forget.
+      triggerReleaseNumber(organizationId).catch((err) =>
+        console.error("[billing] release trigger failed:", err)
+      );
       break;
     }
     case "invoice.payment_failed": {
@@ -275,6 +300,64 @@ async function handleStripeEvent(event: any) {
       // no-op beyond the subscription.updated handler
       break;
     }
+  }
+}
+
+/**
+ * POST to calling-service to provision a dedicated Vapi number for `orgId`.
+ * Idempotent on the calling-service side.
+ */
+async function triggerProvisionNumber(organizationId: string) {
+  const callingServiceUrl = process.env.CALLING_SERVICE_URL;
+  if (!callingServiceUrl) {
+    console.warn(
+      "[billing] CALLING_SERVICE_URL not set — skipping number provision"
+    );
+    return;
+  }
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { name: true, vapiPhoneNumberId: true },
+  });
+  if (org?.vapiPhoneNumberId) return; // already has one
+  const r = await fetch(`${callingServiceUrl}/internal/provision-number`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      organizationId,
+      orgName: org?.name ?? organizationId,
+    }),
+  });
+  if (!r.ok) {
+    const body = await r.text().catch(() => "");
+    console.error(
+      `[billing] provision-number returned ${r.status}: ${body}`
+    );
+  }
+}
+
+/**
+ * POST to calling-service to release a previously provisioned Vapi number.
+ * Calling-service is expected to expose POST /internal/release-number;
+ * if it does not, the call simply 404s and we log it.
+ */
+async function triggerReleaseNumber(organizationId: string) {
+  const callingServiceUrl = process.env.CALLING_SERVICE_URL;
+  if (!callingServiceUrl) return;
+  try {
+    const r = await fetch(`${callingServiceUrl}/internal/release-number`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ organizationId }),
+    });
+    if (!r.ok && r.status !== 404) {
+      const body = await r.text().catch(() => "");
+      console.error(
+        `[billing] release-number returned ${r.status}: ${body}`
+      );
+    }
+  } catch (err) {
+    console.error("[billing] release-number call failed:", err);
   }
 }
 

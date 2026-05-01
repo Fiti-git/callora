@@ -8,13 +8,12 @@ import {
 } from "@callora/shared";
 import { GeminiService } from "../services/gemini.js";
 import { PlacesService } from "../services/places.js";
+import { VendorUnavailableError } from "../lib/circuitBreaker.js";
 
 const router = express.Router();
 
-// Platform-owned API keys. Tenants no longer supply Gemini / Google Maps
-// credentials — Callora is fully managed.
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY!;
+// Vendor keys are loaded lazily inside the service classes via
+// `getServiceSecret()` from "@callora/shared". No per-tenant ApiKey lookups.
 
 /**
  * POST /internal/qualify
@@ -59,7 +58,7 @@ router.post("/qualify", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "No transcript available to qualify" });
     }
 
-    const gemini = new GeminiService(GEMINI_API_KEY);
+    const gemini = new GeminiService();
     const analysis = await gemini.qualifyLead(
       transcript,
       lead.businessName,
@@ -83,6 +82,13 @@ router.post("/qualify", async (req: Request, res: Response) => {
       status: newStatus,
     });
   } catch (error: any) {
+    if (error instanceof VendorUnavailableError || error?.name === "VendorUnavailableError") {
+      return res.status(503).json({
+        error: "vendor_unavailable",
+        vendor: (error as VendorUnavailableError).vendor,
+        message: error.message,
+      });
+    }
     if (error instanceof QuotaExceededError || error?.name === "QuotaExceededError") {
       return res.status(429).json({
         error: "quota_exceeded",
@@ -125,7 +131,7 @@ router.post("/scrape", async (req: Request, res: Response) => {
   try {
     await assertWithinQuota(organizationId, "lead");
 
-    const places = new PlacesService(GOOGLE_MAPS_API_KEY);
+    const places = new PlacesService();
     const query = `${keyword} in ${location}`;
     const results = await places.findLeads(query, organizationId);
     const limited = results.slice(0, maxResults ?? 20);
@@ -166,6 +172,13 @@ router.post("/scrape", async (req: Request, res: Response) => {
   } catch (error: any) {
     if (error instanceof QuotaError) {
       return res.status(402).json({ error: "quota_exceeded", message: error.message });
+    }
+    if (error instanceof VendorUnavailableError || error?.name === "VendorUnavailableError") {
+      return res.status(503).json({
+        error: "vendor_unavailable",
+        vendor: (error as VendorUnavailableError).vendor,
+        message: error.message,
+      });
     }
     if (error instanceof QuotaExceededError || error?.name === "QuotaExceededError") {
       return res.status(429).json({

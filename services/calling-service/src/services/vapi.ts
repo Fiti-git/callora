@@ -1,20 +1,17 @@
-import axios from "axios";
 import {
   meterAndCharge,
   prisma,
   ConsentRequiredError,
   DNCBlockedError,
+  logger,
 } from "@callora/shared";
 import crypto from "node:crypto";
+import { createCall, getCall } from "./vapiClient.js";
+import { pickPoolNumber, getProvisioningMode } from "./numberProvisioner.js";
+import { complianceCheck } from "../compliance/index.js";
 
 // --------------------------------------------------------------------------
-// Phase 5 Agent M3 — local brand-scrub.
-//
-// The monolith has its own brandScrub module under
-// backend/src/services/provisioning/. The calling-service is a separate
-// package and should not reach across the package boundary, so we inline
-// the same banned-string list here. Keep this in sync with
-// backend/src/services/provisioning/brandScrub.ts.
+// Brand scrub — keep in sync with backend/src/services/provisioning/brandScrub.
 // --------------------------------------------------------------------------
 const SCRUB_PATTERNS: ReadonlyArray<{ p: RegExp; r: string }> = [
   { p: /\bgoogle\s*places\b/gi, r: "the lead engine" },
@@ -38,6 +35,8 @@ function scrubBrandStrings(input: string): string {
   );
   return out;
 }
+
+const TRIAL_CALL_CAP = Number(process.env.TRIAL_CALL_CAP ?? "20");
 
 function normalizeE164(raw: string): string {
   if (!raw) return "";
@@ -90,12 +89,32 @@ export interface VapiOrgConfig {
   aiSystemPrompt?: string | null;
 }
 
+export class TrialCallCapExceededError extends Error {
+  readonly name = "TrialCallCapExceededError";
+  readonly cap: number;
+  constructor(cap: number) {
+    super(`Trial call cap of ${cap} reached. Upgrade to a paid plan to continue.`);
+    this.cap = cap;
+  }
+}
+
+export class NoAvailableNumberError extends Error {
+  readonly name = "NoAvailableNumberError";
+  constructor(msg: string) {
+    super(msg);
+  }
+}
+
+export class NumberNotProvisionedError extends Error {
+  readonly name = "NumberNotProvisionedError";
+  constructor(msg: string = "Phone number is being prepared, please try again in a moment") {
+    super(msg);
+  }
+}
+
 /**
- * Builds the system prompt sent to Vapi/OpenAI.
- *
- * SAFETY: campaigns must NOT run with a generic, branded fallback prompt.
- * If the org has not configured an AI system prompt in Settings, throw —
- * otherwise we'd dial real prospects with someone else's branding.
+ * Build the system prompt sent to Vapi/OpenAI. Refuses to dial if the org
+ * never set its prompt (would otherwise leak someone else's branding).
  */
 export function buildSystemPrompt(orgConfig: VapiOrgConfig): string {
   if (!orgConfig.aiSystemPrompt || orgConfig.aiSystemPrompt.trim().length === 0) {
@@ -107,108 +126,153 @@ export function buildSystemPrompt(orgConfig: VapiOrgConfig): string {
   return orgConfig.aiSystemPrompt;
 }
 
-function redactAxiosError(err: any): Record<string, unknown> {
-  return {
-    status: err?.response?.status,
-    statusText: err?.response?.statusText,
-    code: err?.code,
-    message: err?.message,
-  };
+function formatPhone(businessPhone: string): string {
+  let formattedPhone = businessPhone.replace(/[^0-9+]/g, "");
+  if (!formattedPhone.startsWith("+")) {
+    if (formattedPhone.length === 10) {
+      formattedPhone = "+1" + formattedPhone;
+    } else if (formattedPhone.length === 11 && formattedPhone.startsWith("1")) {
+      formattedPhone = "+" + formattedPhone;
+    }
+  }
+  return formattedPhone;
 }
 
+/**
+ * Resolve which Vapi phoneNumberId to use for a given org:
+ *   - if the org has an ACTIVE OrgVapiNumber → that
+ *   - else (trial / no provisioning yet) → pick a POOL number with
+ *     best-effort area-code match against the lead's number
+ *   - if neither available → NoAvailableNumberError
+ */
+async function resolveOutboundNumberId(
+  organizationId: string,
+  leadPhoneE164: string
+): Promise<{ phoneNumberId: string; isPool: boolean }> {
+  const own = await prisma.orgVapiNumber.findUnique({
+    where: { organizationId },
+  });
+  if (own && own.status === "ACTIVE") {
+    return { phoneNumberId: own.vapiPhoneNumberId, isPool: false };
+  }
+
+  const mode = getProvisioningMode();
+  if (mode !== "pool") {
+    // Vapi-managed / BYO: org-owned number is mandatory. No pool fallback.
+    throw new NumberNotProvisionedError();
+  }
+
+  // Pool mode (legacy): derive area code from destination, pick a pool number.
+  const digits = leadPhoneE164.replace(/[^0-9]/g, "");
+  const areaCode = digits.length === 11 ? digits.slice(1, 4) : digits.slice(0, 3);
+
+  const pool = await pickPoolNumber(areaCode || undefined);
+  if (!pool) {
+    throw new NoAvailableNumberError(
+      "No outbound number available for this organization."
+    );
+  }
+  return { phoneNumberId: pool.vapiPhoneNumberId, isPool: true };
+}
+
+/**
+ * Trial-org call cap. Counts CallLog rows scoped via Lead → Organization.
+ */
+async function assertWithinTrialCap(organizationId: string): Promise<void> {
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { status: true },
+  });
+  if (!org) return;
+  if (org.status !== "TRIAL") return;
+
+  const used = await prisma.callLog.count({
+    where: { lead: { organizationId } },
+  });
+  if (used >= TRIAL_CALL_CAP) {
+    throw new TrialCallCapExceededError(TRIAL_CALL_CAP);
+  }
+}
+
+/**
+ * Pre-flight: compliance + TCPA + DNC + trial cap. Throws on block.
+ * Returns the normalized E.164 number.
+ */
+async function preflight(
+  businessPhone: string,
+  organizationId: string
+): Promise<string> {
+  const formattedPhone = formatPhone(businessPhone);
+
+  const lead = await prisma.lead.findFirst({
+    where: { phone: businessPhone, organizationId },
+    select: { id: true, consentGiven: true, doNotCall: true },
+  });
+  if (lead) {
+    if (lead.doNotCall) throw new ConsentRequiredError("DO_NOT_CALL", lead.id);
+    if (!lead.consentGiven) throw new ConsentRequiredError("NO_CONSENT", lead.id);
+  }
+  const dnc = await isOnDNC(formattedPhone, organizationId);
+  if (dnc.onDnc) throw new DNCBlockedError(dnc.source, lead?.id);
+
+  // Compliance hook (Agent 2D will fill in).
+  const compliance = await complianceCheck(formattedPhone, organizationId);
+  if (!compliance.allowed) {
+    throw new DNCBlockedError(
+      compliance.code ?? compliance.reason ?? "compliance_block",
+      lead?.id
+    );
+  }
+
+  await assertWithinTrialCap(organizationId);
+
+  return formattedPhone;
+}
+
+/**
+ * Service object for placing/observing Vapi calls. No constructor args —
+ * the platform Vapi key is resolved lazily inside vapiClient.
+ */
 export class VapiService {
-  private baseUrl = "https://api.vapi.ai";
-  private privateKey: string;
-  private phoneNumberId: string;
-
-  constructor(privateKey: string, phoneNumberId: string) {
-    this.privateKey = privateKey;
-    this.phoneNumberId = phoneNumberId;
-  }
-
-  private formatPhone(businessPhone: string): string {
-    let formattedPhone = businessPhone.replace(/[^0-9+]/g, "");
-    if (!formattedPhone.startsWith("+")) {
-      if (formattedPhone.length === 10) {
-        formattedPhone = "+1" + formattedPhone;
-      } else if (formattedPhone.length === 11 && formattedPhone.startsWith("1")) {
-        formattedPhone = "+" + formattedPhone;
-      }
-    }
-    return formattedPhone;
-  }
-
   /**
    * Initiate an outbound call and return the Vapi call ID immediately.
-   * Does NOT poll. Used by /internal/call.
+   * Resolves the outbound number from OrgVapiNumber / pool.
    */
   async initiateCall(
     businessPhone: string,
     businessName: string,
     orgConfig: VapiOrgConfig,
-    organizationId?: string
+    organizationId: string
   ): Promise<{ vapiCallId: string }> {
-    if (!this.privateKey || !this.phoneNumberId) {
-      // brand-scrubbed; original cause in err.cause
-      throw new Error(
-        scrubBrandStrings("Vapi Configuration Missing for this organization.")
-      );
+    if (!organizationId) {
+      throw new Error(scrubBrandStrings("organizationId is required to place a call"));
     }
-    const formattedPhone = this.formatPhone(businessPhone);
     const systemPrompt = buildSystemPrompt(orgConfig);
+    const formattedPhone = await preflight(businessPhone, organizationId);
 
-    // ----- TCPA gates (Phase 2 Agent 9) -----
-    if (organizationId) {
-      const lead = await prisma.lead.findFirst({
-        where: { phone: businessPhone, organizationId },
-        select: { id: true, consentGiven: true, doNotCall: true },
-      });
-      if (lead) {
-        if (lead.doNotCall) throw new ConsentRequiredError("DO_NOT_CALL", lead.id);
-        if (!lead.consentGiven) throw new ConsentRequiredError("NO_CONSENT", lead.id);
-      }
-      const dnc = await isOnDNC(formattedPhone, organizationId);
-      if (dnc.onDnc) throw new DNCBlockedError(dnc.source, lead?.id);
-    }
-
-    // Charge BEFORE we hit Vapi so a quota-exhausted org doesn't dial.
-    if (organizationId) {
-      await meterAndCharge(organizationId, "VAPI_CALL", 1);
-    }
-
-    const response = await axios.post(
-      `${this.baseUrl}/call`,
-      {
-        phoneNumberId: this.phoneNumberId,
-        customer: { number: formattedPhone, name: businessName },
-        assistant: {
-          firstMessage: `Hi, is this from ${businessName}?`,
-          model: {
-            provider: "openai",
-            model: "gpt-4o-mini",
-            messages: [{ role: "system", content: systemPrompt }],
-          },
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.privateKey}`,
-          "Content-Type": "application/json",
-        },
-      }
+    const { phoneNumberId } = await resolveOutboundNumberId(
+      organizationId,
+      formattedPhone
     );
-    return { vapiCallId: response.data.id };
+
+    // Charge BEFORE dialing so a quota-exhausted org doesn't burn a call.
+    await meterAndCharge(organizationId, "VAPI_CALL", 1);
+
+    const { id } = await createCall({
+      phoneNumberId,
+      toNumber: formattedPhone,
+      customerName: businessName,
+      firstMessage: `Hi, is this from ${businessName}?`,
+      systemPrompt,
+    });
+    return { vapiCallId: id };
   }
 
   /**
-   * Fetch a single Vapi call by id and translate its status to CallResult.
-   * Returns IN_PROGRESS if the call has not ended yet.
+   * Fetch a single Vapi call by id and translate its status into CallResult.
    */
   async fetchCallStatus(callId: string): Promise<CallResult> {
-    const response = await axios.get(`${this.baseUrl}/call/${callId}`, {
-      headers: { Authorization: `Bearer ${this.privateKey}` },
-    });
-    const call = response.data;
+    const call = await getCall(callId);
 
     if (call.status !== "ended") {
       return {
@@ -226,8 +290,7 @@ export class VapiService {
       status = "VOICEMAIL";
     }
 
-    const transcript =
-      call.transcript || call.artifact?.transcript || null;
+    const transcript = call.transcript || call.artifact?.transcript || null;
     const summary = call.analysis?.summary || null;
 
     return {
@@ -245,66 +308,12 @@ export class VapiService {
     };
   }
 
-  async makeCallWithMessage(
-    businessPhone: string,
-    businessName: string,
-    firstMessage: string
-  ): Promise<CallResult> {
-    if (!this.privateKey || !this.phoneNumberId) {
-      // brand-scrubbed; original cause in err.cause
-      throw new Error(
-        scrubBrandStrings("Vapi Configuration Missing for this organization.")
-      );
-    }
-    try {
-      const formattedPhone = this.formatPhone(businessPhone);
-      const response = await axios.post(
-        `${this.baseUrl}/call`,
-        {
-          phoneNumberId: this.phoneNumberId,
-          customer: { number: formattedPhone, name: businessName },
-          assistant: {
-            firstMessage,
-            model: {
-              provider: "openai",
-              model: "gpt-4o-mini",
-              messages: [
-                {
-                  role: "system",
-                  content:
-                    "You are a professional caller. Be concise and friendly.",
-                },
-              ],
-            },
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.privateKey}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const callId = response.data.id;
-      return await this.pollForCompletion(callId);
-    } catch (error: any) {
-      console.error("[vapi] Call Failed:", redactAxiosError(error));
-      return { status: "FAILED", durationSeconds: 0 };
-    }
-  }
-
   async makeCall(
     businessPhone: string,
     businessName: string,
     orgConfig: VapiOrgConfig,
-    organizationId?: string
+    organizationId: string
   ): Promise<CallResult> {
-    if (!this.privateKey || !this.phoneNumberId) {
-      // brand-scrubbed; original cause in err.cause
-      throw new Error(
-        scrubBrandStrings("Vapi Configuration Missing for this organization.")
-      );
-    }
     try {
       const { vapiCallId } = await this.initiateCall(
         businessPhone,
@@ -314,9 +323,21 @@ export class VapiService {
       );
       return await this.pollForCompletion(vapiCallId);
     } catch (error: any) {
-      // Quota errors must propagate — never swallow into a FAILED result.
-      if (error?.name === "QuotaExceededError") throw error;
-      console.error("[vapi] Call Failed:", redactAxiosError(error));
+      // Quota / cap / consent errors must propagate.
+      if (
+        error?.name === "QuotaExceededError" ||
+        error?.name === "TrialCallCapExceededError" ||
+        error?.name === "ConsentRequiredError" ||
+        error?.name === "DNCBlockedError" ||
+        error?.name === "NoAvailableNumberError" ||
+        error?.name === "NumberNotProvisionedError"
+      ) {
+        throw error;
+      }
+      logger.error({
+        code: error?.code,
+        err: error?.message,
+      }, "[vapi] Call Failed");
       return { status: "FAILED", durationSeconds: 0 };
     }
   }
@@ -334,7 +355,7 @@ export class VapiService {
         const result = await this.fetchCallStatus(callId);
         if (result.status !== "IN_PROGRESS") return result;
       } catch (err: any) {
-        console.error("[vapi] poll error:", redactAxiosError(err));
+        logger.error({ code: err?.code, err: err?.message }, "[vapi] poll error");
       }
     }
 

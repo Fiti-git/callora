@@ -1,0 +1,140 @@
+name: Deploy
+
+# Build the 3 production bundle images, push to GitHub Container Registry,
+# then SSH to the production VPS and roll the stack with the new images.
+#
+# Triggers:
+#   - manual (workflow_dispatch) — pick any commit/tag
+#   - push to `main` — auto-rolls staging/prod
+#
+# Required repo secrets:
+#   VPS_HOST            ssh hostname or IP
+#   VPS_USER            ssh user (e.g. ubuntu)
+#   VPS_SSH_KEY         private key in PEM format
+#   VPS_SSH_PORT        (optional) default 22
+#
+# The VPS must have:
+#   - docker + compose plugin
+#   - clone of this repo at ~/callora
+#   - .env file populated (NEXTAUTH_SECRET, PLATFORM_JWT_SECRET,
+#     SECRETS_ENCRYPTION_KEY, DATABASE_URL, REDIS_URL, TENANT_APP_ORIGIN,
+#     ADMIN_APP_ORIGIN)
+#
+# GitHub Container Registry login uses the built-in GITHUB_TOKEN — no extra
+# DockerHub credentials needed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to deploy (default: current)"
+        required: false
+        default: ""
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/callora
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+    strategy:
+      fail-fast: true
+      matrix:
+        bundle: [edge, core, io]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+
+      - name: Compute image tag
+        id: meta
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "tag=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log into GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + push ${{ matrix.bundle }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: bundles/${{ matrix.bundle }}/Dockerfile
+          push: true
+          cache-from: type=gha,scope=${{ matrix.bundle }}
+          cache-to: type=gha,scope=${{ matrix.bundle }},mode=max
+          tags: |
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.bundle }}:latest
+            ${{ env.IMAGE_PREFIX }}-${{ matrix.bundle }}:${{ steps.meta.outputs.tag }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          PORT=${{ secrets.VPS_SSH_PORT || '22' }}
+          ssh-keyscan -p "$PORT" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Roll the stack
+        env:
+          PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
+        run: |
+          ssh -p "$PORT" -i ~/.ssh/id_rsa "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            IMAGE_TAG=$IMAGE_TAG bash -s <<'REMOTE'
+          set -euo pipefail
+          cd ~/callora
+          git fetch --all --prune
+          git reset --hard origin/main
+
+          # Pull just-built images
+          docker pull ghcr.io/${{ github.repository_owner }}/callora-edge:$IMAGE_TAG
+          docker pull ghcr.io/${{ github.repository_owner }}/callora-core:$IMAGE_TAG
+          docker pull ghcr.io/${{ github.repository_owner }}/callora-io:$IMAGE_TAG
+
+          # Tag as :latest so docker-compose.tiny.yml picks them up
+          docker tag ghcr.io/${{ github.repository_owner }}/callora-edge:$IMAGE_TAG callora/edge:latest
+          docker tag ghcr.io/${{ github.repository_owner }}/callora-core:$IMAGE_TAG callora/core:latest
+          docker tag ghcr.io/${{ github.repository_owner }}/callora-io:$IMAGE_TAG  callora/io:latest
+
+          # Apply migrations (one-shot)
+          docker compose -f docker-compose.tiny.yml run --rm core \
+            npx prisma migrate deploy --schema=shared/src/prisma/schema.prisma
+
+          # Roll
+          docker compose -f docker-compose.tiny.yml up -d --no-build
+
+          # Health check
+          sleep 10
+          curl -sf http://localhost:4000/health || (docker compose -f docker-compose.tiny.yml logs --tail=80 && exit 1)
+
+          # Prune dangling images to reclaim disk on the 1 GB box
+          docker image prune -f
+          REMOTE

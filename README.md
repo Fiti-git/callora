@@ -25,9 +25,11 @@ Brings up Postgres, Redis, all 9 services, the api-gateway (4000), the tenant
 frontend (3000), and the admin app (3001). Initial seed:
 
 ```bash
-docker compose exec backend npx prisma migrate deploy
-docker compose exec backend npm run seed:plans
-docker compose exec backend npm run seed:admin   # super-admin user
+# Migrations + seeds run via the campaign-service container, which bundles
+# @callora/shared (the canonical schema lives at shared/src/prisma/schema.prisma).
+docker compose exec campaign-service npx prisma migrate deploy --schema=node_modules/@callora/shared/src/prisma/schema.prisma
+docker compose exec platform-service npm run seed:plans
+docker compose exec platform-service npm run seed:admin   # super-admin user
 ```
 
 Health check:
@@ -42,9 +44,9 @@ curl http://localhost:4000/health
 
 | Path | What |
 |---|---|
-| `backend/` | Express monolith (legacy, retained during microservices migration) |
 | `services/` | Microservices: api-gateway + 9 domain services (ports 4000–4009) |
-| `shared/` | `@callora/shared` — Prisma client, types, JWT/quota helpers |
+| `bundles/` | Compact 3-bundle deploy (`edge`, `core`, `io`) for memory-tight prod |
+| `shared/` | `@callora/shared` — canonical Prisma schema/client, types, JWT/quota helpers |
 | `frontend/` | Tenant-facing Next.js app (port 3000) |
 | `admin/` | Super-admin Next.js app (port 3001) |
 | `docs/` | Setup guides + deployment runbook |
@@ -70,7 +72,7 @@ STRIPE_PRICE_FREE, STRIPE_PRICE_STARTER, STRIPE_PRICE_PRO, STRIPE_PRICE_ENTERPRI
 SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM
 
 # Optional
-SENTRY_DSN                           # backend error reporting
+SENTRY_DSN                           # backend services error reporting
 NEXT_PUBLIC_SENTRY_DSN               # frontend error reporting
 NEXT_PUBLIC_SITE_URL                 # used in robots.txt + sitemap.xml
 ```
@@ -95,13 +97,15 @@ Schedule the backup via cron on the Docker host:
 ## Useful commands
 
 ```bash
-# Backend (monolith)
-cd backend
-npm run dev          # tsx watch on port 4000
-npm test             # vitest
-npx prisma migrate dev --name <description>
-npx prisma generate
-npx prisma studio
+# Shared schema / Prisma client (canonical schema lives here)
+cd shared
+npm run prisma:generate
+npx prisma migrate dev --schema=src/prisma/schema.prisma --name <description>
+npx prisma studio --schema=src/prisma/schema.prisma
+
+# Run a single service in dev (hot reload)
+cd services/campaign-service
+npm run dev
 
 # Frontend
 cd frontend && npm run dev    # port 3000

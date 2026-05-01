@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Campaign" ADD COLUMN     "type" TEXT NOT NULL DEFAULT 'AI',
-ALTER COLUMN "prompt" DROP NOT NULL;

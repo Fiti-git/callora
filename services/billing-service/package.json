@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "@callora/shared": "file:../../shared",
     "@prisma/client": "^5.20.0",
+    "bullmq": "^5.21.0",
     "cors": "^2.8.5",
+    "ioredis": "^5.4.1",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",

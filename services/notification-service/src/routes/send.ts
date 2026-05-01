@@ -6,6 +6,7 @@ import { qualifiedLeadEmail } from "../emails/qualifiedLead.js";
 import { trialExpiryEmail } from "../emails/trialExpiry.js";
 import { passwordResetEmail } from "../emails/passwordReset.js";
 import { verifyEmail } from "../emails/verifyEmail.js";
+import { dunningEmail, type DunningEmailKey } from "../emails/dunning.js";
 
 const router = Router();
 
@@ -44,6 +45,13 @@ const templates: Record<string, (data: any) => Rendered> = {
   // data: { name?, verifyUrl }
   verifyEmail: (data) =>
     verifyEmail({ name: data?.name ?? "", verifyUrl: data?.verifyUrl ?? "" }),
+  // data: { key: DunningEmailKey, name, billingUrl, amountFormatted? }
+  dunning: (data) =>
+    dunningEmail((data?.key ?? "DUNNING_DAY_0_FAILED") as DunningEmailKey, {
+      name: data?.name ?? "",
+      billingUrl: data?.billingUrl ?? "",
+      amountFormatted: data?.amountFormatted,
+    }),
 };
 
 router.get("/templates", (_req, res) => {

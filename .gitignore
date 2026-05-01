@@ -16,6 +16,7 @@
 
 # next.js
 /.next/
+**/.next/
 /out/
 
 # production
@@ -49,3 +50,9 @@ WEEK1_FIXES*.md
 WEEK1_FIXES_REPORT.md
 
 *.gitignore
+
+# scratch / local notes (never commit)
+/.scratch/
+
+# soft-deleted monolith (kept locally during transition)
+**/backend.deleteme/

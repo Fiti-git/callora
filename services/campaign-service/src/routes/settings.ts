@@ -68,13 +68,16 @@ router.patch("/ai-caller", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/settings — returns API keys + onboarding fields + aiCaller config
+// GET /api/settings — returns onboarding fields + aiCaller config.
+// NOTE: As of the compact-platform migration (2026-05-01), tenant-scoped
+// 3rd-party API keys (Google Maps, Gemini, Vapi) are no longer stored per-org;
+// the platform manages those credentials centrally. The legacy `ApiKey` model
+// has been removed from the schema.
 router.get("/", async (req: Request, res: Response) => {
   const { organizationId, userId } = (req as AuthRequest).user!;
 
   try {
-    const [keys, org, user] = await Promise.all([
-      prisma.apiKey.findUnique({ where: { organizationId } }),
+    const [org, user] = await Promise.all([
       prisma.organization.findUnique({
         where: { id: organizationId },
         select: {
@@ -93,7 +96,6 @@ router.get("/", async (req: Request, res: Response) => {
     ]);
 
     res.json({
-      ...(keys ?? {}),
       onboardingStep: org?.onboardingStep ?? "verify_email",
       emailVerified: user?.emailVerified ?? false,
       aiCallerName: org?.aiCallerName ?? null,
@@ -107,23 +109,15 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/settings — update API keys
-router.post("/", async (req: Request, res: Response) => {
-  const { organizationId } = (req as AuthRequest).user!;
-  const data = req.body;
-
-  try {
-    const existing = await prisma.apiKey.findUnique({ where: { organizationId } });
-    let keys;
-    if (existing) {
-      keys = await prisma.apiKey.update({ where: { organizationId }, data });
-    } else {
-      keys = await prisma.apiKey.create({ data: { ...data, organizationId } });
-    }
-    res.json({ success: true, keys });
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
+// POST /api/settings — DEPRECATED. Tenant-scoped API keys are no longer
+// supported under the compact-platform model. Returns 410 Gone so legacy
+// frontends fail loudly rather than silently dropping submitted credentials.
+router.post("/", async (_req: Request, res: Response) => {
+  res.status(410).json({
+    error: "TENANT_API_KEYS_REMOVED",
+    message:
+      "Tenant-supplied API keys (Google Maps, Gemini, Vapi) are no longer accepted. The platform now manages these credentials centrally.",
+  });
 });
 
 // PATCH /api/settings — update onboarding step, aiCaller config, or both

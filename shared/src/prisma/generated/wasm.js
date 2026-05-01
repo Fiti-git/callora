@@ -254,15 +254,6 @@ exports.Prisma.EmailLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
-exports.Prisma.ApiKeyScalarFieldEnum = {
-  id: 'id',
-  googleMapsKey: 'googleMapsKey',
-  geminiKey: 'geminiKey',
-  vapiKey: 'vapiKey',
-  vapiPhoneId: 'vapiPhoneId',
-  organizationId: 'organizationId'
-};
-
 exports.Prisma.CampaignScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -657,6 +648,57 @@ exports.Prisma.CreditTransactionScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.OrgVapiNumberScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  vapiPhoneNumberId: 'vapiPhoneNumberId',
+  e164: 'e164',
+  provider: 'provider',
+  status: 'status',
+  monthlyCostCents: 'monthlyCostCents',
+  provisionedAt: 'provisionedAt',
+  releasedAt: 'releasedAt',
+  spamScore: 'spamScore',
+  lastRotatedAt: 'lastRotatedAt',
+  areaCode: 'areaCode'
+};
+
+exports.Prisma.SpendCapScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  dailyCapCents: 'dailyCapCents',
+  monthlyCapCents: 'monthlyCapCents',
+  currentDayCents: 'currentDayCents',
+  currentMonthCents: 'currentMonthCents',
+  lastDayResetAt: 'lastDayResetAt',
+  lastMonthResetAt: 'lastMonthResetAt'
+};
+
+exports.Prisma.DncEntryScalarFieldEnum = {
+  id: 'id',
+  phoneE164: 'phoneE164',
+  source: 'source',
+  addedAt: 'addedAt',
+  expiresAt: 'expiresAt'
+};
+
+exports.Prisma.KeyAccessLogScalarFieldEnum = {
+  id: 'id',
+  service: 'service',
+  keyName: 'keyName',
+  fetchedAt: 'fetchedAt',
+  success: 'success'
+};
+
+exports.Prisma.PlatformSecretScalarFieldEnum = {
+  key: 'key',
+  valueEncrypted: 'valueEncrypted',
+  description: 'description',
+  updatedBy: 'updatedBy',
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -784,6 +826,12 @@ exports.ProvisioningStatus = exports.$Enums.ProvisioningStatus = {
   DEPROVISIONED: 'DEPROVISIONED'
 };
 
+exports.VapiNumberStatus = exports.$Enums.VapiNumberStatus = {
+  ACTIVE: 'ACTIVE',
+  RELEASED: 'RELEASED',
+  POOL: 'POOL'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   PasswordResetToken: 'PasswordResetToken',
@@ -794,7 +842,6 @@ exports.Prisma.ModelName = {
   UsageRecord: 'UsageRecord',
   AuditLog: 'AuditLog',
   EmailLog: 'EmailLog',
-  ApiKey: 'ApiKey',
   Campaign: 'Campaign',
   Contact: 'Contact',
   Lead: 'Lead',
@@ -823,7 +870,12 @@ exports.Prisma.ModelName = {
   PublicApiKey: 'PublicApiKey',
   TenantProvisioning: 'TenantProvisioning',
   CreditLedger: 'CreditLedger',
-  CreditTransaction: 'CreditTransaction'
+  CreditTransaction: 'CreditTransaction',
+  OrgVapiNumber: 'OrgVapiNumber',
+  SpendCap: 'SpendCap',
+  DncEntry: 'DncEntry',
+  KeyAccessLog: 'KeyAccessLog',
+  PlatformSecret: 'PlatformSecret'
 };
 
 /**

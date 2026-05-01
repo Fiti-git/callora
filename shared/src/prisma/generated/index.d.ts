@@ -59,11 +59,6 @@ export type AuditLog = $Result.DefaultSelection<Prisma.$AuditLogPayload>
  */
 export type EmailLog = $Result.DefaultSelection<Prisma.$EmailLogPayload>
 /**
- * Model ApiKey
- * 
- */
-export type ApiKey = $Result.DefaultSelection<Prisma.$ApiKeyPayload>
-/**
  * Model Campaign
  * 
  */
@@ -208,6 +203,31 @@ export type CreditLedger = $Result.DefaultSelection<Prisma.$CreditLedgerPayload>
  * 
  */
 export type CreditTransaction = $Result.DefaultSelection<Prisma.$CreditTransactionPayload>
+/**
+ * Model OrgVapiNumber
+ * 
+ */
+export type OrgVapiNumber = $Result.DefaultSelection<Prisma.$OrgVapiNumberPayload>
+/**
+ * Model SpendCap
+ * 
+ */
+export type SpendCap = $Result.DefaultSelection<Prisma.$SpendCapPayload>
+/**
+ * Model DncEntry
+ * 
+ */
+export type DncEntry = $Result.DefaultSelection<Prisma.$DncEntryPayload>
+/**
+ * Model KeyAccessLog
+ * 
+ */
+export type KeyAccessLog = $Result.DefaultSelection<Prisma.$KeyAccessLogPayload>
+/**
+ * Model PlatformSecret
+ * 
+ */
+export type PlatformSecret = $Result.DefaultSelection<Prisma.$PlatformSecretPayload>
 
 /**
  * Enums
@@ -346,6 +366,15 @@ export const ProvisioningStatus: {
 
 export type ProvisioningStatus = (typeof ProvisioningStatus)[keyof typeof ProvisioningStatus]
 
+
+export const VapiNumberStatus: {
+  ACTIVE: 'ACTIVE',
+  RELEASED: 'RELEASED',
+  POOL: 'POOL'
+};
+
+export type VapiNumberStatus = (typeof VapiNumberStatus)[keyof typeof VapiNumberStatus]
+
 }
 
 export type Role = $Enums.Role
@@ -395,6 +424,10 @@ export const WebhookEvent: typeof $Enums.WebhookEvent
 export type ProvisioningStatus = $Enums.ProvisioningStatus
 
 export const ProvisioningStatus: typeof $Enums.ProvisioningStatus
+
+export type VapiNumberStatus = $Enums.VapiNumberStatus
+
+export const VapiNumberStatus: typeof $Enums.VapiNumberStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -608,16 +641,6 @@ export class PrismaClient<
     * ```
     */
   get emailLog(): Prisma.EmailLogDelegate<ExtArgs>;
-
-  /**
-   * `prisma.apiKey`: Exposes CRUD operations for the **ApiKey** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more ApiKeys
-    * const apiKeys = await prisma.apiKey.findMany()
-    * ```
-    */
-  get apiKey(): Prisma.ApiKeyDelegate<ExtArgs>;
 
   /**
    * `prisma.campaign`: Exposes CRUD operations for the **Campaign** model.
@@ -908,6 +931,56 @@ export class PrismaClient<
     * ```
     */
   get creditTransaction(): Prisma.CreditTransactionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.orgVapiNumber`: Exposes CRUD operations for the **OrgVapiNumber** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OrgVapiNumbers
+    * const orgVapiNumbers = await prisma.orgVapiNumber.findMany()
+    * ```
+    */
+  get orgVapiNumber(): Prisma.OrgVapiNumberDelegate<ExtArgs>;
+
+  /**
+   * `prisma.spendCap`: Exposes CRUD operations for the **SpendCap** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SpendCaps
+    * const spendCaps = await prisma.spendCap.findMany()
+    * ```
+    */
+  get spendCap(): Prisma.SpendCapDelegate<ExtArgs>;
+
+  /**
+   * `prisma.dncEntry`: Exposes CRUD operations for the **DncEntry** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DncEntries
+    * const dncEntries = await prisma.dncEntry.findMany()
+    * ```
+    */
+  get dncEntry(): Prisma.DncEntryDelegate<ExtArgs>;
+
+  /**
+   * `prisma.keyAccessLog`: Exposes CRUD operations for the **KeyAccessLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more KeyAccessLogs
+    * const keyAccessLogs = await prisma.keyAccessLog.findMany()
+    * ```
+    */
+  get keyAccessLog(): Prisma.KeyAccessLogDelegate<ExtArgs>;
+
+  /**
+   * `prisma.platformSecret`: Exposes CRUD operations for the **PlatformSecret** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PlatformSecrets
+    * const platformSecrets = await prisma.platformSecret.findMany()
+    * ```
+    */
+  get platformSecret(): Prisma.PlatformSecretDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -1358,7 +1431,6 @@ export namespace Prisma {
     UsageRecord: 'UsageRecord',
     AuditLog: 'AuditLog',
     EmailLog: 'EmailLog',
-    ApiKey: 'ApiKey',
     Campaign: 'Campaign',
     Contact: 'Contact',
     Lead: 'Lead',
@@ -1387,7 +1459,12 @@ export namespace Prisma {
     PublicApiKey: 'PublicApiKey',
     TenantProvisioning: 'TenantProvisioning',
     CreditLedger: 'CreditLedger',
-    CreditTransaction: 'CreditTransaction'
+    CreditTransaction: 'CreditTransaction',
+    OrgVapiNumber: 'OrgVapiNumber',
+    SpendCap: 'SpendCap',
+    DncEntry: 'DncEntry',
+    KeyAccessLog: 'KeyAccessLog',
+    PlatformSecret: 'PlatformSecret'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1403,7 +1480,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "passwordResetToken" | "organization" | "platformUser" | "plan" | "subscription" | "usageRecord" | "auditLog" | "emailLog" | "apiKey" | "campaign" | "contact" | "lead" | "callLog" | "note" | "task" | "deal" | "dealHistory" | "dunningState" | "stripeWebhookEvent" | "callWindowConfig" | "dNCEntry" | "emailSuppression" | "resendWebhookEvent" | "emailCampaign" | "emailRecipientList" | "emailCampaignList" | "emailRecipientListMember" | "emailSend" | "emailTemplate" | "emailAutomation" | "emailAutomationRun" | "blacklist" | "tenantWebhook" | "webhookDelivery" | "publicApiKey" | "tenantProvisioning" | "creditLedger" | "creditTransaction"
+      modelProps: "user" | "passwordResetToken" | "organization" | "platformUser" | "plan" | "subscription" | "usageRecord" | "auditLog" | "emailLog" | "campaign" | "contact" | "lead" | "callLog" | "note" | "task" | "deal" | "dealHistory" | "dunningState" | "stripeWebhookEvent" | "callWindowConfig" | "dNCEntry" | "emailSuppression" | "resendWebhookEvent" | "emailCampaign" | "emailRecipientList" | "emailCampaignList" | "emailRecipientListMember" | "emailSend" | "emailTemplate" | "emailAutomation" | "emailAutomationRun" | "blacklist" | "tenantWebhook" | "webhookDelivery" | "publicApiKey" | "tenantProvisioning" | "creditLedger" | "creditTransaction" | "orgVapiNumber" | "spendCap" | "dncEntry" | "keyAccessLog" | "platformSecret"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2034,76 +2111,6 @@ export namespace Prisma {
           count: {
             args: Prisma.EmailLogCountArgs<ExtArgs>
             result: $Utils.Optional<EmailLogCountAggregateOutputType> | number
-          }
-        }
-      }
-      ApiKey: {
-        payload: Prisma.$ApiKeyPayload<ExtArgs>
-        fields: Prisma.ApiKeyFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.ApiKeyFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.ApiKeyFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
-          }
-          findFirst: {
-            args: Prisma.ApiKeyFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.ApiKeyFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
-          }
-          findMany: {
-            args: Prisma.ApiKeyFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>[]
-          }
-          create: {
-            args: Prisma.ApiKeyCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
-          }
-          createMany: {
-            args: Prisma.ApiKeyCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.ApiKeyCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>[]
-          }
-          delete: {
-            args: Prisma.ApiKeyDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
-          }
-          update: {
-            args: Prisma.ApiKeyUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
-          }
-          deleteMany: {
-            args: Prisma.ApiKeyDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.ApiKeyUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          upsert: {
-            args: Prisma.ApiKeyUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$ApiKeyPayload>
-          }
-          aggregate: {
-            args: Prisma.ApiKeyAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateApiKey>
-          }
-          groupBy: {
-            args: Prisma.ApiKeyGroupByArgs<ExtArgs>
-            result: $Utils.Optional<ApiKeyGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.ApiKeyCountArgs<ExtArgs>
-            result: $Utils.Optional<ApiKeyCountAggregateOutputType> | number
           }
         }
       }
@@ -4134,6 +4141,356 @@ export namespace Prisma {
           count: {
             args: Prisma.CreditTransactionCountArgs<ExtArgs>
             result: $Utils.Optional<CreditTransactionCountAggregateOutputType> | number
+          }
+        }
+      }
+      OrgVapiNumber: {
+        payload: Prisma.$OrgVapiNumberPayload<ExtArgs>
+        fields: Prisma.OrgVapiNumberFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OrgVapiNumberFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OrgVapiNumberFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>
+          }
+          findFirst: {
+            args: Prisma.OrgVapiNumberFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OrgVapiNumberFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>
+          }
+          findMany: {
+            args: Prisma.OrgVapiNumberFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>[]
+          }
+          create: {
+            args: Prisma.OrgVapiNumberCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>
+          }
+          createMany: {
+            args: Prisma.OrgVapiNumberCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OrgVapiNumberCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>[]
+          }
+          delete: {
+            args: Prisma.OrgVapiNumberDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>
+          }
+          update: {
+            args: Prisma.OrgVapiNumberUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>
+          }
+          deleteMany: {
+            args: Prisma.OrgVapiNumberDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OrgVapiNumberUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.OrgVapiNumberUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OrgVapiNumberPayload>
+          }
+          aggregate: {
+            args: Prisma.OrgVapiNumberAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOrgVapiNumber>
+          }
+          groupBy: {
+            args: Prisma.OrgVapiNumberGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OrgVapiNumberGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OrgVapiNumberCountArgs<ExtArgs>
+            result: $Utils.Optional<OrgVapiNumberCountAggregateOutputType> | number
+          }
+        }
+      }
+      SpendCap: {
+        payload: Prisma.$SpendCapPayload<ExtArgs>
+        fields: Prisma.SpendCapFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SpendCapFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SpendCapFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>
+          }
+          findFirst: {
+            args: Prisma.SpendCapFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SpendCapFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>
+          }
+          findMany: {
+            args: Prisma.SpendCapFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>[]
+          }
+          create: {
+            args: Prisma.SpendCapCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>
+          }
+          createMany: {
+            args: Prisma.SpendCapCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SpendCapCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>[]
+          }
+          delete: {
+            args: Prisma.SpendCapDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>
+          }
+          update: {
+            args: Prisma.SpendCapUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>
+          }
+          deleteMany: {
+            args: Prisma.SpendCapDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SpendCapUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SpendCapUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SpendCapPayload>
+          }
+          aggregate: {
+            args: Prisma.SpendCapAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSpendCap>
+          }
+          groupBy: {
+            args: Prisma.SpendCapGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SpendCapGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SpendCapCountArgs<ExtArgs>
+            result: $Utils.Optional<SpendCapCountAggregateOutputType> | number
+          }
+        }
+      }
+      DncEntry: {
+        payload: Prisma.$DncEntryPayload<ExtArgs>
+        fields: Prisma.DncEntryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DncEntryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DncEntryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>
+          }
+          findFirst: {
+            args: Prisma.DncEntryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DncEntryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>
+          }
+          findMany: {
+            args: Prisma.DncEntryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>[]
+          }
+          create: {
+            args: Prisma.DncEntryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>
+          }
+          createMany: {
+            args: Prisma.DncEntryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DncEntryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>[]
+          }
+          delete: {
+            args: Prisma.DncEntryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>
+          }
+          update: {
+            args: Prisma.DncEntryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>
+          }
+          deleteMany: {
+            args: Prisma.DncEntryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DncEntryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.DncEntryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DncEntryPayload>
+          }
+          aggregate: {
+            args: Prisma.DncEntryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDncEntry>
+          }
+          groupBy: {
+            args: Prisma.DncEntryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DncEntryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DncEntryCountArgs<ExtArgs>
+            result: $Utils.Optional<DncEntryCountAggregateOutputType> | number
+          }
+        }
+      }
+      KeyAccessLog: {
+        payload: Prisma.$KeyAccessLogPayload<ExtArgs>
+        fields: Prisma.KeyAccessLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.KeyAccessLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.KeyAccessLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>
+          }
+          findFirst: {
+            args: Prisma.KeyAccessLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.KeyAccessLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>
+          }
+          findMany: {
+            args: Prisma.KeyAccessLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>[]
+          }
+          create: {
+            args: Prisma.KeyAccessLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>
+          }
+          createMany: {
+            args: Prisma.KeyAccessLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.KeyAccessLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>[]
+          }
+          delete: {
+            args: Prisma.KeyAccessLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>
+          }
+          update: {
+            args: Prisma.KeyAccessLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.KeyAccessLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.KeyAccessLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.KeyAccessLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$KeyAccessLogPayload>
+          }
+          aggregate: {
+            args: Prisma.KeyAccessLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateKeyAccessLog>
+          }
+          groupBy: {
+            args: Prisma.KeyAccessLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<KeyAccessLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.KeyAccessLogCountArgs<ExtArgs>
+            result: $Utils.Optional<KeyAccessLogCountAggregateOutputType> | number
+          }
+        }
+      }
+      PlatformSecret: {
+        payload: Prisma.$PlatformSecretPayload<ExtArgs>
+        fields: Prisma.PlatformSecretFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PlatformSecretFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PlatformSecretFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>
+          }
+          findFirst: {
+            args: Prisma.PlatformSecretFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PlatformSecretFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>
+          }
+          findMany: {
+            args: Prisma.PlatformSecretFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>[]
+          }
+          create: {
+            args: Prisma.PlatformSecretCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>
+          }
+          createMany: {
+            args: Prisma.PlatformSecretCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PlatformSecretCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>[]
+          }
+          delete: {
+            args: Prisma.PlatformSecretDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>
+          }
+          update: {
+            args: Prisma.PlatformSecretUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>
+          }
+          deleteMany: {
+            args: Prisma.PlatformSecretDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PlatformSecretUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PlatformSecretUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PlatformSecretPayload>
+          }
+          aggregate: {
+            args: Prisma.PlatformSecretAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePlatformSecret>
+          }
+          groupBy: {
+            args: Prisma.PlatformSecretGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PlatformSecretGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PlatformSecretCountArgs<ExtArgs>
+            result: $Utils.Optional<PlatformSecretCountAggregateOutputType> | number
           }
         }
       }
@@ -7588,7 +7945,8 @@ export namespace Prisma {
     billingMode?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    apiKeys?: boolean | Organization$apiKeysArgs<ExtArgs>
+    vapiNumber?: boolean | Organization$vapiNumberArgs<ExtArgs>
+    spendCap?: boolean | Organization$spendCapArgs<ExtArgs>
     provisioning?: boolean | Organization$provisioningArgs<ExtArgs>
     creditLedger?: boolean | Organization$creditLedgerArgs<ExtArgs>
     creditTransactions?: boolean | Organization$creditTransactionsArgs<ExtArgs>
@@ -7655,7 +8013,8 @@ export namespace Prisma {
   }
 
   export type OrganizationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    apiKeys?: boolean | Organization$apiKeysArgs<ExtArgs>
+    vapiNumber?: boolean | Organization$vapiNumberArgs<ExtArgs>
+    spendCap?: boolean | Organization$spendCapArgs<ExtArgs>
     provisioning?: boolean | Organization$provisioningArgs<ExtArgs>
     creditLedger?: boolean | Organization$creditLedgerArgs<ExtArgs>
     creditTransactions?: boolean | Organization$creditTransactionsArgs<ExtArgs>
@@ -7689,7 +8048,8 @@ export namespace Prisma {
   export type $OrganizationPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Organization"
     objects: {
-      apiKeys: Prisma.$ApiKeyPayload<ExtArgs> | null
+      vapiNumber: Prisma.$OrgVapiNumberPayload<ExtArgs> | null
+      spendCap: Prisma.$SpendCapPayload<ExtArgs> | null
       provisioning: Prisma.$TenantProvisioningPayload<ExtArgs> | null
       creditLedger: Prisma.$CreditLedgerPayload<ExtArgs> | null
       creditTransactions: Prisma.$CreditTransactionPayload<ExtArgs>[]
@@ -8097,7 +8457,8 @@ export namespace Prisma {
    */
   export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    apiKeys<T extends Organization$apiKeysArgs<ExtArgs> = {}>(args?: Subset<T, Organization$apiKeysArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    vapiNumber<T extends Organization$vapiNumberArgs<ExtArgs> = {}>(args?: Subset<T, Organization$vapiNumberArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    spendCap<T extends Organization$spendCapArgs<ExtArgs> = {}>(args?: Subset<T, Organization$spendCapArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     provisioning<T extends Organization$provisioningArgs<ExtArgs> = {}>(args?: Subset<T, Organization$provisioningArgs<ExtArgs>>): Prisma__TenantProvisioningClient<$Result.GetResult<Prisma.$TenantProvisioningPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     creditLedger<T extends Organization$creditLedgerArgs<ExtArgs> = {}>(args?: Subset<T, Organization$creditLedgerArgs<ExtArgs>>): Prisma__CreditLedgerClient<$Result.GetResult<Prisma.$CreditLedgerPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     creditTransactions<T extends Organization$creditTransactionsArgs<ExtArgs> = {}>(args?: Subset<T, Organization$creditTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CreditTransactionPayload<ExtArgs>, T, "findMany"> | Null>
@@ -8482,18 +8843,33 @@ export namespace Prisma {
   }
 
   /**
-   * Organization.apiKeys
+   * Organization.vapiNumber
    */
-  export type Organization$apiKeysArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type Organization$vapiNumberArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the ApiKey
+     * Select specific fields to fetch from the OrgVapiNumber
      */
-    select?: ApiKeySelect<ExtArgs> | null
+    select?: OrgVapiNumberSelect<ExtArgs> | null
     /**
      * Choose, which related nodes to fetch as well
      */
-    include?: ApiKeyInclude<ExtArgs> | null
-    where?: ApiKeyWhereInput
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    where?: OrgVapiNumberWhereInput
+  }
+
+  /**
+   * Organization.spendCap
+   */
+  export type Organization$spendCapArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    where?: SpendCapWhereInput
   }
 
   /**
@@ -15019,951 +15395,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the EmailLog
      */
     select?: EmailLogSelect<ExtArgs> | null
-  }
-
-
-  /**
-   * Model ApiKey
-   */
-
-  export type AggregateApiKey = {
-    _count: ApiKeyCountAggregateOutputType | null
-    _min: ApiKeyMinAggregateOutputType | null
-    _max: ApiKeyMaxAggregateOutputType | null
-  }
-
-  export type ApiKeyMinAggregateOutputType = {
-    id: string | null
-    googleMapsKey: string | null
-    geminiKey: string | null
-    vapiKey: string | null
-    vapiPhoneId: string | null
-    organizationId: string | null
-  }
-
-  export type ApiKeyMaxAggregateOutputType = {
-    id: string | null
-    googleMapsKey: string | null
-    geminiKey: string | null
-    vapiKey: string | null
-    vapiPhoneId: string | null
-    organizationId: string | null
-  }
-
-  export type ApiKeyCountAggregateOutputType = {
-    id: number
-    googleMapsKey: number
-    geminiKey: number
-    vapiKey: number
-    vapiPhoneId: number
-    organizationId: number
-    _all: number
-  }
-
-
-  export type ApiKeyMinAggregateInputType = {
-    id?: true
-    googleMapsKey?: true
-    geminiKey?: true
-    vapiKey?: true
-    vapiPhoneId?: true
-    organizationId?: true
-  }
-
-  export type ApiKeyMaxAggregateInputType = {
-    id?: true
-    googleMapsKey?: true
-    geminiKey?: true
-    vapiKey?: true
-    vapiPhoneId?: true
-    organizationId?: true
-  }
-
-  export type ApiKeyCountAggregateInputType = {
-    id?: true
-    googleMapsKey?: true
-    geminiKey?: true
-    vapiKey?: true
-    vapiPhoneId?: true
-    organizationId?: true
-    _all?: true
-  }
-
-  export type ApiKeyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which ApiKey to aggregate.
-     */
-    where?: ApiKeyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of ApiKeys to fetch.
-     */
-    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: ApiKeyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` ApiKeys from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` ApiKeys.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned ApiKeys
-    **/
-    _count?: true | ApiKeyCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: ApiKeyMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: ApiKeyMaxAggregateInputType
-  }
-
-  export type GetApiKeyAggregateType<T extends ApiKeyAggregateArgs> = {
-        [P in keyof T & keyof AggregateApiKey]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateApiKey[P]>
-      : GetScalarType<T[P], AggregateApiKey[P]>
-  }
-
-
-
-
-  export type ApiKeyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: ApiKeyWhereInput
-    orderBy?: ApiKeyOrderByWithAggregationInput | ApiKeyOrderByWithAggregationInput[]
-    by: ApiKeyScalarFieldEnum[] | ApiKeyScalarFieldEnum
-    having?: ApiKeyScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: ApiKeyCountAggregateInputType | true
-    _min?: ApiKeyMinAggregateInputType
-    _max?: ApiKeyMaxAggregateInputType
-  }
-
-  export type ApiKeyGroupByOutputType = {
-    id: string
-    googleMapsKey: string | null
-    geminiKey: string | null
-    vapiKey: string | null
-    vapiPhoneId: string | null
-    organizationId: string
-    _count: ApiKeyCountAggregateOutputType | null
-    _min: ApiKeyMinAggregateOutputType | null
-    _max: ApiKeyMaxAggregateOutputType | null
-  }
-
-  type GetApiKeyGroupByPayload<T extends ApiKeyGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<ApiKeyGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof ApiKeyGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], ApiKeyGroupByOutputType[P]>
-            : GetScalarType<T[P], ApiKeyGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type ApiKeySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    googleMapsKey?: boolean
-    geminiKey?: boolean
-    vapiKey?: boolean
-    vapiPhoneId?: boolean
-    organizationId?: boolean
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["apiKey"]>
-
-  export type ApiKeySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    googleMapsKey?: boolean
-    geminiKey?: boolean
-    vapiKey?: boolean
-    vapiPhoneId?: boolean
-    organizationId?: boolean
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["apiKey"]>
-
-  export type ApiKeySelectScalar = {
-    id?: boolean
-    googleMapsKey?: boolean
-    geminiKey?: boolean
-    vapiKey?: boolean
-    vapiPhoneId?: boolean
-    organizationId?: boolean
-  }
-
-  export type ApiKeyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
-  }
-  export type ApiKeyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
-  }
-
-  export type $ApiKeyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "ApiKey"
-    objects: {
-      organization: Prisma.$OrganizationPayload<ExtArgs>
-    }
-    scalars: $Extensions.GetPayloadResult<{
-      id: string
-      googleMapsKey: string | null
-      geminiKey: string | null
-      vapiKey: string | null
-      vapiPhoneId: string | null
-      organizationId: string
-    }, ExtArgs["result"]["apiKey"]>
-    composites: {}
-  }
-
-  type ApiKeyGetPayload<S extends boolean | null | undefined | ApiKeyDefaultArgs> = $Result.GetResult<Prisma.$ApiKeyPayload, S>
-
-  type ApiKeyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
-    Omit<ApiKeyFindManyArgs, 'select' | 'include' | 'distinct'> & {
-      select?: ApiKeyCountAggregateInputType | true
-    }
-
-  export interface ApiKeyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ApiKey'], meta: { name: 'ApiKey' } }
-    /**
-     * Find zero or one ApiKey that matches the filter.
-     * @param {ApiKeyFindUniqueArgs} args - Arguments to find a ApiKey
-     * @example
-     * // Get one ApiKey
-     * const apiKey = await prisma.apiKey.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends ApiKeyFindUniqueArgs>(args: SelectSubset<T, ApiKeyFindUniqueArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
-
-    /**
-     * Find one ApiKey that matches the filter or throw an error with `error.code='P2025'` 
-     * if no matches were found.
-     * @param {ApiKeyFindUniqueOrThrowArgs} args - Arguments to find a ApiKey
-     * @example
-     * // Get one ApiKey
-     * const apiKey = await prisma.apiKey.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends ApiKeyFindUniqueOrThrowArgs>(args: SelectSubset<T, ApiKeyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
-
-    /**
-     * Find the first ApiKey that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ApiKeyFindFirstArgs} args - Arguments to find a ApiKey
-     * @example
-     * // Get one ApiKey
-     * const apiKey = await prisma.apiKey.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends ApiKeyFindFirstArgs>(args?: SelectSubset<T, ApiKeyFindFirstArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
-
-    /**
-     * Find the first ApiKey that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ApiKeyFindFirstOrThrowArgs} args - Arguments to find a ApiKey
-     * @example
-     * // Get one ApiKey
-     * const apiKey = await prisma.apiKey.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends ApiKeyFindFirstOrThrowArgs>(args?: SelectSubset<T, ApiKeyFindFirstOrThrowArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
-
-    /**
-     * Find zero or more ApiKeys that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ApiKeyFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all ApiKeys
-     * const apiKeys = await prisma.apiKey.findMany()
-     * 
-     * // Get first 10 ApiKeys
-     * const apiKeys = await prisma.apiKey.findMany({ take: 10 })
-     * 
-     * // Only select the `id`
-     * const apiKeyWithIdOnly = await prisma.apiKey.findMany({ select: { id: true } })
-     * 
-     */
-    findMany<T extends ApiKeyFindManyArgs>(args?: SelectSubset<T, ApiKeyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "findMany">>
-
-    /**
-     * Create a ApiKey.
-     * @param {ApiKeyCreateArgs} args - Arguments to create a ApiKey.
-     * @example
-     * // Create one ApiKey
-     * const ApiKey = await prisma.apiKey.create({
-     *   data: {
-     *     // ... data to create a ApiKey
-     *   }
-     * })
-     * 
-     */
-    create<T extends ApiKeyCreateArgs>(args: SelectSubset<T, ApiKeyCreateArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "create">, never, ExtArgs>
-
-    /**
-     * Create many ApiKeys.
-     * @param {ApiKeyCreateManyArgs} args - Arguments to create many ApiKeys.
-     * @example
-     * // Create many ApiKeys
-     * const apiKey = await prisma.apiKey.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends ApiKeyCreateManyArgs>(args?: SelectSubset<T, ApiKeyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many ApiKeys and returns the data saved in the database.
-     * @param {ApiKeyCreateManyAndReturnArgs} args - Arguments to create many ApiKeys.
-     * @example
-     * // Create many ApiKeys
-     * const apiKey = await prisma.apiKey.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many ApiKeys and only return the `id`
-     * const apiKeyWithIdOnly = await prisma.apiKey.createManyAndReturn({ 
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends ApiKeyCreateManyAndReturnArgs>(args?: SelectSubset<T, ApiKeyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "createManyAndReturn">>
-
-    /**
-     * Delete a ApiKey.
-     * @param {ApiKeyDeleteArgs} args - Arguments to delete one ApiKey.
-     * @example
-     * // Delete one ApiKey
-     * const ApiKey = await prisma.apiKey.delete({
-     *   where: {
-     *     // ... filter to delete one ApiKey
-     *   }
-     * })
-     * 
-     */
-    delete<T extends ApiKeyDeleteArgs>(args: SelectSubset<T, ApiKeyDeleteArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "delete">, never, ExtArgs>
-
-    /**
-     * Update one ApiKey.
-     * @param {ApiKeyUpdateArgs} args - Arguments to update one ApiKey.
-     * @example
-     * // Update one ApiKey
-     * const apiKey = await prisma.apiKey.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends ApiKeyUpdateArgs>(args: SelectSubset<T, ApiKeyUpdateArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "update">, never, ExtArgs>
-
-    /**
-     * Delete zero or more ApiKeys.
-     * @param {ApiKeyDeleteManyArgs} args - Arguments to filter ApiKeys to delete.
-     * @example
-     * // Delete a few ApiKeys
-     * const { count } = await prisma.apiKey.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends ApiKeyDeleteManyArgs>(args?: SelectSubset<T, ApiKeyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more ApiKeys.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ApiKeyUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many ApiKeys
-     * const apiKey = await prisma.apiKey.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends ApiKeyUpdateManyArgs>(args: SelectSubset<T, ApiKeyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create or update one ApiKey.
-     * @param {ApiKeyUpsertArgs} args - Arguments to update or create a ApiKey.
-     * @example
-     * // Update or create a ApiKey
-     * const apiKey = await prisma.apiKey.upsert({
-     *   create: {
-     *     // ... data to create a ApiKey
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the ApiKey we want to update
-     *   }
-     * })
-     */
-    upsert<T extends ApiKeyUpsertArgs>(args: SelectSubset<T, ApiKeyUpsertArgs<ExtArgs>>): Prisma__ApiKeyClient<$Result.GetResult<Prisma.$ApiKeyPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
-
-
-    /**
-     * Count the number of ApiKeys.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ApiKeyCountArgs} args - Arguments to filter ApiKeys to count.
-     * @example
-     * // Count the number of ApiKeys
-     * const count = await prisma.apiKey.count({
-     *   where: {
-     *     // ... the filter for the ApiKeys we want to count
-     *   }
-     * })
-    **/
-    count<T extends ApiKeyCountArgs>(
-      args?: Subset<T, ApiKeyCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], ApiKeyCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a ApiKey.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ApiKeyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends ApiKeyAggregateArgs>(args: Subset<T, ApiKeyAggregateArgs>): Prisma.PrismaPromise<GetApiKeyAggregateType<T>>
-
-    /**
-     * Group by ApiKey.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ApiKeyGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends ApiKeyGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: ApiKeyGroupByArgs['orderBy'] }
-        : { orderBy?: ApiKeyGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, ApiKeyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetApiKeyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the ApiKey model
-   */
-  readonly fields: ApiKeyFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for ApiKey.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__ApiKeyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the ApiKey model
-   */ 
-  interface ApiKeyFieldRefs {
-    readonly id: FieldRef<"ApiKey", 'String'>
-    readonly googleMapsKey: FieldRef<"ApiKey", 'String'>
-    readonly geminiKey: FieldRef<"ApiKey", 'String'>
-    readonly vapiKey: FieldRef<"ApiKey", 'String'>
-    readonly vapiPhoneId: FieldRef<"ApiKey", 'String'>
-    readonly organizationId: FieldRef<"ApiKey", 'String'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * ApiKey findUnique
-   */
-  export type ApiKeyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * Filter, which ApiKey to fetch.
-     */
-    where: ApiKeyWhereUniqueInput
-  }
-
-  /**
-   * ApiKey findUniqueOrThrow
-   */
-  export type ApiKeyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * Filter, which ApiKey to fetch.
-     */
-    where: ApiKeyWhereUniqueInput
-  }
-
-  /**
-   * ApiKey findFirst
-   */
-  export type ApiKeyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * Filter, which ApiKey to fetch.
-     */
-    where?: ApiKeyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of ApiKeys to fetch.
-     */
-    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for ApiKeys.
-     */
-    cursor?: ApiKeyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` ApiKeys from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` ApiKeys.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of ApiKeys.
-     */
-    distinct?: ApiKeyScalarFieldEnum | ApiKeyScalarFieldEnum[]
-  }
-
-  /**
-   * ApiKey findFirstOrThrow
-   */
-  export type ApiKeyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * Filter, which ApiKey to fetch.
-     */
-    where?: ApiKeyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of ApiKeys to fetch.
-     */
-    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for ApiKeys.
-     */
-    cursor?: ApiKeyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` ApiKeys from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` ApiKeys.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of ApiKeys.
-     */
-    distinct?: ApiKeyScalarFieldEnum | ApiKeyScalarFieldEnum[]
-  }
-
-  /**
-   * ApiKey findMany
-   */
-  export type ApiKeyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * Filter, which ApiKeys to fetch.
-     */
-    where?: ApiKeyWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of ApiKeys to fetch.
-     */
-    orderBy?: ApiKeyOrderByWithRelationInput | ApiKeyOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing ApiKeys.
-     */
-    cursor?: ApiKeyWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` ApiKeys from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` ApiKeys.
-     */
-    skip?: number
-    distinct?: ApiKeyScalarFieldEnum | ApiKeyScalarFieldEnum[]
-  }
-
-  /**
-   * ApiKey create
-   */
-  export type ApiKeyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * The data needed to create a ApiKey.
-     */
-    data: XOR<ApiKeyCreateInput, ApiKeyUncheckedCreateInput>
-  }
-
-  /**
-   * ApiKey createMany
-   */
-  export type ApiKeyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many ApiKeys.
-     */
-    data: ApiKeyCreateManyInput | ApiKeyCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * ApiKey createManyAndReturn
-   */
-  export type ApiKeyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * The data used to create many ApiKeys.
-     */
-    data: ApiKeyCreateManyInput | ApiKeyCreateManyInput[]
-    skipDuplicates?: boolean
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyIncludeCreateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * ApiKey update
-   */
-  export type ApiKeyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * The data needed to update a ApiKey.
-     */
-    data: XOR<ApiKeyUpdateInput, ApiKeyUncheckedUpdateInput>
-    /**
-     * Choose, which ApiKey to update.
-     */
-    where: ApiKeyWhereUniqueInput
-  }
-
-  /**
-   * ApiKey updateMany
-   */
-  export type ApiKeyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update ApiKeys.
-     */
-    data: XOR<ApiKeyUpdateManyMutationInput, ApiKeyUncheckedUpdateManyInput>
-    /**
-     * Filter which ApiKeys to update
-     */
-    where?: ApiKeyWhereInput
-  }
-
-  /**
-   * ApiKey upsert
-   */
-  export type ApiKeyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * The filter to search for the ApiKey to update in case it exists.
-     */
-    where: ApiKeyWhereUniqueInput
-    /**
-     * In case the ApiKey found by the `where` argument doesn't exist, create a new ApiKey with this data.
-     */
-    create: XOR<ApiKeyCreateInput, ApiKeyUncheckedCreateInput>
-    /**
-     * In case the ApiKey was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<ApiKeyUpdateInput, ApiKeyUncheckedUpdateInput>
-  }
-
-  /**
-   * ApiKey delete
-   */
-  export type ApiKeyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
-    /**
-     * Filter which ApiKey to delete.
-     */
-    where: ApiKeyWhereUniqueInput
-  }
-
-  /**
-   * ApiKey deleteMany
-   */
-  export type ApiKeyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which ApiKeys to delete
-     */
-    where?: ApiKeyWhereInput
-  }
-
-  /**
-   * ApiKey without action
-   */
-  export type ApiKeyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the ApiKey
-     */
-    select?: ApiKeySelect<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: ApiKeyInclude<ExtArgs> | null
   }
 
 
@@ -46108,6 +45539,4722 @@ export namespace Prisma {
 
 
   /**
+   * Model OrgVapiNumber
+   */
+
+  export type AggregateOrgVapiNumber = {
+    _count: OrgVapiNumberCountAggregateOutputType | null
+    _avg: OrgVapiNumberAvgAggregateOutputType | null
+    _sum: OrgVapiNumberSumAggregateOutputType | null
+    _min: OrgVapiNumberMinAggregateOutputType | null
+    _max: OrgVapiNumberMaxAggregateOutputType | null
+  }
+
+  export type OrgVapiNumberAvgAggregateOutputType = {
+    monthlyCostCents: number | null
+    spamScore: number | null
+  }
+
+  export type OrgVapiNumberSumAggregateOutputType = {
+    monthlyCostCents: number | null
+    spamScore: number | null
+  }
+
+  export type OrgVapiNumberMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    vapiPhoneNumberId: string | null
+    e164: string | null
+    provider: string | null
+    status: $Enums.VapiNumberStatus | null
+    monthlyCostCents: number | null
+    provisionedAt: Date | null
+    releasedAt: Date | null
+    spamScore: number | null
+    lastRotatedAt: Date | null
+    areaCode: string | null
+  }
+
+  export type OrgVapiNumberMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    vapiPhoneNumberId: string | null
+    e164: string | null
+    provider: string | null
+    status: $Enums.VapiNumberStatus | null
+    monthlyCostCents: number | null
+    provisionedAt: Date | null
+    releasedAt: Date | null
+    spamScore: number | null
+    lastRotatedAt: Date | null
+    areaCode: string | null
+  }
+
+  export type OrgVapiNumberCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    vapiPhoneNumberId: number
+    e164: number
+    provider: number
+    status: number
+    monthlyCostCents: number
+    provisionedAt: number
+    releasedAt: number
+    spamScore: number
+    lastRotatedAt: number
+    areaCode: number
+    _all: number
+  }
+
+
+  export type OrgVapiNumberAvgAggregateInputType = {
+    monthlyCostCents?: true
+    spamScore?: true
+  }
+
+  export type OrgVapiNumberSumAggregateInputType = {
+    monthlyCostCents?: true
+    spamScore?: true
+  }
+
+  export type OrgVapiNumberMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    vapiPhoneNumberId?: true
+    e164?: true
+    provider?: true
+    status?: true
+    monthlyCostCents?: true
+    provisionedAt?: true
+    releasedAt?: true
+    spamScore?: true
+    lastRotatedAt?: true
+    areaCode?: true
+  }
+
+  export type OrgVapiNumberMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    vapiPhoneNumberId?: true
+    e164?: true
+    provider?: true
+    status?: true
+    monthlyCostCents?: true
+    provisionedAt?: true
+    releasedAt?: true
+    spamScore?: true
+    lastRotatedAt?: true
+    areaCode?: true
+  }
+
+  export type OrgVapiNumberCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    vapiPhoneNumberId?: true
+    e164?: true
+    provider?: true
+    status?: true
+    monthlyCostCents?: true
+    provisionedAt?: true
+    releasedAt?: true
+    spamScore?: true
+    lastRotatedAt?: true
+    areaCode?: true
+    _all?: true
+  }
+
+  export type OrgVapiNumberAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrgVapiNumber to aggregate.
+     */
+    where?: OrgVapiNumberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrgVapiNumbers to fetch.
+     */
+    orderBy?: OrgVapiNumberOrderByWithRelationInput | OrgVapiNumberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OrgVapiNumberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrgVapiNumbers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrgVapiNumbers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OrgVapiNumbers
+    **/
+    _count?: true | OrgVapiNumberCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: OrgVapiNumberAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: OrgVapiNumberSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OrgVapiNumberMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OrgVapiNumberMaxAggregateInputType
+  }
+
+  export type GetOrgVapiNumberAggregateType<T extends OrgVapiNumberAggregateArgs> = {
+        [P in keyof T & keyof AggregateOrgVapiNumber]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOrgVapiNumber[P]>
+      : GetScalarType<T[P], AggregateOrgVapiNumber[P]>
+  }
+
+
+
+
+  export type OrgVapiNumberGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OrgVapiNumberWhereInput
+    orderBy?: OrgVapiNumberOrderByWithAggregationInput | OrgVapiNumberOrderByWithAggregationInput[]
+    by: OrgVapiNumberScalarFieldEnum[] | OrgVapiNumberScalarFieldEnum
+    having?: OrgVapiNumberScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OrgVapiNumberCountAggregateInputType | true
+    _avg?: OrgVapiNumberAvgAggregateInputType
+    _sum?: OrgVapiNumberSumAggregateInputType
+    _min?: OrgVapiNumberMinAggregateInputType
+    _max?: OrgVapiNumberMaxAggregateInputType
+  }
+
+  export type OrgVapiNumberGroupByOutputType = {
+    id: string
+    organizationId: string
+    vapiPhoneNumberId: string
+    e164: string
+    provider: string
+    status: $Enums.VapiNumberStatus
+    monthlyCostCents: number
+    provisionedAt: Date
+    releasedAt: Date | null
+    spamScore: number | null
+    lastRotatedAt: Date | null
+    areaCode: string | null
+    _count: OrgVapiNumberCountAggregateOutputType | null
+    _avg: OrgVapiNumberAvgAggregateOutputType | null
+    _sum: OrgVapiNumberSumAggregateOutputType | null
+    _min: OrgVapiNumberMinAggregateOutputType | null
+    _max: OrgVapiNumberMaxAggregateOutputType | null
+  }
+
+  type GetOrgVapiNumberGroupByPayload<T extends OrgVapiNumberGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OrgVapiNumberGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OrgVapiNumberGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OrgVapiNumberGroupByOutputType[P]>
+            : GetScalarType<T[P], OrgVapiNumberGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OrgVapiNumberSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    vapiPhoneNumberId?: boolean
+    e164?: boolean
+    provider?: boolean
+    status?: boolean
+    monthlyCostCents?: boolean
+    provisionedAt?: boolean
+    releasedAt?: boolean
+    spamScore?: boolean
+    lastRotatedAt?: boolean
+    areaCode?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["orgVapiNumber"]>
+
+  export type OrgVapiNumberSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    vapiPhoneNumberId?: boolean
+    e164?: boolean
+    provider?: boolean
+    status?: boolean
+    monthlyCostCents?: boolean
+    provisionedAt?: boolean
+    releasedAt?: boolean
+    spamScore?: boolean
+    lastRotatedAt?: boolean
+    areaCode?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["orgVapiNumber"]>
+
+  export type OrgVapiNumberSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    vapiPhoneNumberId?: boolean
+    e164?: boolean
+    provider?: boolean
+    status?: boolean
+    monthlyCostCents?: boolean
+    provisionedAt?: boolean
+    releasedAt?: boolean
+    spamScore?: boolean
+    lastRotatedAt?: boolean
+    areaCode?: boolean
+  }
+
+  export type OrgVapiNumberInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type OrgVapiNumberIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $OrgVapiNumberPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OrgVapiNumber"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      vapiPhoneNumberId: string
+      e164: string
+      provider: string
+      status: $Enums.VapiNumberStatus
+      monthlyCostCents: number
+      provisionedAt: Date
+      releasedAt: Date | null
+      spamScore: number | null
+      lastRotatedAt: Date | null
+      areaCode: string | null
+    }, ExtArgs["result"]["orgVapiNumber"]>
+    composites: {}
+  }
+
+  type OrgVapiNumberGetPayload<S extends boolean | null | undefined | OrgVapiNumberDefaultArgs> = $Result.GetResult<Prisma.$OrgVapiNumberPayload, S>
+
+  type OrgVapiNumberCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<OrgVapiNumberFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: OrgVapiNumberCountAggregateInputType | true
+    }
+
+  export interface OrgVapiNumberDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OrgVapiNumber'], meta: { name: 'OrgVapiNumber' } }
+    /**
+     * Find zero or one OrgVapiNumber that matches the filter.
+     * @param {OrgVapiNumberFindUniqueArgs} args - Arguments to find a OrgVapiNumber
+     * @example
+     * // Get one OrgVapiNumber
+     * const orgVapiNumber = await prisma.orgVapiNumber.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OrgVapiNumberFindUniqueArgs>(args: SelectSubset<T, OrgVapiNumberFindUniqueArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one OrgVapiNumber that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {OrgVapiNumberFindUniqueOrThrowArgs} args - Arguments to find a OrgVapiNumber
+     * @example
+     * // Get one OrgVapiNumber
+     * const orgVapiNumber = await prisma.orgVapiNumber.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OrgVapiNumberFindUniqueOrThrowArgs>(args: SelectSubset<T, OrgVapiNumberFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first OrgVapiNumber that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrgVapiNumberFindFirstArgs} args - Arguments to find a OrgVapiNumber
+     * @example
+     * // Get one OrgVapiNumber
+     * const orgVapiNumber = await prisma.orgVapiNumber.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OrgVapiNumberFindFirstArgs>(args?: SelectSubset<T, OrgVapiNumberFindFirstArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first OrgVapiNumber that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrgVapiNumberFindFirstOrThrowArgs} args - Arguments to find a OrgVapiNumber
+     * @example
+     * // Get one OrgVapiNumber
+     * const orgVapiNumber = await prisma.orgVapiNumber.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OrgVapiNumberFindFirstOrThrowArgs>(args?: SelectSubset<T, OrgVapiNumberFindFirstOrThrowArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more OrgVapiNumbers that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrgVapiNumberFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OrgVapiNumbers
+     * const orgVapiNumbers = await prisma.orgVapiNumber.findMany()
+     * 
+     * // Get first 10 OrgVapiNumbers
+     * const orgVapiNumbers = await prisma.orgVapiNumber.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const orgVapiNumberWithIdOnly = await prisma.orgVapiNumber.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OrgVapiNumberFindManyArgs>(args?: SelectSubset<T, OrgVapiNumberFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a OrgVapiNumber.
+     * @param {OrgVapiNumberCreateArgs} args - Arguments to create a OrgVapiNumber.
+     * @example
+     * // Create one OrgVapiNumber
+     * const OrgVapiNumber = await prisma.orgVapiNumber.create({
+     *   data: {
+     *     // ... data to create a OrgVapiNumber
+     *   }
+     * })
+     * 
+     */
+    create<T extends OrgVapiNumberCreateArgs>(args: SelectSubset<T, OrgVapiNumberCreateArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many OrgVapiNumbers.
+     * @param {OrgVapiNumberCreateManyArgs} args - Arguments to create many OrgVapiNumbers.
+     * @example
+     * // Create many OrgVapiNumbers
+     * const orgVapiNumber = await prisma.orgVapiNumber.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OrgVapiNumberCreateManyArgs>(args?: SelectSubset<T, OrgVapiNumberCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OrgVapiNumbers and returns the data saved in the database.
+     * @param {OrgVapiNumberCreateManyAndReturnArgs} args - Arguments to create many OrgVapiNumbers.
+     * @example
+     * // Create many OrgVapiNumbers
+     * const orgVapiNumber = await prisma.orgVapiNumber.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OrgVapiNumbers and only return the `id`
+     * const orgVapiNumberWithIdOnly = await prisma.orgVapiNumber.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OrgVapiNumberCreateManyAndReturnArgs>(args?: SelectSubset<T, OrgVapiNumberCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a OrgVapiNumber.
+     * @param {OrgVapiNumberDeleteArgs} args - Arguments to delete one OrgVapiNumber.
+     * @example
+     * // Delete one OrgVapiNumber
+     * const OrgVapiNumber = await prisma.orgVapiNumber.delete({
+     *   where: {
+     *     // ... filter to delete one OrgVapiNumber
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OrgVapiNumberDeleteArgs>(args: SelectSubset<T, OrgVapiNumberDeleteArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one OrgVapiNumber.
+     * @param {OrgVapiNumberUpdateArgs} args - Arguments to update one OrgVapiNumber.
+     * @example
+     * // Update one OrgVapiNumber
+     * const orgVapiNumber = await prisma.orgVapiNumber.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OrgVapiNumberUpdateArgs>(args: SelectSubset<T, OrgVapiNumberUpdateArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more OrgVapiNumbers.
+     * @param {OrgVapiNumberDeleteManyArgs} args - Arguments to filter OrgVapiNumbers to delete.
+     * @example
+     * // Delete a few OrgVapiNumbers
+     * const { count } = await prisma.orgVapiNumber.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OrgVapiNumberDeleteManyArgs>(args?: SelectSubset<T, OrgVapiNumberDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OrgVapiNumbers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrgVapiNumberUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OrgVapiNumbers
+     * const orgVapiNumber = await prisma.orgVapiNumber.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OrgVapiNumberUpdateManyArgs>(args: SelectSubset<T, OrgVapiNumberUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one OrgVapiNumber.
+     * @param {OrgVapiNumberUpsertArgs} args - Arguments to update or create a OrgVapiNumber.
+     * @example
+     * // Update or create a OrgVapiNumber
+     * const orgVapiNumber = await prisma.orgVapiNumber.upsert({
+     *   create: {
+     *     // ... data to create a OrgVapiNumber
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OrgVapiNumber we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OrgVapiNumberUpsertArgs>(args: SelectSubset<T, OrgVapiNumberUpsertArgs<ExtArgs>>): Prisma__OrgVapiNumberClient<$Result.GetResult<Prisma.$OrgVapiNumberPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of OrgVapiNumbers.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrgVapiNumberCountArgs} args - Arguments to filter OrgVapiNumbers to count.
+     * @example
+     * // Count the number of OrgVapiNumbers
+     * const count = await prisma.orgVapiNumber.count({
+     *   where: {
+     *     // ... the filter for the OrgVapiNumbers we want to count
+     *   }
+     * })
+    **/
+    count<T extends OrgVapiNumberCountArgs>(
+      args?: Subset<T, OrgVapiNumberCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OrgVapiNumberCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OrgVapiNumber.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrgVapiNumberAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OrgVapiNumberAggregateArgs>(args: Subset<T, OrgVapiNumberAggregateArgs>): Prisma.PrismaPromise<GetOrgVapiNumberAggregateType<T>>
+
+    /**
+     * Group by OrgVapiNumber.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OrgVapiNumberGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OrgVapiNumberGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OrgVapiNumberGroupByArgs['orderBy'] }
+        : { orderBy?: OrgVapiNumberGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OrgVapiNumberGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOrgVapiNumberGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OrgVapiNumber model
+   */
+  readonly fields: OrgVapiNumberFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OrgVapiNumber.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OrgVapiNumberClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OrgVapiNumber model
+   */ 
+  interface OrgVapiNumberFieldRefs {
+    readonly id: FieldRef<"OrgVapiNumber", 'String'>
+    readonly organizationId: FieldRef<"OrgVapiNumber", 'String'>
+    readonly vapiPhoneNumberId: FieldRef<"OrgVapiNumber", 'String'>
+    readonly e164: FieldRef<"OrgVapiNumber", 'String'>
+    readonly provider: FieldRef<"OrgVapiNumber", 'String'>
+    readonly status: FieldRef<"OrgVapiNumber", 'VapiNumberStatus'>
+    readonly monthlyCostCents: FieldRef<"OrgVapiNumber", 'Int'>
+    readonly provisionedAt: FieldRef<"OrgVapiNumber", 'DateTime'>
+    readonly releasedAt: FieldRef<"OrgVapiNumber", 'DateTime'>
+    readonly spamScore: FieldRef<"OrgVapiNumber", 'Float'>
+    readonly lastRotatedAt: FieldRef<"OrgVapiNumber", 'DateTime'>
+    readonly areaCode: FieldRef<"OrgVapiNumber", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OrgVapiNumber findUnique
+   */
+  export type OrgVapiNumberFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * Filter, which OrgVapiNumber to fetch.
+     */
+    where: OrgVapiNumberWhereUniqueInput
+  }
+
+  /**
+   * OrgVapiNumber findUniqueOrThrow
+   */
+  export type OrgVapiNumberFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * Filter, which OrgVapiNumber to fetch.
+     */
+    where: OrgVapiNumberWhereUniqueInput
+  }
+
+  /**
+   * OrgVapiNumber findFirst
+   */
+  export type OrgVapiNumberFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * Filter, which OrgVapiNumber to fetch.
+     */
+    where?: OrgVapiNumberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrgVapiNumbers to fetch.
+     */
+    orderBy?: OrgVapiNumberOrderByWithRelationInput | OrgVapiNumberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrgVapiNumbers.
+     */
+    cursor?: OrgVapiNumberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrgVapiNumbers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrgVapiNumbers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrgVapiNumbers.
+     */
+    distinct?: OrgVapiNumberScalarFieldEnum | OrgVapiNumberScalarFieldEnum[]
+  }
+
+  /**
+   * OrgVapiNumber findFirstOrThrow
+   */
+  export type OrgVapiNumberFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * Filter, which OrgVapiNumber to fetch.
+     */
+    where?: OrgVapiNumberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrgVapiNumbers to fetch.
+     */
+    orderBy?: OrgVapiNumberOrderByWithRelationInput | OrgVapiNumberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OrgVapiNumbers.
+     */
+    cursor?: OrgVapiNumberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrgVapiNumbers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrgVapiNumbers.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OrgVapiNumbers.
+     */
+    distinct?: OrgVapiNumberScalarFieldEnum | OrgVapiNumberScalarFieldEnum[]
+  }
+
+  /**
+   * OrgVapiNumber findMany
+   */
+  export type OrgVapiNumberFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * Filter, which OrgVapiNumbers to fetch.
+     */
+    where?: OrgVapiNumberWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OrgVapiNumbers to fetch.
+     */
+    orderBy?: OrgVapiNumberOrderByWithRelationInput | OrgVapiNumberOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OrgVapiNumbers.
+     */
+    cursor?: OrgVapiNumberWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OrgVapiNumbers from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OrgVapiNumbers.
+     */
+    skip?: number
+    distinct?: OrgVapiNumberScalarFieldEnum | OrgVapiNumberScalarFieldEnum[]
+  }
+
+  /**
+   * OrgVapiNumber create
+   */
+  export type OrgVapiNumberCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OrgVapiNumber.
+     */
+    data: XOR<OrgVapiNumberCreateInput, OrgVapiNumberUncheckedCreateInput>
+  }
+
+  /**
+   * OrgVapiNumber createMany
+   */
+  export type OrgVapiNumberCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OrgVapiNumbers.
+     */
+    data: OrgVapiNumberCreateManyInput | OrgVapiNumberCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OrgVapiNumber createManyAndReturn
+   */
+  export type OrgVapiNumberCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many OrgVapiNumbers.
+     */
+    data: OrgVapiNumberCreateManyInput | OrgVapiNumberCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OrgVapiNumber update
+   */
+  export type OrgVapiNumberUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OrgVapiNumber.
+     */
+    data: XOR<OrgVapiNumberUpdateInput, OrgVapiNumberUncheckedUpdateInput>
+    /**
+     * Choose, which OrgVapiNumber to update.
+     */
+    where: OrgVapiNumberWhereUniqueInput
+  }
+
+  /**
+   * OrgVapiNumber updateMany
+   */
+  export type OrgVapiNumberUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OrgVapiNumbers.
+     */
+    data: XOR<OrgVapiNumberUpdateManyMutationInput, OrgVapiNumberUncheckedUpdateManyInput>
+    /**
+     * Filter which OrgVapiNumbers to update
+     */
+    where?: OrgVapiNumberWhereInput
+  }
+
+  /**
+   * OrgVapiNumber upsert
+   */
+  export type OrgVapiNumberUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OrgVapiNumber to update in case it exists.
+     */
+    where: OrgVapiNumberWhereUniqueInput
+    /**
+     * In case the OrgVapiNumber found by the `where` argument doesn't exist, create a new OrgVapiNumber with this data.
+     */
+    create: XOR<OrgVapiNumberCreateInput, OrgVapiNumberUncheckedCreateInput>
+    /**
+     * In case the OrgVapiNumber was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OrgVapiNumberUpdateInput, OrgVapiNumberUncheckedUpdateInput>
+  }
+
+  /**
+   * OrgVapiNumber delete
+   */
+  export type OrgVapiNumberDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+    /**
+     * Filter which OrgVapiNumber to delete.
+     */
+    where: OrgVapiNumberWhereUniqueInput
+  }
+
+  /**
+   * OrgVapiNumber deleteMany
+   */
+  export type OrgVapiNumberDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OrgVapiNumbers to delete
+     */
+    where?: OrgVapiNumberWhereInput
+  }
+
+  /**
+   * OrgVapiNumber without action
+   */
+  export type OrgVapiNumberDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OrgVapiNumber
+     */
+    select?: OrgVapiNumberSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrgVapiNumberInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SpendCap
+   */
+
+  export type AggregateSpendCap = {
+    _count: SpendCapCountAggregateOutputType | null
+    _avg: SpendCapAvgAggregateOutputType | null
+    _sum: SpendCapSumAggregateOutputType | null
+    _min: SpendCapMinAggregateOutputType | null
+    _max: SpendCapMaxAggregateOutputType | null
+  }
+
+  export type SpendCapAvgAggregateOutputType = {
+    dailyCapCents: number | null
+    monthlyCapCents: number | null
+    currentDayCents: number | null
+    currentMonthCents: number | null
+  }
+
+  export type SpendCapSumAggregateOutputType = {
+    dailyCapCents: number | null
+    monthlyCapCents: number | null
+    currentDayCents: number | null
+    currentMonthCents: number | null
+  }
+
+  export type SpendCapMinAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    dailyCapCents: number | null
+    monthlyCapCents: number | null
+    currentDayCents: number | null
+    currentMonthCents: number | null
+    lastDayResetAt: Date | null
+    lastMonthResetAt: Date | null
+  }
+
+  export type SpendCapMaxAggregateOutputType = {
+    id: string | null
+    organizationId: string | null
+    dailyCapCents: number | null
+    monthlyCapCents: number | null
+    currentDayCents: number | null
+    currentMonthCents: number | null
+    lastDayResetAt: Date | null
+    lastMonthResetAt: Date | null
+  }
+
+  export type SpendCapCountAggregateOutputType = {
+    id: number
+    organizationId: number
+    dailyCapCents: number
+    monthlyCapCents: number
+    currentDayCents: number
+    currentMonthCents: number
+    lastDayResetAt: number
+    lastMonthResetAt: number
+    _all: number
+  }
+
+
+  export type SpendCapAvgAggregateInputType = {
+    dailyCapCents?: true
+    monthlyCapCents?: true
+    currentDayCents?: true
+    currentMonthCents?: true
+  }
+
+  export type SpendCapSumAggregateInputType = {
+    dailyCapCents?: true
+    monthlyCapCents?: true
+    currentDayCents?: true
+    currentMonthCents?: true
+  }
+
+  export type SpendCapMinAggregateInputType = {
+    id?: true
+    organizationId?: true
+    dailyCapCents?: true
+    monthlyCapCents?: true
+    currentDayCents?: true
+    currentMonthCents?: true
+    lastDayResetAt?: true
+    lastMonthResetAt?: true
+  }
+
+  export type SpendCapMaxAggregateInputType = {
+    id?: true
+    organizationId?: true
+    dailyCapCents?: true
+    monthlyCapCents?: true
+    currentDayCents?: true
+    currentMonthCents?: true
+    lastDayResetAt?: true
+    lastMonthResetAt?: true
+  }
+
+  export type SpendCapCountAggregateInputType = {
+    id?: true
+    organizationId?: true
+    dailyCapCents?: true
+    monthlyCapCents?: true
+    currentDayCents?: true
+    currentMonthCents?: true
+    lastDayResetAt?: true
+    lastMonthResetAt?: true
+    _all?: true
+  }
+
+  export type SpendCapAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SpendCap to aggregate.
+     */
+    where?: SpendCapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SpendCaps to fetch.
+     */
+    orderBy?: SpendCapOrderByWithRelationInput | SpendCapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SpendCapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SpendCaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SpendCaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SpendCaps
+    **/
+    _count?: true | SpendCapCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SpendCapAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SpendCapSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SpendCapMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SpendCapMaxAggregateInputType
+  }
+
+  export type GetSpendCapAggregateType<T extends SpendCapAggregateArgs> = {
+        [P in keyof T & keyof AggregateSpendCap]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSpendCap[P]>
+      : GetScalarType<T[P], AggregateSpendCap[P]>
+  }
+
+
+
+
+  export type SpendCapGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SpendCapWhereInput
+    orderBy?: SpendCapOrderByWithAggregationInput | SpendCapOrderByWithAggregationInput[]
+    by: SpendCapScalarFieldEnum[] | SpendCapScalarFieldEnum
+    having?: SpendCapScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SpendCapCountAggregateInputType | true
+    _avg?: SpendCapAvgAggregateInputType
+    _sum?: SpendCapSumAggregateInputType
+    _min?: SpendCapMinAggregateInputType
+    _max?: SpendCapMaxAggregateInputType
+  }
+
+  export type SpendCapGroupByOutputType = {
+    id: string
+    organizationId: string
+    dailyCapCents: number
+    monthlyCapCents: number
+    currentDayCents: number
+    currentMonthCents: number
+    lastDayResetAt: Date
+    lastMonthResetAt: Date
+    _count: SpendCapCountAggregateOutputType | null
+    _avg: SpendCapAvgAggregateOutputType | null
+    _sum: SpendCapSumAggregateOutputType | null
+    _min: SpendCapMinAggregateOutputType | null
+    _max: SpendCapMaxAggregateOutputType | null
+  }
+
+  type GetSpendCapGroupByPayload<T extends SpendCapGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SpendCapGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SpendCapGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SpendCapGroupByOutputType[P]>
+            : GetScalarType<T[P], SpendCapGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SpendCapSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    dailyCapCents?: boolean
+    monthlyCapCents?: boolean
+    currentDayCents?: boolean
+    currentMonthCents?: boolean
+    lastDayResetAt?: boolean
+    lastMonthResetAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["spendCap"]>
+
+  export type SpendCapSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    organizationId?: boolean
+    dailyCapCents?: boolean
+    monthlyCapCents?: boolean
+    currentDayCents?: boolean
+    currentMonthCents?: boolean
+    lastDayResetAt?: boolean
+    lastMonthResetAt?: boolean
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["spendCap"]>
+
+  export type SpendCapSelectScalar = {
+    id?: boolean
+    organizationId?: boolean
+    dailyCapCents?: boolean
+    monthlyCapCents?: boolean
+    currentDayCents?: boolean
+    currentMonthCents?: boolean
+    lastDayResetAt?: boolean
+    lastMonthResetAt?: boolean
+  }
+
+  export type SpendCapInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+  export type SpendCapIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    organization?: boolean | OrganizationDefaultArgs<ExtArgs>
+  }
+
+  export type $SpendCapPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SpendCap"
+    objects: {
+      organization: Prisma.$OrganizationPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      organizationId: string
+      dailyCapCents: number
+      monthlyCapCents: number
+      currentDayCents: number
+      currentMonthCents: number
+      lastDayResetAt: Date
+      lastMonthResetAt: Date
+    }, ExtArgs["result"]["spendCap"]>
+    composites: {}
+  }
+
+  type SpendCapGetPayload<S extends boolean | null | undefined | SpendCapDefaultArgs> = $Result.GetResult<Prisma.$SpendCapPayload, S>
+
+  type SpendCapCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SpendCapFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SpendCapCountAggregateInputType | true
+    }
+
+  export interface SpendCapDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SpendCap'], meta: { name: 'SpendCap' } }
+    /**
+     * Find zero or one SpendCap that matches the filter.
+     * @param {SpendCapFindUniqueArgs} args - Arguments to find a SpendCap
+     * @example
+     * // Get one SpendCap
+     * const spendCap = await prisma.spendCap.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SpendCapFindUniqueArgs>(args: SelectSubset<T, SpendCapFindUniqueArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SpendCap that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SpendCapFindUniqueOrThrowArgs} args - Arguments to find a SpendCap
+     * @example
+     * // Get one SpendCap
+     * const spendCap = await prisma.spendCap.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SpendCapFindUniqueOrThrowArgs>(args: SelectSubset<T, SpendCapFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SpendCap that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpendCapFindFirstArgs} args - Arguments to find a SpendCap
+     * @example
+     * // Get one SpendCap
+     * const spendCap = await prisma.spendCap.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SpendCapFindFirstArgs>(args?: SelectSubset<T, SpendCapFindFirstArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SpendCap that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpendCapFindFirstOrThrowArgs} args - Arguments to find a SpendCap
+     * @example
+     * // Get one SpendCap
+     * const spendCap = await prisma.spendCap.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SpendCapFindFirstOrThrowArgs>(args?: SelectSubset<T, SpendCapFindFirstOrThrowArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SpendCaps that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpendCapFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SpendCaps
+     * const spendCaps = await prisma.spendCap.findMany()
+     * 
+     * // Get first 10 SpendCaps
+     * const spendCaps = await prisma.spendCap.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const spendCapWithIdOnly = await prisma.spendCap.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SpendCapFindManyArgs>(args?: SelectSubset<T, SpendCapFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SpendCap.
+     * @param {SpendCapCreateArgs} args - Arguments to create a SpendCap.
+     * @example
+     * // Create one SpendCap
+     * const SpendCap = await prisma.spendCap.create({
+     *   data: {
+     *     // ... data to create a SpendCap
+     *   }
+     * })
+     * 
+     */
+    create<T extends SpendCapCreateArgs>(args: SelectSubset<T, SpendCapCreateArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SpendCaps.
+     * @param {SpendCapCreateManyArgs} args - Arguments to create many SpendCaps.
+     * @example
+     * // Create many SpendCaps
+     * const spendCap = await prisma.spendCap.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SpendCapCreateManyArgs>(args?: SelectSubset<T, SpendCapCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SpendCaps and returns the data saved in the database.
+     * @param {SpendCapCreateManyAndReturnArgs} args - Arguments to create many SpendCaps.
+     * @example
+     * // Create many SpendCaps
+     * const spendCap = await prisma.spendCap.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SpendCaps and only return the `id`
+     * const spendCapWithIdOnly = await prisma.spendCap.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SpendCapCreateManyAndReturnArgs>(args?: SelectSubset<T, SpendCapCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SpendCap.
+     * @param {SpendCapDeleteArgs} args - Arguments to delete one SpendCap.
+     * @example
+     * // Delete one SpendCap
+     * const SpendCap = await prisma.spendCap.delete({
+     *   where: {
+     *     // ... filter to delete one SpendCap
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SpendCapDeleteArgs>(args: SelectSubset<T, SpendCapDeleteArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SpendCap.
+     * @param {SpendCapUpdateArgs} args - Arguments to update one SpendCap.
+     * @example
+     * // Update one SpendCap
+     * const spendCap = await prisma.spendCap.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SpendCapUpdateArgs>(args: SelectSubset<T, SpendCapUpdateArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SpendCaps.
+     * @param {SpendCapDeleteManyArgs} args - Arguments to filter SpendCaps to delete.
+     * @example
+     * // Delete a few SpendCaps
+     * const { count } = await prisma.spendCap.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SpendCapDeleteManyArgs>(args?: SelectSubset<T, SpendCapDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SpendCaps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpendCapUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SpendCaps
+     * const spendCap = await prisma.spendCap.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SpendCapUpdateManyArgs>(args: SelectSubset<T, SpendCapUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SpendCap.
+     * @param {SpendCapUpsertArgs} args - Arguments to update or create a SpendCap.
+     * @example
+     * // Update or create a SpendCap
+     * const spendCap = await prisma.spendCap.upsert({
+     *   create: {
+     *     // ... data to create a SpendCap
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SpendCap we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SpendCapUpsertArgs>(args: SelectSubset<T, SpendCapUpsertArgs<ExtArgs>>): Prisma__SpendCapClient<$Result.GetResult<Prisma.$SpendCapPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SpendCaps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpendCapCountArgs} args - Arguments to filter SpendCaps to count.
+     * @example
+     * // Count the number of SpendCaps
+     * const count = await prisma.spendCap.count({
+     *   where: {
+     *     // ... the filter for the SpendCaps we want to count
+     *   }
+     * })
+    **/
+    count<T extends SpendCapCountArgs>(
+      args?: Subset<T, SpendCapCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SpendCapCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SpendCap.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpendCapAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SpendCapAggregateArgs>(args: Subset<T, SpendCapAggregateArgs>): Prisma.PrismaPromise<GetSpendCapAggregateType<T>>
+
+    /**
+     * Group by SpendCap.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SpendCapGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SpendCapGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SpendCapGroupByArgs['orderBy'] }
+        : { orderBy?: SpendCapGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SpendCapGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSpendCapGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SpendCap model
+   */
+  readonly fields: SpendCapFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SpendCap.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SpendCapClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    organization<T extends OrganizationDefaultArgs<ExtArgs> = {}>(args?: Subset<T, OrganizationDefaultArgs<ExtArgs>>): Prisma__OrganizationClient<$Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SpendCap model
+   */ 
+  interface SpendCapFieldRefs {
+    readonly id: FieldRef<"SpendCap", 'String'>
+    readonly organizationId: FieldRef<"SpendCap", 'String'>
+    readonly dailyCapCents: FieldRef<"SpendCap", 'Int'>
+    readonly monthlyCapCents: FieldRef<"SpendCap", 'Int'>
+    readonly currentDayCents: FieldRef<"SpendCap", 'Int'>
+    readonly currentMonthCents: FieldRef<"SpendCap", 'Int'>
+    readonly lastDayResetAt: FieldRef<"SpendCap", 'DateTime'>
+    readonly lastMonthResetAt: FieldRef<"SpendCap", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SpendCap findUnique
+   */
+  export type SpendCapFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * Filter, which SpendCap to fetch.
+     */
+    where: SpendCapWhereUniqueInput
+  }
+
+  /**
+   * SpendCap findUniqueOrThrow
+   */
+  export type SpendCapFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * Filter, which SpendCap to fetch.
+     */
+    where: SpendCapWhereUniqueInput
+  }
+
+  /**
+   * SpendCap findFirst
+   */
+  export type SpendCapFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * Filter, which SpendCap to fetch.
+     */
+    where?: SpendCapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SpendCaps to fetch.
+     */
+    orderBy?: SpendCapOrderByWithRelationInput | SpendCapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SpendCaps.
+     */
+    cursor?: SpendCapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SpendCaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SpendCaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SpendCaps.
+     */
+    distinct?: SpendCapScalarFieldEnum | SpendCapScalarFieldEnum[]
+  }
+
+  /**
+   * SpendCap findFirstOrThrow
+   */
+  export type SpendCapFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * Filter, which SpendCap to fetch.
+     */
+    where?: SpendCapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SpendCaps to fetch.
+     */
+    orderBy?: SpendCapOrderByWithRelationInput | SpendCapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SpendCaps.
+     */
+    cursor?: SpendCapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SpendCaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SpendCaps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SpendCaps.
+     */
+    distinct?: SpendCapScalarFieldEnum | SpendCapScalarFieldEnum[]
+  }
+
+  /**
+   * SpendCap findMany
+   */
+  export type SpendCapFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * Filter, which SpendCaps to fetch.
+     */
+    where?: SpendCapWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SpendCaps to fetch.
+     */
+    orderBy?: SpendCapOrderByWithRelationInput | SpendCapOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SpendCaps.
+     */
+    cursor?: SpendCapWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SpendCaps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SpendCaps.
+     */
+    skip?: number
+    distinct?: SpendCapScalarFieldEnum | SpendCapScalarFieldEnum[]
+  }
+
+  /**
+   * SpendCap create
+   */
+  export type SpendCapCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SpendCap.
+     */
+    data: XOR<SpendCapCreateInput, SpendCapUncheckedCreateInput>
+  }
+
+  /**
+   * SpendCap createMany
+   */
+  export type SpendCapCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SpendCaps.
+     */
+    data: SpendCapCreateManyInput | SpendCapCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SpendCap createManyAndReturn
+   */
+  export type SpendCapCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SpendCaps.
+     */
+    data: SpendCapCreateManyInput | SpendCapCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SpendCap update
+   */
+  export type SpendCapUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SpendCap.
+     */
+    data: XOR<SpendCapUpdateInput, SpendCapUncheckedUpdateInput>
+    /**
+     * Choose, which SpendCap to update.
+     */
+    where: SpendCapWhereUniqueInput
+  }
+
+  /**
+   * SpendCap updateMany
+   */
+  export type SpendCapUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SpendCaps.
+     */
+    data: XOR<SpendCapUpdateManyMutationInput, SpendCapUncheckedUpdateManyInput>
+    /**
+     * Filter which SpendCaps to update
+     */
+    where?: SpendCapWhereInput
+  }
+
+  /**
+   * SpendCap upsert
+   */
+  export type SpendCapUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SpendCap to update in case it exists.
+     */
+    where: SpendCapWhereUniqueInput
+    /**
+     * In case the SpendCap found by the `where` argument doesn't exist, create a new SpendCap with this data.
+     */
+    create: XOR<SpendCapCreateInput, SpendCapUncheckedCreateInput>
+    /**
+     * In case the SpendCap was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SpendCapUpdateInput, SpendCapUncheckedUpdateInput>
+  }
+
+  /**
+   * SpendCap delete
+   */
+  export type SpendCapDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+    /**
+     * Filter which SpendCap to delete.
+     */
+    where: SpendCapWhereUniqueInput
+  }
+
+  /**
+   * SpendCap deleteMany
+   */
+  export type SpendCapDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SpendCaps to delete
+     */
+    where?: SpendCapWhereInput
+  }
+
+  /**
+   * SpendCap without action
+   */
+  export type SpendCapDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SpendCap
+     */
+    select?: SpendCapSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SpendCapInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DncEntry
+   */
+
+  export type AggregateDncEntry = {
+    _count: DncEntryCountAggregateOutputType | null
+    _min: DncEntryMinAggregateOutputType | null
+    _max: DncEntryMaxAggregateOutputType | null
+  }
+
+  export type DncEntryMinAggregateOutputType = {
+    id: string | null
+    phoneE164: string | null
+    source: string | null
+    addedAt: Date | null
+    expiresAt: Date | null
+  }
+
+  export type DncEntryMaxAggregateOutputType = {
+    id: string | null
+    phoneE164: string | null
+    source: string | null
+    addedAt: Date | null
+    expiresAt: Date | null
+  }
+
+  export type DncEntryCountAggregateOutputType = {
+    id: number
+    phoneE164: number
+    source: number
+    addedAt: number
+    expiresAt: number
+    _all: number
+  }
+
+
+  export type DncEntryMinAggregateInputType = {
+    id?: true
+    phoneE164?: true
+    source?: true
+    addedAt?: true
+    expiresAt?: true
+  }
+
+  export type DncEntryMaxAggregateInputType = {
+    id?: true
+    phoneE164?: true
+    source?: true
+    addedAt?: true
+    expiresAt?: true
+  }
+
+  export type DncEntryCountAggregateInputType = {
+    id?: true
+    phoneE164?: true
+    source?: true
+    addedAt?: true
+    expiresAt?: true
+    _all?: true
+  }
+
+  export type DncEntryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DncEntry to aggregate.
+     */
+    where?: DncEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DncEntries to fetch.
+     */
+    orderBy?: DncEntryOrderByWithRelationInput | DncEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DncEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DncEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DncEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DncEntries
+    **/
+    _count?: true | DncEntryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DncEntryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DncEntryMaxAggregateInputType
+  }
+
+  export type GetDncEntryAggregateType<T extends DncEntryAggregateArgs> = {
+        [P in keyof T & keyof AggregateDncEntry]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDncEntry[P]>
+      : GetScalarType<T[P], AggregateDncEntry[P]>
+  }
+
+
+
+
+  export type DncEntryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DncEntryWhereInput
+    orderBy?: DncEntryOrderByWithAggregationInput | DncEntryOrderByWithAggregationInput[]
+    by: DncEntryScalarFieldEnum[] | DncEntryScalarFieldEnum
+    having?: DncEntryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DncEntryCountAggregateInputType | true
+    _min?: DncEntryMinAggregateInputType
+    _max?: DncEntryMaxAggregateInputType
+  }
+
+  export type DncEntryGroupByOutputType = {
+    id: string
+    phoneE164: string
+    source: string
+    addedAt: Date
+    expiresAt: Date | null
+    _count: DncEntryCountAggregateOutputType | null
+    _min: DncEntryMinAggregateOutputType | null
+    _max: DncEntryMaxAggregateOutputType | null
+  }
+
+  type GetDncEntryGroupByPayload<T extends DncEntryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DncEntryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DncEntryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DncEntryGroupByOutputType[P]>
+            : GetScalarType<T[P], DncEntryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DncEntrySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    phoneE164?: boolean
+    source?: boolean
+    addedAt?: boolean
+    expiresAt?: boolean
+  }, ExtArgs["result"]["dncEntry"]>
+
+  export type DncEntrySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    phoneE164?: boolean
+    source?: boolean
+    addedAt?: boolean
+    expiresAt?: boolean
+  }, ExtArgs["result"]["dncEntry"]>
+
+  export type DncEntrySelectScalar = {
+    id?: boolean
+    phoneE164?: boolean
+    source?: boolean
+    addedAt?: boolean
+    expiresAt?: boolean
+  }
+
+
+  export type $DncEntryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DncEntry"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      phoneE164: string
+      source: string
+      addedAt: Date
+      expiresAt: Date | null
+    }, ExtArgs["result"]["dncEntry"]>
+    composites: {}
+  }
+
+  type DncEntryGetPayload<S extends boolean | null | undefined | DncEntryDefaultArgs> = $Result.GetResult<Prisma.$DncEntryPayload, S>
+
+  type DncEntryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<DncEntryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: DncEntryCountAggregateInputType | true
+    }
+
+  export interface DncEntryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DncEntry'], meta: { name: 'DncEntry' } }
+    /**
+     * Find zero or one DncEntry that matches the filter.
+     * @param {DncEntryFindUniqueArgs} args - Arguments to find a DncEntry
+     * @example
+     * // Get one DncEntry
+     * const dncEntry = await prisma.dncEntry.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DncEntryFindUniqueArgs>(args: SelectSubset<T, DncEntryFindUniqueArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one DncEntry that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {DncEntryFindUniqueOrThrowArgs} args - Arguments to find a DncEntry
+     * @example
+     * // Get one DncEntry
+     * const dncEntry = await prisma.dncEntry.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DncEntryFindUniqueOrThrowArgs>(args: SelectSubset<T, DncEntryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first DncEntry that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DncEntryFindFirstArgs} args - Arguments to find a DncEntry
+     * @example
+     * // Get one DncEntry
+     * const dncEntry = await prisma.dncEntry.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DncEntryFindFirstArgs>(args?: SelectSubset<T, DncEntryFindFirstArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first DncEntry that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DncEntryFindFirstOrThrowArgs} args - Arguments to find a DncEntry
+     * @example
+     * // Get one DncEntry
+     * const dncEntry = await prisma.dncEntry.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DncEntryFindFirstOrThrowArgs>(args?: SelectSubset<T, DncEntryFindFirstOrThrowArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more DncEntries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DncEntryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DncEntries
+     * const dncEntries = await prisma.dncEntry.findMany()
+     * 
+     * // Get first 10 DncEntries
+     * const dncEntries = await prisma.dncEntry.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const dncEntryWithIdOnly = await prisma.dncEntry.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DncEntryFindManyArgs>(args?: SelectSubset<T, DncEntryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a DncEntry.
+     * @param {DncEntryCreateArgs} args - Arguments to create a DncEntry.
+     * @example
+     * // Create one DncEntry
+     * const DncEntry = await prisma.dncEntry.create({
+     *   data: {
+     *     // ... data to create a DncEntry
+     *   }
+     * })
+     * 
+     */
+    create<T extends DncEntryCreateArgs>(args: SelectSubset<T, DncEntryCreateArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many DncEntries.
+     * @param {DncEntryCreateManyArgs} args - Arguments to create many DncEntries.
+     * @example
+     * // Create many DncEntries
+     * const dncEntry = await prisma.dncEntry.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DncEntryCreateManyArgs>(args?: SelectSubset<T, DncEntryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DncEntries and returns the data saved in the database.
+     * @param {DncEntryCreateManyAndReturnArgs} args - Arguments to create many DncEntries.
+     * @example
+     * // Create many DncEntries
+     * const dncEntry = await prisma.dncEntry.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DncEntries and only return the `id`
+     * const dncEntryWithIdOnly = await prisma.dncEntry.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DncEntryCreateManyAndReturnArgs>(args?: SelectSubset<T, DncEntryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a DncEntry.
+     * @param {DncEntryDeleteArgs} args - Arguments to delete one DncEntry.
+     * @example
+     * // Delete one DncEntry
+     * const DncEntry = await prisma.dncEntry.delete({
+     *   where: {
+     *     // ... filter to delete one DncEntry
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DncEntryDeleteArgs>(args: SelectSubset<T, DncEntryDeleteArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one DncEntry.
+     * @param {DncEntryUpdateArgs} args - Arguments to update one DncEntry.
+     * @example
+     * // Update one DncEntry
+     * const dncEntry = await prisma.dncEntry.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DncEntryUpdateArgs>(args: SelectSubset<T, DncEntryUpdateArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more DncEntries.
+     * @param {DncEntryDeleteManyArgs} args - Arguments to filter DncEntries to delete.
+     * @example
+     * // Delete a few DncEntries
+     * const { count } = await prisma.dncEntry.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DncEntryDeleteManyArgs>(args?: SelectSubset<T, DncEntryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DncEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DncEntryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DncEntries
+     * const dncEntry = await prisma.dncEntry.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DncEntryUpdateManyArgs>(args: SelectSubset<T, DncEntryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one DncEntry.
+     * @param {DncEntryUpsertArgs} args - Arguments to update or create a DncEntry.
+     * @example
+     * // Update or create a DncEntry
+     * const dncEntry = await prisma.dncEntry.upsert({
+     *   create: {
+     *     // ... data to create a DncEntry
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DncEntry we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DncEntryUpsertArgs>(args: SelectSubset<T, DncEntryUpsertArgs<ExtArgs>>): Prisma__DncEntryClient<$Result.GetResult<Prisma.$DncEntryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of DncEntries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DncEntryCountArgs} args - Arguments to filter DncEntries to count.
+     * @example
+     * // Count the number of DncEntries
+     * const count = await prisma.dncEntry.count({
+     *   where: {
+     *     // ... the filter for the DncEntries we want to count
+     *   }
+     * })
+    **/
+    count<T extends DncEntryCountArgs>(
+      args?: Subset<T, DncEntryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DncEntryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DncEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DncEntryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DncEntryAggregateArgs>(args: Subset<T, DncEntryAggregateArgs>): Prisma.PrismaPromise<GetDncEntryAggregateType<T>>
+
+    /**
+     * Group by DncEntry.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DncEntryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DncEntryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DncEntryGroupByArgs['orderBy'] }
+        : { orderBy?: DncEntryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DncEntryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDncEntryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DncEntry model
+   */
+  readonly fields: DncEntryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DncEntry.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DncEntryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DncEntry model
+   */ 
+  interface DncEntryFieldRefs {
+    readonly id: FieldRef<"DncEntry", 'String'>
+    readonly phoneE164: FieldRef<"DncEntry", 'String'>
+    readonly source: FieldRef<"DncEntry", 'String'>
+    readonly addedAt: FieldRef<"DncEntry", 'DateTime'>
+    readonly expiresAt: FieldRef<"DncEntry", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DncEntry findUnique
+   */
+  export type DncEntryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * Filter, which DncEntry to fetch.
+     */
+    where: DncEntryWhereUniqueInput
+  }
+
+  /**
+   * DncEntry findUniqueOrThrow
+   */
+  export type DncEntryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * Filter, which DncEntry to fetch.
+     */
+    where: DncEntryWhereUniqueInput
+  }
+
+  /**
+   * DncEntry findFirst
+   */
+  export type DncEntryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * Filter, which DncEntry to fetch.
+     */
+    where?: DncEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DncEntries to fetch.
+     */
+    orderBy?: DncEntryOrderByWithRelationInput | DncEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DncEntries.
+     */
+    cursor?: DncEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DncEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DncEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DncEntries.
+     */
+    distinct?: DncEntryScalarFieldEnum | DncEntryScalarFieldEnum[]
+  }
+
+  /**
+   * DncEntry findFirstOrThrow
+   */
+  export type DncEntryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * Filter, which DncEntry to fetch.
+     */
+    where?: DncEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DncEntries to fetch.
+     */
+    orderBy?: DncEntryOrderByWithRelationInput | DncEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DncEntries.
+     */
+    cursor?: DncEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DncEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DncEntries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DncEntries.
+     */
+    distinct?: DncEntryScalarFieldEnum | DncEntryScalarFieldEnum[]
+  }
+
+  /**
+   * DncEntry findMany
+   */
+  export type DncEntryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * Filter, which DncEntries to fetch.
+     */
+    where?: DncEntryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DncEntries to fetch.
+     */
+    orderBy?: DncEntryOrderByWithRelationInput | DncEntryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DncEntries.
+     */
+    cursor?: DncEntryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DncEntries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DncEntries.
+     */
+    skip?: number
+    distinct?: DncEntryScalarFieldEnum | DncEntryScalarFieldEnum[]
+  }
+
+  /**
+   * DncEntry create
+   */
+  export type DncEntryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * The data needed to create a DncEntry.
+     */
+    data: XOR<DncEntryCreateInput, DncEntryUncheckedCreateInput>
+  }
+
+  /**
+   * DncEntry createMany
+   */
+  export type DncEntryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DncEntries.
+     */
+    data: DncEntryCreateManyInput | DncEntryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DncEntry createManyAndReturn
+   */
+  export type DncEntryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many DncEntries.
+     */
+    data: DncEntryCreateManyInput | DncEntryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DncEntry update
+   */
+  export type DncEntryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * The data needed to update a DncEntry.
+     */
+    data: XOR<DncEntryUpdateInput, DncEntryUncheckedUpdateInput>
+    /**
+     * Choose, which DncEntry to update.
+     */
+    where: DncEntryWhereUniqueInput
+  }
+
+  /**
+   * DncEntry updateMany
+   */
+  export type DncEntryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DncEntries.
+     */
+    data: XOR<DncEntryUpdateManyMutationInput, DncEntryUncheckedUpdateManyInput>
+    /**
+     * Filter which DncEntries to update
+     */
+    where?: DncEntryWhereInput
+  }
+
+  /**
+   * DncEntry upsert
+   */
+  export type DncEntryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * The filter to search for the DncEntry to update in case it exists.
+     */
+    where: DncEntryWhereUniqueInput
+    /**
+     * In case the DncEntry found by the `where` argument doesn't exist, create a new DncEntry with this data.
+     */
+    create: XOR<DncEntryCreateInput, DncEntryUncheckedCreateInput>
+    /**
+     * In case the DncEntry was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DncEntryUpdateInput, DncEntryUncheckedUpdateInput>
+  }
+
+  /**
+   * DncEntry delete
+   */
+  export type DncEntryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+    /**
+     * Filter which DncEntry to delete.
+     */
+    where: DncEntryWhereUniqueInput
+  }
+
+  /**
+   * DncEntry deleteMany
+   */
+  export type DncEntryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DncEntries to delete
+     */
+    where?: DncEntryWhereInput
+  }
+
+  /**
+   * DncEntry without action
+   */
+  export type DncEntryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DncEntry
+     */
+    select?: DncEntrySelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model KeyAccessLog
+   */
+
+  export type AggregateKeyAccessLog = {
+    _count: KeyAccessLogCountAggregateOutputType | null
+    _min: KeyAccessLogMinAggregateOutputType | null
+    _max: KeyAccessLogMaxAggregateOutputType | null
+  }
+
+  export type KeyAccessLogMinAggregateOutputType = {
+    id: string | null
+    service: string | null
+    keyName: string | null
+    fetchedAt: Date | null
+    success: boolean | null
+  }
+
+  export type KeyAccessLogMaxAggregateOutputType = {
+    id: string | null
+    service: string | null
+    keyName: string | null
+    fetchedAt: Date | null
+    success: boolean | null
+  }
+
+  export type KeyAccessLogCountAggregateOutputType = {
+    id: number
+    service: number
+    keyName: number
+    fetchedAt: number
+    success: number
+    _all: number
+  }
+
+
+  export type KeyAccessLogMinAggregateInputType = {
+    id?: true
+    service?: true
+    keyName?: true
+    fetchedAt?: true
+    success?: true
+  }
+
+  export type KeyAccessLogMaxAggregateInputType = {
+    id?: true
+    service?: true
+    keyName?: true
+    fetchedAt?: true
+    success?: true
+  }
+
+  export type KeyAccessLogCountAggregateInputType = {
+    id?: true
+    service?: true
+    keyName?: true
+    fetchedAt?: true
+    success?: true
+    _all?: true
+  }
+
+  export type KeyAccessLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KeyAccessLog to aggregate.
+     */
+    where?: KeyAccessLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeyAccessLogs to fetch.
+     */
+    orderBy?: KeyAccessLogOrderByWithRelationInput | KeyAccessLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: KeyAccessLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeyAccessLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeyAccessLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned KeyAccessLogs
+    **/
+    _count?: true | KeyAccessLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: KeyAccessLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: KeyAccessLogMaxAggregateInputType
+  }
+
+  export type GetKeyAccessLogAggregateType<T extends KeyAccessLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateKeyAccessLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateKeyAccessLog[P]>
+      : GetScalarType<T[P], AggregateKeyAccessLog[P]>
+  }
+
+
+
+
+  export type KeyAccessLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: KeyAccessLogWhereInput
+    orderBy?: KeyAccessLogOrderByWithAggregationInput | KeyAccessLogOrderByWithAggregationInput[]
+    by: KeyAccessLogScalarFieldEnum[] | KeyAccessLogScalarFieldEnum
+    having?: KeyAccessLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: KeyAccessLogCountAggregateInputType | true
+    _min?: KeyAccessLogMinAggregateInputType
+    _max?: KeyAccessLogMaxAggregateInputType
+  }
+
+  export type KeyAccessLogGroupByOutputType = {
+    id: string
+    service: string
+    keyName: string
+    fetchedAt: Date
+    success: boolean
+    _count: KeyAccessLogCountAggregateOutputType | null
+    _min: KeyAccessLogMinAggregateOutputType | null
+    _max: KeyAccessLogMaxAggregateOutputType | null
+  }
+
+  type GetKeyAccessLogGroupByPayload<T extends KeyAccessLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<KeyAccessLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof KeyAccessLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], KeyAccessLogGroupByOutputType[P]>
+            : GetScalarType<T[P], KeyAccessLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type KeyAccessLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    service?: boolean
+    keyName?: boolean
+    fetchedAt?: boolean
+    success?: boolean
+  }, ExtArgs["result"]["keyAccessLog"]>
+
+  export type KeyAccessLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    service?: boolean
+    keyName?: boolean
+    fetchedAt?: boolean
+    success?: boolean
+  }, ExtArgs["result"]["keyAccessLog"]>
+
+  export type KeyAccessLogSelectScalar = {
+    id?: boolean
+    service?: boolean
+    keyName?: boolean
+    fetchedAt?: boolean
+    success?: boolean
+  }
+
+
+  export type $KeyAccessLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "KeyAccessLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      service: string
+      keyName: string
+      fetchedAt: Date
+      success: boolean
+    }, ExtArgs["result"]["keyAccessLog"]>
+    composites: {}
+  }
+
+  type KeyAccessLogGetPayload<S extends boolean | null | undefined | KeyAccessLogDefaultArgs> = $Result.GetResult<Prisma.$KeyAccessLogPayload, S>
+
+  type KeyAccessLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<KeyAccessLogFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: KeyAccessLogCountAggregateInputType | true
+    }
+
+  export interface KeyAccessLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['KeyAccessLog'], meta: { name: 'KeyAccessLog' } }
+    /**
+     * Find zero or one KeyAccessLog that matches the filter.
+     * @param {KeyAccessLogFindUniqueArgs} args - Arguments to find a KeyAccessLog
+     * @example
+     * // Get one KeyAccessLog
+     * const keyAccessLog = await prisma.keyAccessLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends KeyAccessLogFindUniqueArgs>(args: SelectSubset<T, KeyAccessLogFindUniqueArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one KeyAccessLog that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {KeyAccessLogFindUniqueOrThrowArgs} args - Arguments to find a KeyAccessLog
+     * @example
+     * // Get one KeyAccessLog
+     * const keyAccessLog = await prisma.keyAccessLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends KeyAccessLogFindUniqueOrThrowArgs>(args: SelectSubset<T, KeyAccessLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first KeyAccessLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeyAccessLogFindFirstArgs} args - Arguments to find a KeyAccessLog
+     * @example
+     * // Get one KeyAccessLog
+     * const keyAccessLog = await prisma.keyAccessLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends KeyAccessLogFindFirstArgs>(args?: SelectSubset<T, KeyAccessLogFindFirstArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first KeyAccessLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeyAccessLogFindFirstOrThrowArgs} args - Arguments to find a KeyAccessLog
+     * @example
+     * // Get one KeyAccessLog
+     * const keyAccessLog = await prisma.keyAccessLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends KeyAccessLogFindFirstOrThrowArgs>(args?: SelectSubset<T, KeyAccessLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more KeyAccessLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeyAccessLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all KeyAccessLogs
+     * const keyAccessLogs = await prisma.keyAccessLog.findMany()
+     * 
+     * // Get first 10 KeyAccessLogs
+     * const keyAccessLogs = await prisma.keyAccessLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const keyAccessLogWithIdOnly = await prisma.keyAccessLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends KeyAccessLogFindManyArgs>(args?: SelectSubset<T, KeyAccessLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a KeyAccessLog.
+     * @param {KeyAccessLogCreateArgs} args - Arguments to create a KeyAccessLog.
+     * @example
+     * // Create one KeyAccessLog
+     * const KeyAccessLog = await prisma.keyAccessLog.create({
+     *   data: {
+     *     // ... data to create a KeyAccessLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends KeyAccessLogCreateArgs>(args: SelectSubset<T, KeyAccessLogCreateArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many KeyAccessLogs.
+     * @param {KeyAccessLogCreateManyArgs} args - Arguments to create many KeyAccessLogs.
+     * @example
+     * // Create many KeyAccessLogs
+     * const keyAccessLog = await prisma.keyAccessLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends KeyAccessLogCreateManyArgs>(args?: SelectSubset<T, KeyAccessLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many KeyAccessLogs and returns the data saved in the database.
+     * @param {KeyAccessLogCreateManyAndReturnArgs} args - Arguments to create many KeyAccessLogs.
+     * @example
+     * // Create many KeyAccessLogs
+     * const keyAccessLog = await prisma.keyAccessLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many KeyAccessLogs and only return the `id`
+     * const keyAccessLogWithIdOnly = await prisma.keyAccessLog.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends KeyAccessLogCreateManyAndReturnArgs>(args?: SelectSubset<T, KeyAccessLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a KeyAccessLog.
+     * @param {KeyAccessLogDeleteArgs} args - Arguments to delete one KeyAccessLog.
+     * @example
+     * // Delete one KeyAccessLog
+     * const KeyAccessLog = await prisma.keyAccessLog.delete({
+     *   where: {
+     *     // ... filter to delete one KeyAccessLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends KeyAccessLogDeleteArgs>(args: SelectSubset<T, KeyAccessLogDeleteArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one KeyAccessLog.
+     * @param {KeyAccessLogUpdateArgs} args - Arguments to update one KeyAccessLog.
+     * @example
+     * // Update one KeyAccessLog
+     * const keyAccessLog = await prisma.keyAccessLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends KeyAccessLogUpdateArgs>(args: SelectSubset<T, KeyAccessLogUpdateArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more KeyAccessLogs.
+     * @param {KeyAccessLogDeleteManyArgs} args - Arguments to filter KeyAccessLogs to delete.
+     * @example
+     * // Delete a few KeyAccessLogs
+     * const { count } = await prisma.keyAccessLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends KeyAccessLogDeleteManyArgs>(args?: SelectSubset<T, KeyAccessLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more KeyAccessLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeyAccessLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many KeyAccessLogs
+     * const keyAccessLog = await prisma.keyAccessLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends KeyAccessLogUpdateManyArgs>(args: SelectSubset<T, KeyAccessLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one KeyAccessLog.
+     * @param {KeyAccessLogUpsertArgs} args - Arguments to update or create a KeyAccessLog.
+     * @example
+     * // Update or create a KeyAccessLog
+     * const keyAccessLog = await prisma.keyAccessLog.upsert({
+     *   create: {
+     *     // ... data to create a KeyAccessLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the KeyAccessLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends KeyAccessLogUpsertArgs>(args: SelectSubset<T, KeyAccessLogUpsertArgs<ExtArgs>>): Prisma__KeyAccessLogClient<$Result.GetResult<Prisma.$KeyAccessLogPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of KeyAccessLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeyAccessLogCountArgs} args - Arguments to filter KeyAccessLogs to count.
+     * @example
+     * // Count the number of KeyAccessLogs
+     * const count = await prisma.keyAccessLog.count({
+     *   where: {
+     *     // ... the filter for the KeyAccessLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends KeyAccessLogCountArgs>(
+      args?: Subset<T, KeyAccessLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], KeyAccessLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a KeyAccessLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeyAccessLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends KeyAccessLogAggregateArgs>(args: Subset<T, KeyAccessLogAggregateArgs>): Prisma.PrismaPromise<GetKeyAccessLogAggregateType<T>>
+
+    /**
+     * Group by KeyAccessLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {KeyAccessLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends KeyAccessLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: KeyAccessLogGroupByArgs['orderBy'] }
+        : { orderBy?: KeyAccessLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, KeyAccessLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetKeyAccessLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the KeyAccessLog model
+   */
+  readonly fields: KeyAccessLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for KeyAccessLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__KeyAccessLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the KeyAccessLog model
+   */ 
+  interface KeyAccessLogFieldRefs {
+    readonly id: FieldRef<"KeyAccessLog", 'String'>
+    readonly service: FieldRef<"KeyAccessLog", 'String'>
+    readonly keyName: FieldRef<"KeyAccessLog", 'String'>
+    readonly fetchedAt: FieldRef<"KeyAccessLog", 'DateTime'>
+    readonly success: FieldRef<"KeyAccessLog", 'Boolean'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * KeyAccessLog findUnique
+   */
+  export type KeyAccessLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * Filter, which KeyAccessLog to fetch.
+     */
+    where: KeyAccessLogWhereUniqueInput
+  }
+
+  /**
+   * KeyAccessLog findUniqueOrThrow
+   */
+  export type KeyAccessLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * Filter, which KeyAccessLog to fetch.
+     */
+    where: KeyAccessLogWhereUniqueInput
+  }
+
+  /**
+   * KeyAccessLog findFirst
+   */
+  export type KeyAccessLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * Filter, which KeyAccessLog to fetch.
+     */
+    where?: KeyAccessLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeyAccessLogs to fetch.
+     */
+    orderBy?: KeyAccessLogOrderByWithRelationInput | KeyAccessLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KeyAccessLogs.
+     */
+    cursor?: KeyAccessLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeyAccessLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeyAccessLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KeyAccessLogs.
+     */
+    distinct?: KeyAccessLogScalarFieldEnum | KeyAccessLogScalarFieldEnum[]
+  }
+
+  /**
+   * KeyAccessLog findFirstOrThrow
+   */
+  export type KeyAccessLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * Filter, which KeyAccessLog to fetch.
+     */
+    where?: KeyAccessLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeyAccessLogs to fetch.
+     */
+    orderBy?: KeyAccessLogOrderByWithRelationInput | KeyAccessLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for KeyAccessLogs.
+     */
+    cursor?: KeyAccessLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeyAccessLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeyAccessLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of KeyAccessLogs.
+     */
+    distinct?: KeyAccessLogScalarFieldEnum | KeyAccessLogScalarFieldEnum[]
+  }
+
+  /**
+   * KeyAccessLog findMany
+   */
+  export type KeyAccessLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * Filter, which KeyAccessLogs to fetch.
+     */
+    where?: KeyAccessLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of KeyAccessLogs to fetch.
+     */
+    orderBy?: KeyAccessLogOrderByWithRelationInput | KeyAccessLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing KeyAccessLogs.
+     */
+    cursor?: KeyAccessLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` KeyAccessLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` KeyAccessLogs.
+     */
+    skip?: number
+    distinct?: KeyAccessLogScalarFieldEnum | KeyAccessLogScalarFieldEnum[]
+  }
+
+  /**
+   * KeyAccessLog create
+   */
+  export type KeyAccessLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * The data needed to create a KeyAccessLog.
+     */
+    data: XOR<KeyAccessLogCreateInput, KeyAccessLogUncheckedCreateInput>
+  }
+
+  /**
+   * KeyAccessLog createMany
+   */
+  export type KeyAccessLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many KeyAccessLogs.
+     */
+    data: KeyAccessLogCreateManyInput | KeyAccessLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KeyAccessLog createManyAndReturn
+   */
+  export type KeyAccessLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many KeyAccessLogs.
+     */
+    data: KeyAccessLogCreateManyInput | KeyAccessLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * KeyAccessLog update
+   */
+  export type KeyAccessLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * The data needed to update a KeyAccessLog.
+     */
+    data: XOR<KeyAccessLogUpdateInput, KeyAccessLogUncheckedUpdateInput>
+    /**
+     * Choose, which KeyAccessLog to update.
+     */
+    where: KeyAccessLogWhereUniqueInput
+  }
+
+  /**
+   * KeyAccessLog updateMany
+   */
+  export type KeyAccessLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update KeyAccessLogs.
+     */
+    data: XOR<KeyAccessLogUpdateManyMutationInput, KeyAccessLogUncheckedUpdateManyInput>
+    /**
+     * Filter which KeyAccessLogs to update
+     */
+    where?: KeyAccessLogWhereInput
+  }
+
+  /**
+   * KeyAccessLog upsert
+   */
+  export type KeyAccessLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * The filter to search for the KeyAccessLog to update in case it exists.
+     */
+    where: KeyAccessLogWhereUniqueInput
+    /**
+     * In case the KeyAccessLog found by the `where` argument doesn't exist, create a new KeyAccessLog with this data.
+     */
+    create: XOR<KeyAccessLogCreateInput, KeyAccessLogUncheckedCreateInput>
+    /**
+     * In case the KeyAccessLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<KeyAccessLogUpdateInput, KeyAccessLogUncheckedUpdateInput>
+  }
+
+  /**
+   * KeyAccessLog delete
+   */
+  export type KeyAccessLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+    /**
+     * Filter which KeyAccessLog to delete.
+     */
+    where: KeyAccessLogWhereUniqueInput
+  }
+
+  /**
+   * KeyAccessLog deleteMany
+   */
+  export type KeyAccessLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which KeyAccessLogs to delete
+     */
+    where?: KeyAccessLogWhereInput
+  }
+
+  /**
+   * KeyAccessLog without action
+   */
+  export type KeyAccessLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the KeyAccessLog
+     */
+    select?: KeyAccessLogSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PlatformSecret
+   */
+
+  export type AggregatePlatformSecret = {
+    _count: PlatformSecretCountAggregateOutputType | null
+    _min: PlatformSecretMinAggregateOutputType | null
+    _max: PlatformSecretMaxAggregateOutputType | null
+  }
+
+  export type PlatformSecretMinAggregateOutputType = {
+    key: string | null
+    valueEncrypted: string | null
+    description: string | null
+    updatedBy: string | null
+    updatedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type PlatformSecretMaxAggregateOutputType = {
+    key: string | null
+    valueEncrypted: string | null
+    description: string | null
+    updatedBy: string | null
+    updatedAt: Date | null
+    createdAt: Date | null
+  }
+
+  export type PlatformSecretCountAggregateOutputType = {
+    key: number
+    valueEncrypted: number
+    description: number
+    updatedBy: number
+    updatedAt: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type PlatformSecretMinAggregateInputType = {
+    key?: true
+    valueEncrypted?: true
+    description?: true
+    updatedBy?: true
+    updatedAt?: true
+    createdAt?: true
+  }
+
+  export type PlatformSecretMaxAggregateInputType = {
+    key?: true
+    valueEncrypted?: true
+    description?: true
+    updatedBy?: true
+    updatedAt?: true
+    createdAt?: true
+  }
+
+  export type PlatformSecretCountAggregateInputType = {
+    key?: true
+    valueEncrypted?: true
+    description?: true
+    updatedBy?: true
+    updatedAt?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type PlatformSecretAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlatformSecret to aggregate.
+     */
+    where?: PlatformSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSecrets to fetch.
+     */
+    orderBy?: PlatformSecretOrderByWithRelationInput | PlatformSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PlatformSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSecrets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PlatformSecrets
+    **/
+    _count?: true | PlatformSecretCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PlatformSecretMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PlatformSecretMaxAggregateInputType
+  }
+
+  export type GetPlatformSecretAggregateType<T extends PlatformSecretAggregateArgs> = {
+        [P in keyof T & keyof AggregatePlatformSecret]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePlatformSecret[P]>
+      : GetScalarType<T[P], AggregatePlatformSecret[P]>
+  }
+
+
+
+
+  export type PlatformSecretGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PlatformSecretWhereInput
+    orderBy?: PlatformSecretOrderByWithAggregationInput | PlatformSecretOrderByWithAggregationInput[]
+    by: PlatformSecretScalarFieldEnum[] | PlatformSecretScalarFieldEnum
+    having?: PlatformSecretScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PlatformSecretCountAggregateInputType | true
+    _min?: PlatformSecretMinAggregateInputType
+    _max?: PlatformSecretMaxAggregateInputType
+  }
+
+  export type PlatformSecretGroupByOutputType = {
+    key: string
+    valueEncrypted: string
+    description: string | null
+    updatedBy: string | null
+    updatedAt: Date
+    createdAt: Date
+    _count: PlatformSecretCountAggregateOutputType | null
+    _min: PlatformSecretMinAggregateOutputType | null
+    _max: PlatformSecretMaxAggregateOutputType | null
+  }
+
+  type GetPlatformSecretGroupByPayload<T extends PlatformSecretGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PlatformSecretGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PlatformSecretGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PlatformSecretGroupByOutputType[P]>
+            : GetScalarType<T[P], PlatformSecretGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PlatformSecretSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    key?: boolean
+    valueEncrypted?: boolean
+    description?: boolean
+    updatedBy?: boolean
+    updatedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["platformSecret"]>
+
+  export type PlatformSecretSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    key?: boolean
+    valueEncrypted?: boolean
+    description?: boolean
+    updatedBy?: boolean
+    updatedAt?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["platformSecret"]>
+
+  export type PlatformSecretSelectScalar = {
+    key?: boolean
+    valueEncrypted?: boolean
+    description?: boolean
+    updatedBy?: boolean
+    updatedAt?: boolean
+    createdAt?: boolean
+  }
+
+
+  export type $PlatformSecretPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PlatformSecret"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      key: string
+      valueEncrypted: string
+      description: string | null
+      updatedBy: string | null
+      updatedAt: Date
+      createdAt: Date
+    }, ExtArgs["result"]["platformSecret"]>
+    composites: {}
+  }
+
+  type PlatformSecretGetPayload<S extends boolean | null | undefined | PlatformSecretDefaultArgs> = $Result.GetResult<Prisma.$PlatformSecretPayload, S>
+
+  type PlatformSecretCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PlatformSecretFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PlatformSecretCountAggregateInputType | true
+    }
+
+  export interface PlatformSecretDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PlatformSecret'], meta: { name: 'PlatformSecret' } }
+    /**
+     * Find zero or one PlatformSecret that matches the filter.
+     * @param {PlatformSecretFindUniqueArgs} args - Arguments to find a PlatformSecret
+     * @example
+     * // Get one PlatformSecret
+     * const platformSecret = await prisma.platformSecret.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PlatformSecretFindUniqueArgs>(args: SelectSubset<T, PlatformSecretFindUniqueArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PlatformSecret that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PlatformSecretFindUniqueOrThrowArgs} args - Arguments to find a PlatformSecret
+     * @example
+     * // Get one PlatformSecret
+     * const platformSecret = await prisma.platformSecret.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PlatformSecretFindUniqueOrThrowArgs>(args: SelectSubset<T, PlatformSecretFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PlatformSecret that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSecretFindFirstArgs} args - Arguments to find a PlatformSecret
+     * @example
+     * // Get one PlatformSecret
+     * const platformSecret = await prisma.platformSecret.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PlatformSecretFindFirstArgs>(args?: SelectSubset<T, PlatformSecretFindFirstArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PlatformSecret that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSecretFindFirstOrThrowArgs} args - Arguments to find a PlatformSecret
+     * @example
+     * // Get one PlatformSecret
+     * const platformSecret = await prisma.platformSecret.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PlatformSecretFindFirstOrThrowArgs>(args?: SelectSubset<T, PlatformSecretFindFirstOrThrowArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PlatformSecrets that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSecretFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PlatformSecrets
+     * const platformSecrets = await prisma.platformSecret.findMany()
+     * 
+     * // Get first 10 PlatformSecrets
+     * const platformSecrets = await prisma.platformSecret.findMany({ take: 10 })
+     * 
+     * // Only select the `key`
+     * const platformSecretWithKeyOnly = await prisma.platformSecret.findMany({ select: { key: true } })
+     * 
+     */
+    findMany<T extends PlatformSecretFindManyArgs>(args?: SelectSubset<T, PlatformSecretFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PlatformSecret.
+     * @param {PlatformSecretCreateArgs} args - Arguments to create a PlatformSecret.
+     * @example
+     * // Create one PlatformSecret
+     * const PlatformSecret = await prisma.platformSecret.create({
+     *   data: {
+     *     // ... data to create a PlatformSecret
+     *   }
+     * })
+     * 
+     */
+    create<T extends PlatformSecretCreateArgs>(args: SelectSubset<T, PlatformSecretCreateArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PlatformSecrets.
+     * @param {PlatformSecretCreateManyArgs} args - Arguments to create many PlatformSecrets.
+     * @example
+     * // Create many PlatformSecrets
+     * const platformSecret = await prisma.platformSecret.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PlatformSecretCreateManyArgs>(args?: SelectSubset<T, PlatformSecretCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PlatformSecrets and returns the data saved in the database.
+     * @param {PlatformSecretCreateManyAndReturnArgs} args - Arguments to create many PlatformSecrets.
+     * @example
+     * // Create many PlatformSecrets
+     * const platformSecret = await prisma.platformSecret.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PlatformSecrets and only return the `key`
+     * const platformSecretWithKeyOnly = await prisma.platformSecret.createManyAndReturn({ 
+     *   select: { key: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PlatformSecretCreateManyAndReturnArgs>(args?: SelectSubset<T, PlatformSecretCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PlatformSecret.
+     * @param {PlatformSecretDeleteArgs} args - Arguments to delete one PlatformSecret.
+     * @example
+     * // Delete one PlatformSecret
+     * const PlatformSecret = await prisma.platformSecret.delete({
+     *   where: {
+     *     // ... filter to delete one PlatformSecret
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PlatformSecretDeleteArgs>(args: SelectSubset<T, PlatformSecretDeleteArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PlatformSecret.
+     * @param {PlatformSecretUpdateArgs} args - Arguments to update one PlatformSecret.
+     * @example
+     * // Update one PlatformSecret
+     * const platformSecret = await prisma.platformSecret.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PlatformSecretUpdateArgs>(args: SelectSubset<T, PlatformSecretUpdateArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PlatformSecrets.
+     * @param {PlatformSecretDeleteManyArgs} args - Arguments to filter PlatformSecrets to delete.
+     * @example
+     * // Delete a few PlatformSecrets
+     * const { count } = await prisma.platformSecret.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PlatformSecretDeleteManyArgs>(args?: SelectSubset<T, PlatformSecretDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PlatformSecrets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSecretUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PlatformSecrets
+     * const platformSecret = await prisma.platformSecret.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PlatformSecretUpdateManyArgs>(args: SelectSubset<T, PlatformSecretUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PlatformSecret.
+     * @param {PlatformSecretUpsertArgs} args - Arguments to update or create a PlatformSecret.
+     * @example
+     * // Update or create a PlatformSecret
+     * const platformSecret = await prisma.platformSecret.upsert({
+     *   create: {
+     *     // ... data to create a PlatformSecret
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PlatformSecret we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PlatformSecretUpsertArgs>(args: SelectSubset<T, PlatformSecretUpsertArgs<ExtArgs>>): Prisma__PlatformSecretClient<$Result.GetResult<Prisma.$PlatformSecretPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PlatformSecrets.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSecretCountArgs} args - Arguments to filter PlatformSecrets to count.
+     * @example
+     * // Count the number of PlatformSecrets
+     * const count = await prisma.platformSecret.count({
+     *   where: {
+     *     // ... the filter for the PlatformSecrets we want to count
+     *   }
+     * })
+    **/
+    count<T extends PlatformSecretCountArgs>(
+      args?: Subset<T, PlatformSecretCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PlatformSecretCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PlatformSecret.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSecretAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PlatformSecretAggregateArgs>(args: Subset<T, PlatformSecretAggregateArgs>): Prisma.PrismaPromise<GetPlatformSecretAggregateType<T>>
+
+    /**
+     * Group by PlatformSecret.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PlatformSecretGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PlatformSecretGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PlatformSecretGroupByArgs['orderBy'] }
+        : { orderBy?: PlatformSecretGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PlatformSecretGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPlatformSecretGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PlatformSecret model
+   */
+  readonly fields: PlatformSecretFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PlatformSecret.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PlatformSecretClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PlatformSecret model
+   */ 
+  interface PlatformSecretFieldRefs {
+    readonly key: FieldRef<"PlatformSecret", 'String'>
+    readonly valueEncrypted: FieldRef<"PlatformSecret", 'String'>
+    readonly description: FieldRef<"PlatformSecret", 'String'>
+    readonly updatedBy: FieldRef<"PlatformSecret", 'String'>
+    readonly updatedAt: FieldRef<"PlatformSecret", 'DateTime'>
+    readonly createdAt: FieldRef<"PlatformSecret", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PlatformSecret findUnique
+   */
+  export type PlatformSecretFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which PlatformSecret to fetch.
+     */
+    where: PlatformSecretWhereUniqueInput
+  }
+
+  /**
+   * PlatformSecret findUniqueOrThrow
+   */
+  export type PlatformSecretFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which PlatformSecret to fetch.
+     */
+    where: PlatformSecretWhereUniqueInput
+  }
+
+  /**
+   * PlatformSecret findFirst
+   */
+  export type PlatformSecretFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which PlatformSecret to fetch.
+     */
+    where?: PlatformSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSecrets to fetch.
+     */
+    orderBy?: PlatformSecretOrderByWithRelationInput | PlatformSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlatformSecrets.
+     */
+    cursor?: PlatformSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSecrets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlatformSecrets.
+     */
+    distinct?: PlatformSecretScalarFieldEnum | PlatformSecretScalarFieldEnum[]
+  }
+
+  /**
+   * PlatformSecret findFirstOrThrow
+   */
+  export type PlatformSecretFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which PlatformSecret to fetch.
+     */
+    where?: PlatformSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSecrets to fetch.
+     */
+    orderBy?: PlatformSecretOrderByWithRelationInput | PlatformSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PlatformSecrets.
+     */
+    cursor?: PlatformSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSecrets.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PlatformSecrets.
+     */
+    distinct?: PlatformSecretScalarFieldEnum | PlatformSecretScalarFieldEnum[]
+  }
+
+  /**
+   * PlatformSecret findMany
+   */
+  export type PlatformSecretFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * Filter, which PlatformSecrets to fetch.
+     */
+    where?: PlatformSecretWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PlatformSecrets to fetch.
+     */
+    orderBy?: PlatformSecretOrderByWithRelationInput | PlatformSecretOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PlatformSecrets.
+     */
+    cursor?: PlatformSecretWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PlatformSecrets from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PlatformSecrets.
+     */
+    skip?: number
+    distinct?: PlatformSecretScalarFieldEnum | PlatformSecretScalarFieldEnum[]
+  }
+
+  /**
+   * PlatformSecret create
+   */
+  export type PlatformSecretCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * The data needed to create a PlatformSecret.
+     */
+    data: XOR<PlatformSecretCreateInput, PlatformSecretUncheckedCreateInput>
+  }
+
+  /**
+   * PlatformSecret createMany
+   */
+  export type PlatformSecretCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PlatformSecrets.
+     */
+    data: PlatformSecretCreateManyInput | PlatformSecretCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PlatformSecret createManyAndReturn
+   */
+  export type PlatformSecretCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PlatformSecrets.
+     */
+    data: PlatformSecretCreateManyInput | PlatformSecretCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PlatformSecret update
+   */
+  export type PlatformSecretUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * The data needed to update a PlatformSecret.
+     */
+    data: XOR<PlatformSecretUpdateInput, PlatformSecretUncheckedUpdateInput>
+    /**
+     * Choose, which PlatformSecret to update.
+     */
+    where: PlatformSecretWhereUniqueInput
+  }
+
+  /**
+   * PlatformSecret updateMany
+   */
+  export type PlatformSecretUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PlatformSecrets.
+     */
+    data: XOR<PlatformSecretUpdateManyMutationInput, PlatformSecretUncheckedUpdateManyInput>
+    /**
+     * Filter which PlatformSecrets to update
+     */
+    where?: PlatformSecretWhereInput
+  }
+
+  /**
+   * PlatformSecret upsert
+   */
+  export type PlatformSecretUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * The filter to search for the PlatformSecret to update in case it exists.
+     */
+    where: PlatformSecretWhereUniqueInput
+    /**
+     * In case the PlatformSecret found by the `where` argument doesn't exist, create a new PlatformSecret with this data.
+     */
+    create: XOR<PlatformSecretCreateInput, PlatformSecretUncheckedCreateInput>
+    /**
+     * In case the PlatformSecret was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PlatformSecretUpdateInput, PlatformSecretUncheckedUpdateInput>
+  }
+
+  /**
+   * PlatformSecret delete
+   */
+  export type PlatformSecretDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+    /**
+     * Filter which PlatformSecret to delete.
+     */
+    where: PlatformSecretWhereUniqueInput
+  }
+
+  /**
+   * PlatformSecret deleteMany
+   */
+  export type PlatformSecretDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PlatformSecrets to delete
+     */
+    where?: PlatformSecretWhereInput
+  }
+
+  /**
+   * PlatformSecret without action
+   */
+  export type PlatformSecretDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PlatformSecret
+     */
+    select?: PlatformSecretSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -46278,18 +50425,6 @@ export namespace Prisma {
   };
 
   export type EmailLogScalarFieldEnum = (typeof EmailLogScalarFieldEnum)[keyof typeof EmailLogScalarFieldEnum]
-
-
-  export const ApiKeyScalarFieldEnum: {
-    id: 'id',
-    googleMapsKey: 'googleMapsKey',
-    geminiKey: 'geminiKey',
-    vapiKey: 'vapiKey',
-    vapiPhoneId: 'vapiPhoneId',
-    organizationId: 'organizationId'
-  };
-
-  export type ApiKeyScalarFieldEnum = (typeof ApiKeyScalarFieldEnum)[keyof typeof ApiKeyScalarFieldEnum]
 
 
   export const CampaignScalarFieldEnum: {
@@ -46773,6 +50908,72 @@ export namespace Prisma {
   export type CreditTransactionScalarFieldEnum = (typeof CreditTransactionScalarFieldEnum)[keyof typeof CreditTransactionScalarFieldEnum]
 
 
+  export const OrgVapiNumberScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    vapiPhoneNumberId: 'vapiPhoneNumberId',
+    e164: 'e164',
+    provider: 'provider',
+    status: 'status',
+    monthlyCostCents: 'monthlyCostCents',
+    provisionedAt: 'provisionedAt',
+    releasedAt: 'releasedAt',
+    spamScore: 'spamScore',
+    lastRotatedAt: 'lastRotatedAt',
+    areaCode: 'areaCode'
+  };
+
+  export type OrgVapiNumberScalarFieldEnum = (typeof OrgVapiNumberScalarFieldEnum)[keyof typeof OrgVapiNumberScalarFieldEnum]
+
+
+  export const SpendCapScalarFieldEnum: {
+    id: 'id',
+    organizationId: 'organizationId',
+    dailyCapCents: 'dailyCapCents',
+    monthlyCapCents: 'monthlyCapCents',
+    currentDayCents: 'currentDayCents',
+    currentMonthCents: 'currentMonthCents',
+    lastDayResetAt: 'lastDayResetAt',
+    lastMonthResetAt: 'lastMonthResetAt'
+  };
+
+  export type SpendCapScalarFieldEnum = (typeof SpendCapScalarFieldEnum)[keyof typeof SpendCapScalarFieldEnum]
+
+
+  export const DncEntryScalarFieldEnum: {
+    id: 'id',
+    phoneE164: 'phoneE164',
+    source: 'source',
+    addedAt: 'addedAt',
+    expiresAt: 'expiresAt'
+  };
+
+  export type DncEntryScalarFieldEnum = (typeof DncEntryScalarFieldEnum)[keyof typeof DncEntryScalarFieldEnum]
+
+
+  export const KeyAccessLogScalarFieldEnum: {
+    id: 'id',
+    service: 'service',
+    keyName: 'keyName',
+    fetchedAt: 'fetchedAt',
+    success: 'success'
+  };
+
+  export type KeyAccessLogScalarFieldEnum = (typeof KeyAccessLogScalarFieldEnum)[keyof typeof KeyAccessLogScalarFieldEnum]
+
+
+  export const PlatformSecretScalarFieldEnum: {
+    key: 'key',
+    valueEncrypted: 'valueEncrypted',
+    description: 'description',
+    updatedBy: 'updatedBy',
+    updatedAt: 'updatedAt',
+    createdAt: 'createdAt'
+  };
+
+  export type PlatformSecretScalarFieldEnum = (typeof PlatformSecretScalarFieldEnum)[keyof typeof PlatformSecretScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -47062,6 +51263,20 @@ export namespace Prisma {
    */
   export type ListEnumProvisioningStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProvisioningStatus[]'>
     
+
+
+  /**
+   * Reference to a field of type 'VapiNumberStatus'
+   */
+  export type EnumVapiNumberStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VapiNumberStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'VapiNumberStatus[]'
+   */
+  export type ListEnumVapiNumberStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'VapiNumberStatus[]'>
+    
   /**
    * Deep Input Types
    */
@@ -47298,7 +51513,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFilter<"Organization"> | $Enums.BillingMode
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
-    apiKeys?: XOR<ApiKeyNullableRelationFilter, ApiKeyWhereInput> | null
+    vapiNumber?: XOR<OrgVapiNumberNullableRelationFilter, OrgVapiNumberWhereInput> | null
+    spendCap?: XOR<SpendCapNullableRelationFilter, SpendCapWhereInput> | null
     provisioning?: XOR<TenantProvisioningNullableRelationFilter, TenantProvisioningWhereInput> | null
     creditLedger?: XOR<CreditLedgerNullableRelationFilter, CreditLedgerWhereInput> | null
     creditTransactions?: CreditTransactionListRelationFilter
@@ -47343,7 +51559,8 @@ export namespace Prisma {
     billingMode?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    apiKeys?: ApiKeyOrderByWithRelationInput
+    vapiNumber?: OrgVapiNumberOrderByWithRelationInput
+    spendCap?: SpendCapOrderByWithRelationInput
     provisioning?: TenantProvisioningOrderByWithRelationInput
     creditLedger?: CreditLedgerOrderByWithRelationInput
     creditTransactions?: CreditTransactionOrderByRelationAggregateInput
@@ -47391,7 +51608,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFilter<"Organization"> | $Enums.BillingMode
     createdAt?: DateTimeFilter<"Organization"> | Date | string
     updatedAt?: DateTimeFilter<"Organization"> | Date | string
-    apiKeys?: XOR<ApiKeyNullableRelationFilter, ApiKeyWhereInput> | null
+    vapiNumber?: XOR<OrgVapiNumberNullableRelationFilter, OrgVapiNumberWhereInput> | null
+    spendCap?: XOR<SpendCapNullableRelationFilter, SpendCapWhereInput> | null
     provisioning?: XOR<TenantProvisioningNullableRelationFilter, TenantProvisioningWhereInput> | null
     creditLedger?: XOR<CreditLedgerNullableRelationFilter, CreditLedgerWhereInput> | null
     creditTransactions?: CreditTransactionListRelationFilter
@@ -47969,66 +52187,6 @@ export namespace Prisma {
     providerMessageId?: StringNullableWithAggregatesFilter<"EmailLog"> | string | null
     error?: StringNullableWithAggregatesFilter<"EmailLog"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"EmailLog"> | Date | string
-  }
-
-  export type ApiKeyWhereInput = {
-    AND?: ApiKeyWhereInput | ApiKeyWhereInput[]
-    OR?: ApiKeyWhereInput[]
-    NOT?: ApiKeyWhereInput | ApiKeyWhereInput[]
-    id?: StringFilter<"ApiKey"> | string
-    googleMapsKey?: StringNullableFilter<"ApiKey"> | string | null
-    geminiKey?: StringNullableFilter<"ApiKey"> | string | null
-    vapiKey?: StringNullableFilter<"ApiKey"> | string | null
-    vapiPhoneId?: StringNullableFilter<"ApiKey"> | string | null
-    organizationId?: StringFilter<"ApiKey"> | string
-    organization?: XOR<OrganizationRelationFilter, OrganizationWhereInput>
-  }
-
-  export type ApiKeyOrderByWithRelationInput = {
-    id?: SortOrder
-    googleMapsKey?: SortOrderInput | SortOrder
-    geminiKey?: SortOrderInput | SortOrder
-    vapiKey?: SortOrderInput | SortOrder
-    vapiPhoneId?: SortOrderInput | SortOrder
-    organizationId?: SortOrder
-    organization?: OrganizationOrderByWithRelationInput
-  }
-
-  export type ApiKeyWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    organizationId?: string
-    AND?: ApiKeyWhereInput | ApiKeyWhereInput[]
-    OR?: ApiKeyWhereInput[]
-    NOT?: ApiKeyWhereInput | ApiKeyWhereInput[]
-    googleMapsKey?: StringNullableFilter<"ApiKey"> | string | null
-    geminiKey?: StringNullableFilter<"ApiKey"> | string | null
-    vapiKey?: StringNullableFilter<"ApiKey"> | string | null
-    vapiPhoneId?: StringNullableFilter<"ApiKey"> | string | null
-    organization?: XOR<OrganizationRelationFilter, OrganizationWhereInput>
-  }, "id" | "organizationId">
-
-  export type ApiKeyOrderByWithAggregationInput = {
-    id?: SortOrder
-    googleMapsKey?: SortOrderInput | SortOrder
-    geminiKey?: SortOrderInput | SortOrder
-    vapiKey?: SortOrderInput | SortOrder
-    vapiPhoneId?: SortOrderInput | SortOrder
-    organizationId?: SortOrder
-    _count?: ApiKeyCountOrderByAggregateInput
-    _max?: ApiKeyMaxOrderByAggregateInput
-    _min?: ApiKeyMinOrderByAggregateInput
-  }
-
-  export type ApiKeyScalarWhereWithAggregatesInput = {
-    AND?: ApiKeyScalarWhereWithAggregatesInput | ApiKeyScalarWhereWithAggregatesInput[]
-    OR?: ApiKeyScalarWhereWithAggregatesInput[]
-    NOT?: ApiKeyScalarWhereWithAggregatesInput | ApiKeyScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"ApiKey"> | string
-    googleMapsKey?: StringNullableWithAggregatesFilter<"ApiKey"> | string | null
-    geminiKey?: StringNullableWithAggregatesFilter<"ApiKey"> | string | null
-    vapiKey?: StringNullableWithAggregatesFilter<"ApiKey"> | string | null
-    vapiPhoneId?: StringNullableWithAggregatesFilter<"ApiKey"> | string | null
-    organizationId?: StringWithAggregatesFilter<"ApiKey"> | string
   }
 
   export type CampaignWhereInput = {
@@ -50586,6 +54744,331 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"CreditTransaction"> | Date | string
   }
 
+  export type OrgVapiNumberWhereInput = {
+    AND?: OrgVapiNumberWhereInput | OrgVapiNumberWhereInput[]
+    OR?: OrgVapiNumberWhereInput[]
+    NOT?: OrgVapiNumberWhereInput | OrgVapiNumberWhereInput[]
+    id?: StringFilter<"OrgVapiNumber"> | string
+    organizationId?: StringFilter<"OrgVapiNumber"> | string
+    vapiPhoneNumberId?: StringFilter<"OrgVapiNumber"> | string
+    e164?: StringFilter<"OrgVapiNumber"> | string
+    provider?: StringFilter<"OrgVapiNumber"> | string
+    status?: EnumVapiNumberStatusFilter<"OrgVapiNumber"> | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFilter<"OrgVapiNumber"> | number
+    provisionedAt?: DateTimeFilter<"OrgVapiNumber"> | Date | string
+    releasedAt?: DateTimeNullableFilter<"OrgVapiNumber"> | Date | string | null
+    spamScore?: FloatNullableFilter<"OrgVapiNumber"> | number | null
+    lastRotatedAt?: DateTimeNullableFilter<"OrgVapiNumber"> | Date | string | null
+    areaCode?: StringNullableFilter<"OrgVapiNumber"> | string | null
+    organization?: XOR<OrganizationRelationFilter, OrganizationWhereInput>
+  }
+
+  export type OrgVapiNumberOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    vapiPhoneNumberId?: SortOrder
+    e164?: SortOrder
+    provider?: SortOrder
+    status?: SortOrder
+    monthlyCostCents?: SortOrder
+    provisionedAt?: SortOrder
+    releasedAt?: SortOrderInput | SortOrder
+    spamScore?: SortOrderInput | SortOrder
+    lastRotatedAt?: SortOrderInput | SortOrder
+    areaCode?: SortOrderInput | SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+  }
+
+  export type OrgVapiNumberWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    organizationId?: string
+    AND?: OrgVapiNumberWhereInput | OrgVapiNumberWhereInput[]
+    OR?: OrgVapiNumberWhereInput[]
+    NOT?: OrgVapiNumberWhereInput | OrgVapiNumberWhereInput[]
+    vapiPhoneNumberId?: StringFilter<"OrgVapiNumber"> | string
+    e164?: StringFilter<"OrgVapiNumber"> | string
+    provider?: StringFilter<"OrgVapiNumber"> | string
+    status?: EnumVapiNumberStatusFilter<"OrgVapiNumber"> | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFilter<"OrgVapiNumber"> | number
+    provisionedAt?: DateTimeFilter<"OrgVapiNumber"> | Date | string
+    releasedAt?: DateTimeNullableFilter<"OrgVapiNumber"> | Date | string | null
+    spamScore?: FloatNullableFilter<"OrgVapiNumber"> | number | null
+    lastRotatedAt?: DateTimeNullableFilter<"OrgVapiNumber"> | Date | string | null
+    areaCode?: StringNullableFilter<"OrgVapiNumber"> | string | null
+    organization?: XOR<OrganizationRelationFilter, OrganizationWhereInput>
+  }, "id" | "organizationId">
+
+  export type OrgVapiNumberOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    vapiPhoneNumberId?: SortOrder
+    e164?: SortOrder
+    provider?: SortOrder
+    status?: SortOrder
+    monthlyCostCents?: SortOrder
+    provisionedAt?: SortOrder
+    releasedAt?: SortOrderInput | SortOrder
+    spamScore?: SortOrderInput | SortOrder
+    lastRotatedAt?: SortOrderInput | SortOrder
+    areaCode?: SortOrderInput | SortOrder
+    _count?: OrgVapiNumberCountOrderByAggregateInput
+    _avg?: OrgVapiNumberAvgOrderByAggregateInput
+    _max?: OrgVapiNumberMaxOrderByAggregateInput
+    _min?: OrgVapiNumberMinOrderByAggregateInput
+    _sum?: OrgVapiNumberSumOrderByAggregateInput
+  }
+
+  export type OrgVapiNumberScalarWhereWithAggregatesInput = {
+    AND?: OrgVapiNumberScalarWhereWithAggregatesInput | OrgVapiNumberScalarWhereWithAggregatesInput[]
+    OR?: OrgVapiNumberScalarWhereWithAggregatesInput[]
+    NOT?: OrgVapiNumberScalarWhereWithAggregatesInput | OrgVapiNumberScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OrgVapiNumber"> | string
+    organizationId?: StringWithAggregatesFilter<"OrgVapiNumber"> | string
+    vapiPhoneNumberId?: StringWithAggregatesFilter<"OrgVapiNumber"> | string
+    e164?: StringWithAggregatesFilter<"OrgVapiNumber"> | string
+    provider?: StringWithAggregatesFilter<"OrgVapiNumber"> | string
+    status?: EnumVapiNumberStatusWithAggregatesFilter<"OrgVapiNumber"> | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntWithAggregatesFilter<"OrgVapiNumber"> | number
+    provisionedAt?: DateTimeWithAggregatesFilter<"OrgVapiNumber"> | Date | string
+    releasedAt?: DateTimeNullableWithAggregatesFilter<"OrgVapiNumber"> | Date | string | null
+    spamScore?: FloatNullableWithAggregatesFilter<"OrgVapiNumber"> | number | null
+    lastRotatedAt?: DateTimeNullableWithAggregatesFilter<"OrgVapiNumber"> | Date | string | null
+    areaCode?: StringNullableWithAggregatesFilter<"OrgVapiNumber"> | string | null
+  }
+
+  export type SpendCapWhereInput = {
+    AND?: SpendCapWhereInput | SpendCapWhereInput[]
+    OR?: SpendCapWhereInput[]
+    NOT?: SpendCapWhereInput | SpendCapWhereInput[]
+    id?: StringFilter<"SpendCap"> | string
+    organizationId?: StringFilter<"SpendCap"> | string
+    dailyCapCents?: IntFilter<"SpendCap"> | number
+    monthlyCapCents?: IntFilter<"SpendCap"> | number
+    currentDayCents?: IntFilter<"SpendCap"> | number
+    currentMonthCents?: IntFilter<"SpendCap"> | number
+    lastDayResetAt?: DateTimeFilter<"SpendCap"> | Date | string
+    lastMonthResetAt?: DateTimeFilter<"SpendCap"> | Date | string
+    organization?: XOR<OrganizationRelationFilter, OrganizationWhereInput>
+  }
+
+  export type SpendCapOrderByWithRelationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    dailyCapCents?: SortOrder
+    monthlyCapCents?: SortOrder
+    currentDayCents?: SortOrder
+    currentMonthCents?: SortOrder
+    lastDayResetAt?: SortOrder
+    lastMonthResetAt?: SortOrder
+    organization?: OrganizationOrderByWithRelationInput
+  }
+
+  export type SpendCapWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    organizationId?: string
+    AND?: SpendCapWhereInput | SpendCapWhereInput[]
+    OR?: SpendCapWhereInput[]
+    NOT?: SpendCapWhereInput | SpendCapWhereInput[]
+    dailyCapCents?: IntFilter<"SpendCap"> | number
+    monthlyCapCents?: IntFilter<"SpendCap"> | number
+    currentDayCents?: IntFilter<"SpendCap"> | number
+    currentMonthCents?: IntFilter<"SpendCap"> | number
+    lastDayResetAt?: DateTimeFilter<"SpendCap"> | Date | string
+    lastMonthResetAt?: DateTimeFilter<"SpendCap"> | Date | string
+    organization?: XOR<OrganizationRelationFilter, OrganizationWhereInput>
+  }, "id" | "organizationId">
+
+  export type SpendCapOrderByWithAggregationInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    dailyCapCents?: SortOrder
+    monthlyCapCents?: SortOrder
+    currentDayCents?: SortOrder
+    currentMonthCents?: SortOrder
+    lastDayResetAt?: SortOrder
+    lastMonthResetAt?: SortOrder
+    _count?: SpendCapCountOrderByAggregateInput
+    _avg?: SpendCapAvgOrderByAggregateInput
+    _max?: SpendCapMaxOrderByAggregateInput
+    _min?: SpendCapMinOrderByAggregateInput
+    _sum?: SpendCapSumOrderByAggregateInput
+  }
+
+  export type SpendCapScalarWhereWithAggregatesInput = {
+    AND?: SpendCapScalarWhereWithAggregatesInput | SpendCapScalarWhereWithAggregatesInput[]
+    OR?: SpendCapScalarWhereWithAggregatesInput[]
+    NOT?: SpendCapScalarWhereWithAggregatesInput | SpendCapScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"SpendCap"> | string
+    organizationId?: StringWithAggregatesFilter<"SpendCap"> | string
+    dailyCapCents?: IntWithAggregatesFilter<"SpendCap"> | number
+    monthlyCapCents?: IntWithAggregatesFilter<"SpendCap"> | number
+    currentDayCents?: IntWithAggregatesFilter<"SpendCap"> | number
+    currentMonthCents?: IntWithAggregatesFilter<"SpendCap"> | number
+    lastDayResetAt?: DateTimeWithAggregatesFilter<"SpendCap"> | Date | string
+    lastMonthResetAt?: DateTimeWithAggregatesFilter<"SpendCap"> | Date | string
+  }
+
+  export type DncEntryWhereInput = {
+    AND?: DncEntryWhereInput | DncEntryWhereInput[]
+    OR?: DncEntryWhereInput[]
+    NOT?: DncEntryWhereInput | DncEntryWhereInput[]
+    id?: StringFilter<"DncEntry"> | string
+    phoneE164?: StringFilter<"DncEntry"> | string
+    source?: StringFilter<"DncEntry"> | string
+    addedAt?: DateTimeFilter<"DncEntry"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"DncEntry"> | Date | string | null
+  }
+
+  export type DncEntryOrderByWithRelationInput = {
+    id?: SortOrder
+    phoneE164?: SortOrder
+    source?: SortOrder
+    addedAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+  }
+
+  export type DncEntryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    phoneE164?: string
+    AND?: DncEntryWhereInput | DncEntryWhereInput[]
+    OR?: DncEntryWhereInput[]
+    NOT?: DncEntryWhereInput | DncEntryWhereInput[]
+    source?: StringFilter<"DncEntry"> | string
+    addedAt?: DateTimeFilter<"DncEntry"> | Date | string
+    expiresAt?: DateTimeNullableFilter<"DncEntry"> | Date | string | null
+  }, "id" | "phoneE164">
+
+  export type DncEntryOrderByWithAggregationInput = {
+    id?: SortOrder
+    phoneE164?: SortOrder
+    source?: SortOrder
+    addedAt?: SortOrder
+    expiresAt?: SortOrderInput | SortOrder
+    _count?: DncEntryCountOrderByAggregateInput
+    _max?: DncEntryMaxOrderByAggregateInput
+    _min?: DncEntryMinOrderByAggregateInput
+  }
+
+  export type DncEntryScalarWhereWithAggregatesInput = {
+    AND?: DncEntryScalarWhereWithAggregatesInput | DncEntryScalarWhereWithAggregatesInput[]
+    OR?: DncEntryScalarWhereWithAggregatesInput[]
+    NOT?: DncEntryScalarWhereWithAggregatesInput | DncEntryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DncEntry"> | string
+    phoneE164?: StringWithAggregatesFilter<"DncEntry"> | string
+    source?: StringWithAggregatesFilter<"DncEntry"> | string
+    addedAt?: DateTimeWithAggregatesFilter<"DncEntry"> | Date | string
+    expiresAt?: DateTimeNullableWithAggregatesFilter<"DncEntry"> | Date | string | null
+  }
+
+  export type KeyAccessLogWhereInput = {
+    AND?: KeyAccessLogWhereInput | KeyAccessLogWhereInput[]
+    OR?: KeyAccessLogWhereInput[]
+    NOT?: KeyAccessLogWhereInput | KeyAccessLogWhereInput[]
+    id?: StringFilter<"KeyAccessLog"> | string
+    service?: StringFilter<"KeyAccessLog"> | string
+    keyName?: StringFilter<"KeyAccessLog"> | string
+    fetchedAt?: DateTimeFilter<"KeyAccessLog"> | Date | string
+    success?: BoolFilter<"KeyAccessLog"> | boolean
+  }
+
+  export type KeyAccessLogOrderByWithRelationInput = {
+    id?: SortOrder
+    service?: SortOrder
+    keyName?: SortOrder
+    fetchedAt?: SortOrder
+    success?: SortOrder
+  }
+
+  export type KeyAccessLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: KeyAccessLogWhereInput | KeyAccessLogWhereInput[]
+    OR?: KeyAccessLogWhereInput[]
+    NOT?: KeyAccessLogWhereInput | KeyAccessLogWhereInput[]
+    service?: StringFilter<"KeyAccessLog"> | string
+    keyName?: StringFilter<"KeyAccessLog"> | string
+    fetchedAt?: DateTimeFilter<"KeyAccessLog"> | Date | string
+    success?: BoolFilter<"KeyAccessLog"> | boolean
+  }, "id">
+
+  export type KeyAccessLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    service?: SortOrder
+    keyName?: SortOrder
+    fetchedAt?: SortOrder
+    success?: SortOrder
+    _count?: KeyAccessLogCountOrderByAggregateInput
+    _max?: KeyAccessLogMaxOrderByAggregateInput
+    _min?: KeyAccessLogMinOrderByAggregateInput
+  }
+
+  export type KeyAccessLogScalarWhereWithAggregatesInput = {
+    AND?: KeyAccessLogScalarWhereWithAggregatesInput | KeyAccessLogScalarWhereWithAggregatesInput[]
+    OR?: KeyAccessLogScalarWhereWithAggregatesInput[]
+    NOT?: KeyAccessLogScalarWhereWithAggregatesInput | KeyAccessLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"KeyAccessLog"> | string
+    service?: StringWithAggregatesFilter<"KeyAccessLog"> | string
+    keyName?: StringWithAggregatesFilter<"KeyAccessLog"> | string
+    fetchedAt?: DateTimeWithAggregatesFilter<"KeyAccessLog"> | Date | string
+    success?: BoolWithAggregatesFilter<"KeyAccessLog"> | boolean
+  }
+
+  export type PlatformSecretWhereInput = {
+    AND?: PlatformSecretWhereInput | PlatformSecretWhereInput[]
+    OR?: PlatformSecretWhereInput[]
+    NOT?: PlatformSecretWhereInput | PlatformSecretWhereInput[]
+    key?: StringFilter<"PlatformSecret"> | string
+    valueEncrypted?: StringFilter<"PlatformSecret"> | string
+    description?: StringNullableFilter<"PlatformSecret"> | string | null
+    updatedBy?: StringNullableFilter<"PlatformSecret"> | string | null
+    updatedAt?: DateTimeFilter<"PlatformSecret"> | Date | string
+    createdAt?: DateTimeFilter<"PlatformSecret"> | Date | string
+  }
+
+  export type PlatformSecretOrderByWithRelationInput = {
+    key?: SortOrder
+    valueEncrypted?: SortOrder
+    description?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PlatformSecretWhereUniqueInput = Prisma.AtLeast<{
+    key?: string
+    AND?: PlatformSecretWhereInput | PlatformSecretWhereInput[]
+    OR?: PlatformSecretWhereInput[]
+    NOT?: PlatformSecretWhereInput | PlatformSecretWhereInput[]
+    valueEncrypted?: StringFilter<"PlatformSecret"> | string
+    description?: StringNullableFilter<"PlatformSecret"> | string | null
+    updatedBy?: StringNullableFilter<"PlatformSecret"> | string | null
+    updatedAt?: DateTimeFilter<"PlatformSecret"> | Date | string
+    createdAt?: DateTimeFilter<"PlatformSecret"> | Date | string
+  }, "key">
+
+  export type PlatformSecretOrderByWithAggregationInput = {
+    key?: SortOrder
+    valueEncrypted?: SortOrder
+    description?: SortOrderInput | SortOrder
+    updatedBy?: SortOrderInput | SortOrder
+    updatedAt?: SortOrder
+    createdAt?: SortOrder
+    _count?: PlatformSecretCountOrderByAggregateInput
+    _max?: PlatformSecretMaxOrderByAggregateInput
+    _min?: PlatformSecretMinOrderByAggregateInput
+  }
+
+  export type PlatformSecretScalarWhereWithAggregatesInput = {
+    AND?: PlatformSecretScalarWhereWithAggregatesInput | PlatformSecretScalarWhereWithAggregatesInput[]
+    OR?: PlatformSecretScalarWhereWithAggregatesInput[]
+    NOT?: PlatformSecretScalarWhereWithAggregatesInput | PlatformSecretScalarWhereWithAggregatesInput[]
+    key?: StringWithAggregatesFilter<"PlatformSecret"> | string
+    valueEncrypted?: StringWithAggregatesFilter<"PlatformSecret"> | string
+    description?: StringNullableWithAggregatesFilter<"PlatformSecret"> | string | null
+    updatedBy?: StringNullableWithAggregatesFilter<"PlatformSecret"> | string | null
+    updatedAt?: DateTimeWithAggregatesFilter<"PlatformSecret"> | Date | string
+    createdAt?: DateTimeWithAggregatesFilter<"PlatformSecret"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -50850,7 +55333,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -50895,7 +55379,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -50940,7 +55425,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -50985,7 +55471,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -51655,68 +56142,6 @@ export namespace Prisma {
     providerMessageId?: NullableStringFieldUpdateOperationsInput | string | null
     error?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type ApiKeyCreateInput = {
-    id?: string
-    googleMapsKey?: string | null
-    geminiKey?: string | null
-    vapiKey?: string | null
-    vapiPhoneId?: string | null
-    organization: OrganizationCreateNestedOneWithoutApiKeysInput
-  }
-
-  export type ApiKeyUncheckedCreateInput = {
-    id?: string
-    googleMapsKey?: string | null
-    geminiKey?: string | null
-    vapiKey?: string | null
-    vapiPhoneId?: string | null
-    organizationId: string
-  }
-
-  export type ApiKeyUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    googleMapsKey?: NullableStringFieldUpdateOperationsInput | string | null
-    geminiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneId?: NullableStringFieldUpdateOperationsInput | string | null
-    organization?: OrganizationUpdateOneRequiredWithoutApiKeysNestedInput
-  }
-
-  export type ApiKeyUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    googleMapsKey?: NullableStringFieldUpdateOperationsInput | string | null
-    geminiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneId?: NullableStringFieldUpdateOperationsInput | string | null
-    organizationId?: StringFieldUpdateOperationsInput | string
-  }
-
-  export type ApiKeyCreateManyInput = {
-    id?: string
-    googleMapsKey?: string | null
-    geminiKey?: string | null
-    vapiKey?: string | null
-    vapiPhoneId?: string | null
-    organizationId: string
-  }
-
-  export type ApiKeyUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    googleMapsKey?: NullableStringFieldUpdateOperationsInput | string | null
-    geminiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneId?: NullableStringFieldUpdateOperationsInput | string | null
-  }
-
-  export type ApiKeyUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    googleMapsKey?: NullableStringFieldUpdateOperationsInput | string | null
-    geminiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneId?: NullableStringFieldUpdateOperationsInput | string | null
-    organizationId?: StringFieldUpdateOperationsInput | string
   }
 
   export type CampaignCreateInput = {
@@ -54503,6 +58928,361 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type OrgVapiNumberCreateInput = {
+    id?: string
+    vapiPhoneNumberId: string
+    e164: string
+    provider?: string
+    status?: $Enums.VapiNumberStatus
+    monthlyCostCents: number
+    provisionedAt: Date | string
+    releasedAt?: Date | string | null
+    spamScore?: number | null
+    lastRotatedAt?: Date | string | null
+    areaCode?: string | null
+    organization: OrganizationCreateNestedOneWithoutVapiNumberInput
+  }
+
+  export type OrgVapiNumberUncheckedCreateInput = {
+    id?: string
+    organizationId: string
+    vapiPhoneNumberId: string
+    e164: string
+    provider?: string
+    status?: $Enums.VapiNumberStatus
+    monthlyCostCents: number
+    provisionedAt: Date | string
+    releasedAt?: Date | string | null
+    spamScore?: number | null
+    lastRotatedAt?: Date | string | null
+    areaCode?: string | null
+  }
+
+  export type OrgVapiNumberUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: StringFieldUpdateOperationsInput | string
+    e164?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    status?: EnumVapiNumberStatusFieldUpdateOperationsInput | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFieldUpdateOperationsInput | number
+    provisionedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    spamScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastRotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    areaCode?: NullableStringFieldUpdateOperationsInput | string | null
+    organization?: OrganizationUpdateOneRequiredWithoutVapiNumberNestedInput
+  }
+
+  export type OrgVapiNumberUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: StringFieldUpdateOperationsInput | string
+    e164?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    status?: EnumVapiNumberStatusFieldUpdateOperationsInput | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFieldUpdateOperationsInput | number
+    provisionedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    spamScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastRotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    areaCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type OrgVapiNumberCreateManyInput = {
+    id?: string
+    organizationId: string
+    vapiPhoneNumberId: string
+    e164: string
+    provider?: string
+    status?: $Enums.VapiNumberStatus
+    monthlyCostCents: number
+    provisionedAt: Date | string
+    releasedAt?: Date | string | null
+    spamScore?: number | null
+    lastRotatedAt?: Date | string | null
+    areaCode?: string | null
+  }
+
+  export type OrgVapiNumberUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: StringFieldUpdateOperationsInput | string
+    e164?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    status?: EnumVapiNumberStatusFieldUpdateOperationsInput | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFieldUpdateOperationsInput | number
+    provisionedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    spamScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastRotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    areaCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type OrgVapiNumberUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: StringFieldUpdateOperationsInput | string
+    e164?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    status?: EnumVapiNumberStatusFieldUpdateOperationsInput | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFieldUpdateOperationsInput | number
+    provisionedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    spamScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastRotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    areaCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type SpendCapCreateInput = {
+    id?: string
+    dailyCapCents: number
+    monthlyCapCents: number
+    currentDayCents?: number
+    currentMonthCents?: number
+    lastDayResetAt: Date | string
+    lastMonthResetAt: Date | string
+    organization: OrganizationCreateNestedOneWithoutSpendCapInput
+  }
+
+  export type SpendCapUncheckedCreateInput = {
+    id?: string
+    organizationId: string
+    dailyCapCents: number
+    monthlyCapCents: number
+    currentDayCents?: number
+    currentMonthCents?: number
+    lastDayResetAt: Date | string
+    lastMonthResetAt: Date | string
+  }
+
+  export type SpendCapUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dailyCapCents?: IntFieldUpdateOperationsInput | number
+    monthlyCapCents?: IntFieldUpdateOperationsInput | number
+    currentDayCents?: IntFieldUpdateOperationsInput | number
+    currentMonthCents?: IntFieldUpdateOperationsInput | number
+    lastDayResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastMonthResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    organization?: OrganizationUpdateOneRequiredWithoutSpendCapNestedInput
+  }
+
+  export type SpendCapUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dailyCapCents?: IntFieldUpdateOperationsInput | number
+    monthlyCapCents?: IntFieldUpdateOperationsInput | number
+    currentDayCents?: IntFieldUpdateOperationsInput | number
+    currentMonthCents?: IntFieldUpdateOperationsInput | number
+    lastDayResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastMonthResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SpendCapCreateManyInput = {
+    id?: string
+    organizationId: string
+    dailyCapCents: number
+    monthlyCapCents: number
+    currentDayCents?: number
+    currentMonthCents?: number
+    lastDayResetAt: Date | string
+    lastMonthResetAt: Date | string
+  }
+
+  export type SpendCapUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dailyCapCents?: IntFieldUpdateOperationsInput | number
+    monthlyCapCents?: IntFieldUpdateOperationsInput | number
+    currentDayCents?: IntFieldUpdateOperationsInput | number
+    currentMonthCents?: IntFieldUpdateOperationsInput | number
+    lastDayResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastMonthResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SpendCapUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    organizationId?: StringFieldUpdateOperationsInput | string
+    dailyCapCents?: IntFieldUpdateOperationsInput | number
+    monthlyCapCents?: IntFieldUpdateOperationsInput | number
+    currentDayCents?: IntFieldUpdateOperationsInput | number
+    currentMonthCents?: IntFieldUpdateOperationsInput | number
+    lastDayResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastMonthResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DncEntryCreateInput = {
+    id?: string
+    phoneE164: string
+    source: string
+    addedAt?: Date | string
+    expiresAt?: Date | string | null
+  }
+
+  export type DncEntryUncheckedCreateInput = {
+    id?: string
+    phoneE164: string
+    source: string
+    addedAt?: Date | string
+    expiresAt?: Date | string | null
+  }
+
+  export type DncEntryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneE164?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type DncEntryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneE164?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type DncEntryCreateManyInput = {
+    id?: string
+    phoneE164: string
+    source: string
+    addedAt?: Date | string
+    expiresAt?: Date | string | null
+  }
+
+  export type DncEntryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneE164?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type DncEntryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    phoneE164?: StringFieldUpdateOperationsInput | string
+    source?: StringFieldUpdateOperationsInput | string
+    addedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type KeyAccessLogCreateInput = {
+    id?: string
+    service: string
+    keyName: string
+    fetchedAt?: Date | string
+    success: boolean
+  }
+
+  export type KeyAccessLogUncheckedCreateInput = {
+    id?: string
+    service: string
+    keyName: string
+    fetchedAt?: Date | string
+    success: boolean
+  }
+
+  export type KeyAccessLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    service?: StringFieldUpdateOperationsInput | string
+    keyName?: StringFieldUpdateOperationsInput | string
+    fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    success?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type KeyAccessLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    service?: StringFieldUpdateOperationsInput | string
+    keyName?: StringFieldUpdateOperationsInput | string
+    fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    success?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type KeyAccessLogCreateManyInput = {
+    id?: string
+    service: string
+    keyName: string
+    fetchedAt?: Date | string
+    success: boolean
+  }
+
+  export type KeyAccessLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    service?: StringFieldUpdateOperationsInput | string
+    keyName?: StringFieldUpdateOperationsInput | string
+    fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    success?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type KeyAccessLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    service?: StringFieldUpdateOperationsInput | string
+    keyName?: StringFieldUpdateOperationsInput | string
+    fetchedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    success?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type PlatformSecretCreateInput = {
+    key: string
+    valueEncrypted: string
+    description?: string | null
+    updatedBy?: string | null
+    updatedAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type PlatformSecretUncheckedCreateInput = {
+    key: string
+    valueEncrypted: string
+    description?: string | null
+    updatedBy?: string | null
+    updatedAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type PlatformSecretUpdateInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    valueEncrypted?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSecretUncheckedUpdateInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    valueEncrypted?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSecretCreateManyInput = {
+    key: string
+    valueEncrypted: string
+    description?: string | null
+    updatedBy?: string | null
+    updatedAt?: Date | string
+    createdAt?: Date | string
+  }
+
+  export type PlatformSecretUpdateManyMutationInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    valueEncrypted?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PlatformSecretUncheckedUpdateManyInput = {
+    key?: StringFieldUpdateOperationsInput | string
+    valueEncrypted?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedBy?: NullableStringFieldUpdateOperationsInput | string | null
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -54899,9 +59679,14 @@ export namespace Prisma {
     not?: NestedEnumBillingModeFilter<$PrismaModel> | $Enums.BillingMode
   }
 
-  export type ApiKeyNullableRelationFilter = {
-    is?: ApiKeyWhereInput | null
-    isNot?: ApiKeyWhereInput | null
+  export type OrgVapiNumberNullableRelationFilter = {
+    is?: OrgVapiNumberWhereInput | null
+    isNot?: OrgVapiNumberWhereInput | null
+  }
+
+  export type SpendCapNullableRelationFilter = {
+    is?: SpendCapWhereInput | null
+    isNot?: SpendCapWhereInput | null
   }
 
   export type TenantProvisioningNullableRelationFilter = {
@@ -55563,33 +60348,6 @@ export namespace Prisma {
     providerMessageId?: SortOrder
     error?: SortOrder
     createdAt?: SortOrder
-  }
-
-  export type ApiKeyCountOrderByAggregateInput = {
-    id?: SortOrder
-    googleMapsKey?: SortOrder
-    geminiKey?: SortOrder
-    vapiKey?: SortOrder
-    vapiPhoneId?: SortOrder
-    organizationId?: SortOrder
-  }
-
-  export type ApiKeyMaxOrderByAggregateInput = {
-    id?: SortOrder
-    googleMapsKey?: SortOrder
-    geminiKey?: SortOrder
-    vapiKey?: SortOrder
-    vapiPhoneId?: SortOrder
-    organizationId?: SortOrder
-  }
-
-  export type ApiKeyMinOrderByAggregateInput = {
-    id?: SortOrder
-    googleMapsKey?: SortOrder
-    geminiKey?: SortOrder
-    vapiKey?: SortOrder
-    vapiPhoneId?: SortOrder
-    organizationId?: SortOrder
   }
 
   export type CampaignCountOrderByAggregateInput = {
@@ -57201,6 +61959,200 @@ export namespace Prisma {
     balanceAfterCents?: SortOrder
   }
 
+  export type EnumVapiNumberStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.VapiNumberStatus | EnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVapiNumberStatusFilter<$PrismaModel> | $Enums.VapiNumberStatus
+  }
+
+  export type OrgVapiNumberCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    vapiPhoneNumberId?: SortOrder
+    e164?: SortOrder
+    provider?: SortOrder
+    status?: SortOrder
+    monthlyCostCents?: SortOrder
+    provisionedAt?: SortOrder
+    releasedAt?: SortOrder
+    spamScore?: SortOrder
+    lastRotatedAt?: SortOrder
+    areaCode?: SortOrder
+  }
+
+  export type OrgVapiNumberAvgOrderByAggregateInput = {
+    monthlyCostCents?: SortOrder
+    spamScore?: SortOrder
+  }
+
+  export type OrgVapiNumberMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    vapiPhoneNumberId?: SortOrder
+    e164?: SortOrder
+    provider?: SortOrder
+    status?: SortOrder
+    monthlyCostCents?: SortOrder
+    provisionedAt?: SortOrder
+    releasedAt?: SortOrder
+    spamScore?: SortOrder
+    lastRotatedAt?: SortOrder
+    areaCode?: SortOrder
+  }
+
+  export type OrgVapiNumberMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    vapiPhoneNumberId?: SortOrder
+    e164?: SortOrder
+    provider?: SortOrder
+    status?: SortOrder
+    monthlyCostCents?: SortOrder
+    provisionedAt?: SortOrder
+    releasedAt?: SortOrder
+    spamScore?: SortOrder
+    lastRotatedAt?: SortOrder
+    areaCode?: SortOrder
+  }
+
+  export type OrgVapiNumberSumOrderByAggregateInput = {
+    monthlyCostCents?: SortOrder
+    spamScore?: SortOrder
+  }
+
+  export type EnumVapiNumberStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VapiNumberStatus | EnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVapiNumberStatusWithAggregatesFilter<$PrismaModel> | $Enums.VapiNumberStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVapiNumberStatusFilter<$PrismaModel>
+    _max?: NestedEnumVapiNumberStatusFilter<$PrismaModel>
+  }
+
+  export type SpendCapCountOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    dailyCapCents?: SortOrder
+    monthlyCapCents?: SortOrder
+    currentDayCents?: SortOrder
+    currentMonthCents?: SortOrder
+    lastDayResetAt?: SortOrder
+    lastMonthResetAt?: SortOrder
+  }
+
+  export type SpendCapAvgOrderByAggregateInput = {
+    dailyCapCents?: SortOrder
+    monthlyCapCents?: SortOrder
+    currentDayCents?: SortOrder
+    currentMonthCents?: SortOrder
+  }
+
+  export type SpendCapMaxOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    dailyCapCents?: SortOrder
+    monthlyCapCents?: SortOrder
+    currentDayCents?: SortOrder
+    currentMonthCents?: SortOrder
+    lastDayResetAt?: SortOrder
+    lastMonthResetAt?: SortOrder
+  }
+
+  export type SpendCapMinOrderByAggregateInput = {
+    id?: SortOrder
+    organizationId?: SortOrder
+    dailyCapCents?: SortOrder
+    monthlyCapCents?: SortOrder
+    currentDayCents?: SortOrder
+    currentMonthCents?: SortOrder
+    lastDayResetAt?: SortOrder
+    lastMonthResetAt?: SortOrder
+  }
+
+  export type SpendCapSumOrderByAggregateInput = {
+    dailyCapCents?: SortOrder
+    monthlyCapCents?: SortOrder
+    currentDayCents?: SortOrder
+    currentMonthCents?: SortOrder
+  }
+
+  export type DncEntryCountOrderByAggregateInput = {
+    id?: SortOrder
+    phoneE164?: SortOrder
+    source?: SortOrder
+    addedAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type DncEntryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    phoneE164?: SortOrder
+    source?: SortOrder
+    addedAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type DncEntryMinOrderByAggregateInput = {
+    id?: SortOrder
+    phoneE164?: SortOrder
+    source?: SortOrder
+    addedAt?: SortOrder
+    expiresAt?: SortOrder
+  }
+
+  export type KeyAccessLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    service?: SortOrder
+    keyName?: SortOrder
+    fetchedAt?: SortOrder
+    success?: SortOrder
+  }
+
+  export type KeyAccessLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    service?: SortOrder
+    keyName?: SortOrder
+    fetchedAt?: SortOrder
+    success?: SortOrder
+  }
+
+  export type KeyAccessLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    service?: SortOrder
+    keyName?: SortOrder
+    fetchedAt?: SortOrder
+    success?: SortOrder
+  }
+
+  export type PlatformSecretCountOrderByAggregateInput = {
+    key?: SortOrder
+    valueEncrypted?: SortOrder
+    description?: SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PlatformSecretMaxOrderByAggregateInput = {
+    key?: SortOrder
+    valueEncrypted?: SortOrder
+    description?: SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PlatformSecretMinOrderByAggregateInput = {
+    key?: SortOrder
+    valueEncrypted?: SortOrder
+    description?: SortOrder
+    updatedBy?: SortOrder
+    updatedAt?: SortOrder
+    createdAt?: SortOrder
+  }
+
   export type UserCreatetwoFARecoveryCodesInput = {
     set: string[]
   }
@@ -57690,10 +62642,16 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPasswordResetTokensInput, UserUpdateWithoutPasswordResetTokensInput>, UserUncheckedUpdateWithoutPasswordResetTokensInput>
   }
 
-  export type ApiKeyCreateNestedOneWithoutOrganizationInput = {
-    create?: XOR<ApiKeyCreateWithoutOrganizationInput, ApiKeyUncheckedCreateWithoutOrganizationInput>
-    connectOrCreate?: ApiKeyCreateOrConnectWithoutOrganizationInput
-    connect?: ApiKeyWhereUniqueInput
+  export type OrgVapiNumberCreateNestedOneWithoutOrganizationInput = {
+    create?: XOR<OrgVapiNumberCreateWithoutOrganizationInput, OrgVapiNumberUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: OrgVapiNumberCreateOrConnectWithoutOrganizationInput
+    connect?: OrgVapiNumberWhereUniqueInput
+  }
+
+  export type SpendCapCreateNestedOneWithoutOrganizationInput = {
+    create?: XOR<SpendCapCreateWithoutOrganizationInput, SpendCapUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: SpendCapCreateOrConnectWithoutOrganizationInput
+    connect?: SpendCapWhereUniqueInput
   }
 
   export type TenantProvisioningCreateNestedOneWithoutOrganizationInput = {
@@ -57875,10 +62833,16 @@ export namespace Prisma {
     connect?: PublicApiKeyWhereUniqueInput | PublicApiKeyWhereUniqueInput[]
   }
 
-  export type ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput = {
-    create?: XOR<ApiKeyCreateWithoutOrganizationInput, ApiKeyUncheckedCreateWithoutOrganizationInput>
-    connectOrCreate?: ApiKeyCreateOrConnectWithoutOrganizationInput
-    connect?: ApiKeyWhereUniqueInput
+  export type OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput = {
+    create?: XOR<OrgVapiNumberCreateWithoutOrganizationInput, OrgVapiNumberUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: OrgVapiNumberCreateOrConnectWithoutOrganizationInput
+    connect?: OrgVapiNumberWhereUniqueInput
+  }
+
+  export type SpendCapUncheckedCreateNestedOneWithoutOrganizationInput = {
+    create?: XOR<SpendCapCreateWithoutOrganizationInput, SpendCapUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: SpendCapCreateOrConnectWithoutOrganizationInput
+    connect?: SpendCapWhereUniqueInput
   }
 
   export type TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput = {
@@ -58068,14 +63032,24 @@ export namespace Prisma {
     set?: $Enums.BillingMode
   }
 
-  export type ApiKeyUpdateOneWithoutOrganizationNestedInput = {
-    create?: XOR<ApiKeyCreateWithoutOrganizationInput, ApiKeyUncheckedCreateWithoutOrganizationInput>
-    connectOrCreate?: ApiKeyCreateOrConnectWithoutOrganizationInput
-    upsert?: ApiKeyUpsertWithoutOrganizationInput
-    disconnect?: ApiKeyWhereInput | boolean
-    delete?: ApiKeyWhereInput | boolean
-    connect?: ApiKeyWhereUniqueInput
-    update?: XOR<XOR<ApiKeyUpdateToOneWithWhereWithoutOrganizationInput, ApiKeyUpdateWithoutOrganizationInput>, ApiKeyUncheckedUpdateWithoutOrganizationInput>
+  export type OrgVapiNumberUpdateOneWithoutOrganizationNestedInput = {
+    create?: XOR<OrgVapiNumberCreateWithoutOrganizationInput, OrgVapiNumberUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: OrgVapiNumberCreateOrConnectWithoutOrganizationInput
+    upsert?: OrgVapiNumberUpsertWithoutOrganizationInput
+    disconnect?: OrgVapiNumberWhereInput | boolean
+    delete?: OrgVapiNumberWhereInput | boolean
+    connect?: OrgVapiNumberWhereUniqueInput
+    update?: XOR<XOR<OrgVapiNumberUpdateToOneWithWhereWithoutOrganizationInput, OrgVapiNumberUpdateWithoutOrganizationInput>, OrgVapiNumberUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type SpendCapUpdateOneWithoutOrganizationNestedInput = {
+    create?: XOR<SpendCapCreateWithoutOrganizationInput, SpendCapUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: SpendCapCreateOrConnectWithoutOrganizationInput
+    upsert?: SpendCapUpsertWithoutOrganizationInput
+    disconnect?: SpendCapWhereInput | boolean
+    delete?: SpendCapWhereInput | boolean
+    connect?: SpendCapWhereUniqueInput
+    update?: XOR<XOR<SpendCapUpdateToOneWithWhereWithoutOrganizationInput, SpendCapUpdateWithoutOrganizationInput>, SpendCapUncheckedUpdateWithoutOrganizationInput>
   }
 
   export type TenantProvisioningUpdateOneWithoutOrganizationNestedInput = {
@@ -58430,14 +63404,24 @@ export namespace Prisma {
     deleteMany?: PublicApiKeyScalarWhereInput | PublicApiKeyScalarWhereInput[]
   }
 
-  export type ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput = {
-    create?: XOR<ApiKeyCreateWithoutOrganizationInput, ApiKeyUncheckedCreateWithoutOrganizationInput>
-    connectOrCreate?: ApiKeyCreateOrConnectWithoutOrganizationInput
-    upsert?: ApiKeyUpsertWithoutOrganizationInput
-    disconnect?: ApiKeyWhereInput | boolean
-    delete?: ApiKeyWhereInput | boolean
-    connect?: ApiKeyWhereUniqueInput
-    update?: XOR<XOR<ApiKeyUpdateToOneWithWhereWithoutOrganizationInput, ApiKeyUpdateWithoutOrganizationInput>, ApiKeyUncheckedUpdateWithoutOrganizationInput>
+  export type OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput = {
+    create?: XOR<OrgVapiNumberCreateWithoutOrganizationInput, OrgVapiNumberUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: OrgVapiNumberCreateOrConnectWithoutOrganizationInput
+    upsert?: OrgVapiNumberUpsertWithoutOrganizationInput
+    disconnect?: OrgVapiNumberWhereInput | boolean
+    delete?: OrgVapiNumberWhereInput | boolean
+    connect?: OrgVapiNumberWhereUniqueInput
+    update?: XOR<XOR<OrgVapiNumberUpdateToOneWithWhereWithoutOrganizationInput, OrgVapiNumberUpdateWithoutOrganizationInput>, OrgVapiNumberUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput = {
+    create?: XOR<SpendCapCreateWithoutOrganizationInput, SpendCapUncheckedCreateWithoutOrganizationInput>
+    connectOrCreate?: SpendCapCreateOrConnectWithoutOrganizationInput
+    upsert?: SpendCapUpsertWithoutOrganizationInput
+    disconnect?: SpendCapWhereInput | boolean
+    delete?: SpendCapWhereInput | boolean
+    connect?: SpendCapWhereUniqueInput
+    update?: XOR<XOR<SpendCapUpdateToOneWithWhereWithoutOrganizationInput, SpendCapUpdateWithoutOrganizationInput>, SpendCapUncheckedUpdateWithoutOrganizationInput>
   }
 
   export type TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput = {
@@ -58890,20 +63874,6 @@ export namespace Prisma {
     upsert?: OrganizationUpsertWithoutUsageInput
     connect?: OrganizationWhereUniqueInput
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutUsageInput, OrganizationUpdateWithoutUsageInput>, OrganizationUncheckedUpdateWithoutUsageInput>
-  }
-
-  export type OrganizationCreateNestedOneWithoutApiKeysInput = {
-    create?: XOR<OrganizationCreateWithoutApiKeysInput, OrganizationUncheckedCreateWithoutApiKeysInput>
-    connectOrCreate?: OrganizationCreateOrConnectWithoutApiKeysInput
-    connect?: OrganizationWhereUniqueInput
-  }
-
-  export type OrganizationUpdateOneRequiredWithoutApiKeysNestedInput = {
-    create?: XOR<OrganizationCreateWithoutApiKeysInput, OrganizationUncheckedCreateWithoutApiKeysInput>
-    connectOrCreate?: OrganizationCreateOrConnectWithoutApiKeysInput
-    upsert?: OrganizationUpsertWithoutApiKeysInput
-    connect?: OrganizationWhereUniqueInput
-    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutApiKeysInput, OrganizationUpdateWithoutApiKeysInput>, OrganizationUncheckedUpdateWithoutApiKeysInput>
   }
 
   export type OrganizationCreateNestedOneWithoutCampaignsInput = {
@@ -60517,6 +65487,38 @@ export namespace Prisma {
     update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutCreditTransactionsInput, OrganizationUpdateWithoutCreditTransactionsInput>, OrganizationUncheckedUpdateWithoutCreditTransactionsInput>
   }
 
+  export type OrganizationCreateNestedOneWithoutVapiNumberInput = {
+    create?: XOR<OrganizationCreateWithoutVapiNumberInput, OrganizationUncheckedCreateWithoutVapiNumberInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutVapiNumberInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type EnumVapiNumberStatusFieldUpdateOperationsInput = {
+    set?: $Enums.VapiNumberStatus
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutVapiNumberNestedInput = {
+    create?: XOR<OrganizationCreateWithoutVapiNumberInput, OrganizationUncheckedCreateWithoutVapiNumberInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutVapiNumberInput
+    upsert?: OrganizationUpsertWithoutVapiNumberInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutVapiNumberInput, OrganizationUpdateWithoutVapiNumberInput>, OrganizationUncheckedUpdateWithoutVapiNumberInput>
+  }
+
+  export type OrganizationCreateNestedOneWithoutSpendCapInput = {
+    create?: XOR<OrganizationCreateWithoutSpendCapInput, OrganizationUncheckedCreateWithoutSpendCapInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutSpendCapInput
+    connect?: OrganizationWhereUniqueInput
+  }
+
+  export type OrganizationUpdateOneRequiredWithoutSpendCapNestedInput = {
+    create?: XOR<OrganizationCreateWithoutSpendCapInput, OrganizationUncheckedCreateWithoutSpendCapInput>
+    connectOrCreate?: OrganizationCreateOrConnectWithoutSpendCapInput
+    upsert?: OrganizationUpsertWithoutSpendCapInput
+    connect?: OrganizationWhereUniqueInput
+    update?: XOR<XOR<OrganizationUpdateToOneWithWhereWithoutSpendCapInput, OrganizationUpdateWithoutSpendCapInput>, OrganizationUncheckedUpdateWithoutSpendCapInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -60982,6 +65984,23 @@ export namespace Prisma {
     _max?: NestedEnumProvisioningStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumVapiNumberStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.VapiNumberStatus | EnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVapiNumberStatusFilter<$PrismaModel> | $Enums.VapiNumberStatus
+  }
+
+  export type NestedEnumVapiNumberStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.VapiNumberStatus | EnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.VapiNumberStatus[] | ListEnumVapiNumberStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumVapiNumberStatusWithAggregatesFilter<$PrismaModel> | $Enums.VapiNumberStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumVapiNumberStatusFilter<$PrismaModel>
+    _max?: NestedEnumVapiNumberStatusFilter<$PrismaModel>
+  }
+
   export type OrganizationCreateWithoutUsersInput = {
     id?: string
     name: string
@@ -60998,7 +66017,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -61042,7 +66062,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -61544,7 +66565,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -61588,7 +66610,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -62089,25 +67112,62 @@ export namespace Prisma {
     publicApiKeys?: PublicApiKeyUncheckedUpdateManyWithoutCreatedByNestedInput
   }
 
-  export type ApiKeyCreateWithoutOrganizationInput = {
+  export type OrgVapiNumberCreateWithoutOrganizationInput = {
     id?: string
-    googleMapsKey?: string | null
-    geminiKey?: string | null
-    vapiKey?: string | null
-    vapiPhoneId?: string | null
+    vapiPhoneNumberId: string
+    e164: string
+    provider?: string
+    status?: $Enums.VapiNumberStatus
+    monthlyCostCents: number
+    provisionedAt: Date | string
+    releasedAt?: Date | string | null
+    spamScore?: number | null
+    lastRotatedAt?: Date | string | null
+    areaCode?: string | null
   }
 
-  export type ApiKeyUncheckedCreateWithoutOrganizationInput = {
+  export type OrgVapiNumberUncheckedCreateWithoutOrganizationInput = {
     id?: string
-    googleMapsKey?: string | null
-    geminiKey?: string | null
-    vapiKey?: string | null
-    vapiPhoneId?: string | null
+    vapiPhoneNumberId: string
+    e164: string
+    provider?: string
+    status?: $Enums.VapiNumberStatus
+    monthlyCostCents: number
+    provisionedAt: Date | string
+    releasedAt?: Date | string | null
+    spamScore?: number | null
+    lastRotatedAt?: Date | string | null
+    areaCode?: string | null
   }
 
-  export type ApiKeyCreateOrConnectWithoutOrganizationInput = {
-    where: ApiKeyWhereUniqueInput
-    create: XOR<ApiKeyCreateWithoutOrganizationInput, ApiKeyUncheckedCreateWithoutOrganizationInput>
+  export type OrgVapiNumberCreateOrConnectWithoutOrganizationInput = {
+    where: OrgVapiNumberWhereUniqueInput
+    create: XOR<OrgVapiNumberCreateWithoutOrganizationInput, OrgVapiNumberUncheckedCreateWithoutOrganizationInput>
+  }
+
+  export type SpendCapCreateWithoutOrganizationInput = {
+    id?: string
+    dailyCapCents: number
+    monthlyCapCents: number
+    currentDayCents?: number
+    currentMonthCents?: number
+    lastDayResetAt: Date | string
+    lastMonthResetAt: Date | string
+  }
+
+  export type SpendCapUncheckedCreateWithoutOrganizationInput = {
+    id?: string
+    dailyCapCents: number
+    monthlyCapCents: number
+    currentDayCents?: number
+    currentMonthCents?: number
+    lastDayResetAt: Date | string
+    lastMonthResetAt: Date | string
+  }
+
+  export type SpendCapCreateOrConnectWithoutOrganizationInput = {
+    where: SpendCapWhereUniqueInput
+    create: XOR<SpendCapCreateWithoutOrganizationInput, SpendCapUncheckedCreateWithoutOrganizationInput>
   }
 
   export type TenantProvisioningCreateWithoutOrganizationInput = {
@@ -63139,31 +68199,74 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type ApiKeyUpsertWithoutOrganizationInput = {
-    update: XOR<ApiKeyUpdateWithoutOrganizationInput, ApiKeyUncheckedUpdateWithoutOrganizationInput>
-    create: XOR<ApiKeyCreateWithoutOrganizationInput, ApiKeyUncheckedCreateWithoutOrganizationInput>
-    where?: ApiKeyWhereInput
+  export type OrgVapiNumberUpsertWithoutOrganizationInput = {
+    update: XOR<OrgVapiNumberUpdateWithoutOrganizationInput, OrgVapiNumberUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<OrgVapiNumberCreateWithoutOrganizationInput, OrgVapiNumberUncheckedCreateWithoutOrganizationInput>
+    where?: OrgVapiNumberWhereInput
   }
 
-  export type ApiKeyUpdateToOneWithWhereWithoutOrganizationInput = {
-    where?: ApiKeyWhereInput
-    data: XOR<ApiKeyUpdateWithoutOrganizationInput, ApiKeyUncheckedUpdateWithoutOrganizationInput>
+  export type OrgVapiNumberUpdateToOneWithWhereWithoutOrganizationInput = {
+    where?: OrgVapiNumberWhereInput
+    data: XOR<OrgVapiNumberUpdateWithoutOrganizationInput, OrgVapiNumberUncheckedUpdateWithoutOrganizationInput>
   }
 
-  export type ApiKeyUpdateWithoutOrganizationInput = {
+  export type OrgVapiNumberUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    googleMapsKey?: NullableStringFieldUpdateOperationsInput | string | null
-    geminiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneId?: NullableStringFieldUpdateOperationsInput | string | null
+    vapiPhoneNumberId?: StringFieldUpdateOperationsInput | string
+    e164?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    status?: EnumVapiNumberStatusFieldUpdateOperationsInput | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFieldUpdateOperationsInput | number
+    provisionedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    spamScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastRotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    areaCode?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
-  export type ApiKeyUncheckedUpdateWithoutOrganizationInput = {
+  export type OrgVapiNumberUncheckedUpdateWithoutOrganizationInput = {
     id?: StringFieldUpdateOperationsInput | string
-    googleMapsKey?: NullableStringFieldUpdateOperationsInput | string | null
-    geminiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiKey?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneId?: NullableStringFieldUpdateOperationsInput | string | null
+    vapiPhoneNumberId?: StringFieldUpdateOperationsInput | string
+    e164?: StringFieldUpdateOperationsInput | string
+    provider?: StringFieldUpdateOperationsInput | string
+    status?: EnumVapiNumberStatusFieldUpdateOperationsInput | $Enums.VapiNumberStatus
+    monthlyCostCents?: IntFieldUpdateOperationsInput | number
+    provisionedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    releasedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    spamScore?: NullableFloatFieldUpdateOperationsInput | number | null
+    lastRotatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    areaCode?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type SpendCapUpsertWithoutOrganizationInput = {
+    update: XOR<SpendCapUpdateWithoutOrganizationInput, SpendCapUncheckedUpdateWithoutOrganizationInput>
+    create: XOR<SpendCapCreateWithoutOrganizationInput, SpendCapUncheckedCreateWithoutOrganizationInput>
+    where?: SpendCapWhereInput
+  }
+
+  export type SpendCapUpdateToOneWithWhereWithoutOrganizationInput = {
+    where?: SpendCapWhereInput
+    data: XOR<SpendCapUpdateWithoutOrganizationInput, SpendCapUncheckedUpdateWithoutOrganizationInput>
+  }
+
+  export type SpendCapUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dailyCapCents?: IntFieldUpdateOperationsInput | number
+    monthlyCapCents?: IntFieldUpdateOperationsInput | number
+    currentDayCents?: IntFieldUpdateOperationsInput | number
+    currentMonthCents?: IntFieldUpdateOperationsInput | number
+    lastDayResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastMonthResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SpendCapUncheckedUpdateWithoutOrganizationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    dailyCapCents?: IntFieldUpdateOperationsInput | number
+    monthlyCapCents?: IntFieldUpdateOperationsInput | number
+    currentDayCents?: IntFieldUpdateOperationsInput | number
+    currentMonthCents?: IntFieldUpdateOperationsInput | number
+    lastDayResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    lastMonthResetAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TenantProvisioningUpsertWithoutOrganizationInput = {
@@ -63982,7 +69085,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -64026,7 +69130,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -64127,7 +69232,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -64171,7 +69277,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -64262,7 +69369,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -64306,7 +69414,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -64366,7 +69475,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -64410,7 +69520,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -64424,198 +69535,6 @@ export namespace Prisma {
     deals?: DealUncheckedUpdateManyWithoutOrganizationNestedInput
     dealHistories?: DealHistoryUncheckedUpdateManyWithoutOrganizationNestedInput
     subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput
-    dunningStates?: DunningStateUncheckedUpdateManyWithoutOrganizationNestedInput
-    dncEntries?: DNCEntryUncheckedUpdateManyWithoutOrganizationNestedInput
-    emailSuppressions?: EmailSuppressionUncheckedUpdateManyWithoutOrganizationNestedInput
-    emailCampaigns?: EmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-    emailRecipientLists?: EmailRecipientListUncheckedUpdateManyWithoutOrganizationNestedInput
-    emailSends?: EmailSendUncheckedUpdateManyWithoutOrganizationNestedInput
-    emailTemplates?: EmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
-    emailAutomations?: EmailAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
-    emailAutomationRuns?: EmailAutomationRunUncheckedUpdateManyWithoutOrganizationNestedInput
-    tenantWebhooks?: TenantWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
-    webhookDeliveries?: WebhookDeliveryUncheckedUpdateManyWithoutOrganizationNestedInput
-    publicApiKeys?: PublicApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput
-  }
-
-  export type OrganizationCreateWithoutApiKeysInput = {
-    id?: string
-    name: string
-    status?: $Enums.OrgStatus
-    aiCallerName?: string
-    aiCallerCompany?: string
-    aiCallerPhone?: string
-    aiSystemPrompt?: string | null
-    onboardingStep?: string
-    vapiPhoneNumberId?: string | null
-    vapiPhoneNumber?: string | null
-    gdprDeletedAt?: Date | string | null
-    zapierTriggerToken?: string | null
-    billingMode?: $Enums.BillingMode
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
-    creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
-    creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
-    users?: UserCreateNestedManyWithoutOrganizationInput
-    campaigns?: CampaignCreateNestedManyWithoutOrganizationInput
-    leads?: LeadCreateNestedManyWithoutOrganizationInput
-    blacklist?: BlacklistCreateNestedManyWithoutOrganizationInput
-    contacts?: ContactCreateNestedManyWithoutOrganizationInput
-    notes?: NoteCreateNestedManyWithoutOrganizationInput
-    tasks?: TaskCreateNestedManyWithoutOrganizationInput
-    deals?: DealCreateNestedManyWithoutOrganizationInput
-    dealHistories?: DealHistoryCreateNestedManyWithoutOrganizationInput
-    subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput
-    usage?: UsageRecordCreateNestedManyWithoutOrganizationInput
-    dunningStates?: DunningStateCreateNestedManyWithoutOrganizationInput
-    dncEntries?: DNCEntryCreateNestedManyWithoutOrganizationInput
-    emailSuppressions?: EmailSuppressionCreateNestedManyWithoutOrganizationInput
-    emailCampaigns?: EmailCampaignCreateNestedManyWithoutOrganizationInput
-    emailRecipientLists?: EmailRecipientListCreateNestedManyWithoutOrganizationInput
-    emailSends?: EmailSendCreateNestedManyWithoutOrganizationInput
-    emailTemplates?: EmailTemplateCreateNestedManyWithoutOrganizationInput
-    emailAutomations?: EmailAutomationCreateNestedManyWithoutOrganizationInput
-    emailAutomationRuns?: EmailAutomationRunCreateNestedManyWithoutOrganizationInput
-    tenantWebhooks?: TenantWebhookCreateNestedManyWithoutOrganizationInput
-    webhookDeliveries?: WebhookDeliveryCreateNestedManyWithoutOrganizationInput
-    publicApiKeys?: PublicApiKeyCreateNestedManyWithoutOrganizationInput
-  }
-
-  export type OrganizationUncheckedCreateWithoutApiKeysInput = {
-    id?: string
-    name: string
-    status?: $Enums.OrgStatus
-    aiCallerName?: string
-    aiCallerCompany?: string
-    aiCallerPhone?: string
-    aiSystemPrompt?: string | null
-    onboardingStep?: string
-    vapiPhoneNumberId?: string | null
-    vapiPhoneNumber?: string | null
-    gdprDeletedAt?: Date | string | null
-    zapierTriggerToken?: string | null
-    billingMode?: $Enums.BillingMode
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
-    creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
-    creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
-    users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
-    campaigns?: CampaignUncheckedCreateNestedManyWithoutOrganizationInput
-    leads?: LeadUncheckedCreateNestedManyWithoutOrganizationInput
-    blacklist?: BlacklistUncheckedCreateNestedManyWithoutOrganizationInput
-    contacts?: ContactUncheckedCreateNestedManyWithoutOrganizationInput
-    notes?: NoteUncheckedCreateNestedManyWithoutOrganizationInput
-    tasks?: TaskUncheckedCreateNestedManyWithoutOrganizationInput
-    deals?: DealUncheckedCreateNestedManyWithoutOrganizationInput
-    dealHistories?: DealHistoryUncheckedCreateNestedManyWithoutOrganizationInput
-    subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput
-    usage?: UsageRecordUncheckedCreateNestedManyWithoutOrganizationInput
-    dunningStates?: DunningStateUncheckedCreateNestedManyWithoutOrganizationInput
-    dncEntries?: DNCEntryUncheckedCreateNestedManyWithoutOrganizationInput
-    emailSuppressions?: EmailSuppressionUncheckedCreateNestedManyWithoutOrganizationInput
-    emailCampaigns?: EmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
-    emailRecipientLists?: EmailRecipientListUncheckedCreateNestedManyWithoutOrganizationInput
-    emailSends?: EmailSendUncheckedCreateNestedManyWithoutOrganizationInput
-    emailTemplates?: EmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
-    emailAutomations?: EmailAutomationUncheckedCreateNestedManyWithoutOrganizationInput
-    emailAutomationRuns?: EmailAutomationRunUncheckedCreateNestedManyWithoutOrganizationInput
-    tenantWebhooks?: TenantWebhookUncheckedCreateNestedManyWithoutOrganizationInput
-    webhookDeliveries?: WebhookDeliveryUncheckedCreateNestedManyWithoutOrganizationInput
-    publicApiKeys?: PublicApiKeyUncheckedCreateNestedManyWithoutOrganizationInput
-  }
-
-  export type OrganizationCreateOrConnectWithoutApiKeysInput = {
-    where: OrganizationWhereUniqueInput
-    create: XOR<OrganizationCreateWithoutApiKeysInput, OrganizationUncheckedCreateWithoutApiKeysInput>
-  }
-
-  export type OrganizationUpsertWithoutApiKeysInput = {
-    update: XOR<OrganizationUpdateWithoutApiKeysInput, OrganizationUncheckedUpdateWithoutApiKeysInput>
-    create: XOR<OrganizationCreateWithoutApiKeysInput, OrganizationUncheckedCreateWithoutApiKeysInput>
-    where?: OrganizationWhereInput
-  }
-
-  export type OrganizationUpdateToOneWithWhereWithoutApiKeysInput = {
-    where?: OrganizationWhereInput
-    data: XOR<OrganizationUpdateWithoutApiKeysInput, OrganizationUncheckedUpdateWithoutApiKeysInput>
-  }
-
-  export type OrganizationUpdateWithoutApiKeysInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    status?: EnumOrgStatusFieldUpdateOperationsInput | $Enums.OrgStatus
-    aiCallerName?: StringFieldUpdateOperationsInput | string
-    aiCallerCompany?: StringFieldUpdateOperationsInput | string
-    aiCallerPhone?: StringFieldUpdateOperationsInput | string
-    aiSystemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
-    onboardingStep?: StringFieldUpdateOperationsInput | string
-    vapiPhoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    gdprDeletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    zapierTriggerToken?: NullableStringFieldUpdateOperationsInput | string | null
-    billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
-    creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
-    creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
-    users?: UserUpdateManyWithoutOrganizationNestedInput
-    campaigns?: CampaignUpdateManyWithoutOrganizationNestedInput
-    leads?: LeadUpdateManyWithoutOrganizationNestedInput
-    blacklist?: BlacklistUpdateManyWithoutOrganizationNestedInput
-    contacts?: ContactUpdateManyWithoutOrganizationNestedInput
-    notes?: NoteUpdateManyWithoutOrganizationNestedInput
-    tasks?: TaskUpdateManyWithoutOrganizationNestedInput
-    deals?: DealUpdateManyWithoutOrganizationNestedInput
-    dealHistories?: DealHistoryUpdateManyWithoutOrganizationNestedInput
-    subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput
-    usage?: UsageRecordUpdateManyWithoutOrganizationNestedInput
-    dunningStates?: DunningStateUpdateManyWithoutOrganizationNestedInput
-    dncEntries?: DNCEntryUpdateManyWithoutOrganizationNestedInput
-    emailSuppressions?: EmailSuppressionUpdateManyWithoutOrganizationNestedInput
-    emailCampaigns?: EmailCampaignUpdateManyWithoutOrganizationNestedInput
-    emailRecipientLists?: EmailRecipientListUpdateManyWithoutOrganizationNestedInput
-    emailSends?: EmailSendUpdateManyWithoutOrganizationNestedInput
-    emailTemplates?: EmailTemplateUpdateManyWithoutOrganizationNestedInput
-    emailAutomations?: EmailAutomationUpdateManyWithoutOrganizationNestedInput
-    emailAutomationRuns?: EmailAutomationRunUpdateManyWithoutOrganizationNestedInput
-    tenantWebhooks?: TenantWebhookUpdateManyWithoutOrganizationNestedInput
-    webhookDeliveries?: WebhookDeliveryUpdateManyWithoutOrganizationNestedInput
-    publicApiKeys?: PublicApiKeyUpdateManyWithoutOrganizationNestedInput
-  }
-
-  export type OrganizationUncheckedUpdateWithoutApiKeysInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    name?: StringFieldUpdateOperationsInput | string
-    status?: EnumOrgStatusFieldUpdateOperationsInput | $Enums.OrgStatus
-    aiCallerName?: StringFieldUpdateOperationsInput | string
-    aiCallerCompany?: StringFieldUpdateOperationsInput | string
-    aiCallerPhone?: StringFieldUpdateOperationsInput | string
-    aiSystemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
-    onboardingStep?: StringFieldUpdateOperationsInput | string
-    vapiPhoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
-    vapiPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    gdprDeletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    zapierTriggerToken?: NullableStringFieldUpdateOperationsInput | string | null
-    billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
-    creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
-    creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
-    users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
-    campaigns?: CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
-    leads?: LeadUncheckedUpdateManyWithoutOrganizationNestedInput
-    blacklist?: BlacklistUncheckedUpdateManyWithoutOrganizationNestedInput
-    contacts?: ContactUncheckedUpdateManyWithoutOrganizationNestedInput
-    notes?: NoteUncheckedUpdateManyWithoutOrganizationNestedInput
-    tasks?: TaskUncheckedUpdateManyWithoutOrganizationNestedInput
-    deals?: DealUncheckedUpdateManyWithoutOrganizationNestedInput
-    dealHistories?: DealHistoryUncheckedUpdateManyWithoutOrganizationNestedInput
-    subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput
-    usage?: UsageRecordUncheckedUpdateManyWithoutOrganizationNestedInput
     dunningStates?: DunningStateUncheckedUpdateManyWithoutOrganizationNestedInput
     dncEntries?: DNCEntryUncheckedUpdateManyWithoutOrganizationNestedInput
     emailSuppressions?: EmailSuppressionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -64646,7 +69565,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -64690,7 +69610,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -64822,7 +69743,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -64866,7 +69788,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -64991,7 +69914,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -65035,7 +69959,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -65462,7 +70387,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -65506,7 +70432,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -65712,7 +70639,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -65756,7 +70684,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -66079,7 +71008,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -66123,7 +71053,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -66671,7 +71602,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -66715,7 +71647,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -66970,7 +71903,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -67014,7 +71948,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -67235,7 +72170,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -67279,7 +72215,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -67534,7 +72471,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -67578,7 +72516,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -67797,7 +72736,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -67841,7 +72781,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -68124,7 +73065,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -68168,7 +73110,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -68267,7 +73210,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -68311,7 +73255,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -68481,7 +73426,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -68525,7 +73471,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -68640,7 +73587,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -68684,7 +73632,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -68744,7 +73693,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -68788,7 +73738,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -68832,7 +73783,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -68876,7 +73828,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -68936,7 +73889,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -68980,7 +73934,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -69024,7 +73979,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -69068,7 +74024,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -69128,7 +74085,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -69172,7 +74130,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -69216,7 +74175,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -69260,7 +74220,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -69451,7 +74412,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -69495,7 +74457,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -69650,7 +74613,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -69694,7 +74658,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -69800,7 +74765,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -69844,7 +74810,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -70339,7 +75306,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -70383,7 +75351,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -70557,7 +75526,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -70601,7 +75571,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -70696,7 +75667,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -70740,7 +75712,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -70800,7 +75773,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -70844,7 +75818,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -70888,7 +75863,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -70932,7 +75908,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -71022,7 +75999,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -71066,7 +76044,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -71157,7 +76136,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -71201,7 +76181,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -71343,7 +76324,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -71387,7 +76369,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -71482,7 +76465,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -71526,7 +76510,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -71586,7 +76571,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -71630,7 +76616,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -71674,7 +76661,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -71718,7 +76706,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -71814,7 +76803,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -71858,7 +76848,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -71947,7 +76938,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -71991,7 +76983,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72086,7 +77079,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -72130,7 +77124,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -72174,7 +77169,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
@@ -72218,7 +77214,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72343,7 +77340,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
@@ -72387,7 +77385,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -72502,7 +77501,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
     users?: UserCreateNestedManyWithoutOrganizationInput
@@ -72546,7 +77546,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72606,7 +77607,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
     users?: UserUpdateManyWithoutOrganizationNestedInput
@@ -72650,7 +77652,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -72694,7 +77697,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
     users?: UserCreateNestedManyWithoutOrganizationInput
@@ -72738,7 +77742,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -72830,7 +77835,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
     users?: UserUpdateManyWithoutOrganizationNestedInput
@@ -72874,7 +77880,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -72969,7 +77976,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
     users?: UserCreateNestedManyWithoutOrganizationInput
@@ -73013,7 +78021,8 @@ export namespace Prisma {
     billingMode?: $Enums.BillingMode
     createdAt?: Date | string
     updatedAt?: Date | string
-    apiKeys?: ApiKeyUncheckedCreateNestedOneWithoutOrganizationInput
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
     provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
     creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
     users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
@@ -73114,7 +78123,8 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
     users?: UserUpdateManyWithoutOrganizationNestedInput
@@ -73158,9 +78168,402 @@ export namespace Prisma {
     billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    apiKeys?: ApiKeyUncheckedUpdateOneWithoutOrganizationNestedInput
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
     provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
     creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
+    users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
+    campaigns?: CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    leads?: LeadUncheckedUpdateManyWithoutOrganizationNestedInput
+    blacklist?: BlacklistUncheckedUpdateManyWithoutOrganizationNestedInput
+    contacts?: ContactUncheckedUpdateManyWithoutOrganizationNestedInput
+    notes?: NoteUncheckedUpdateManyWithoutOrganizationNestedInput
+    tasks?: TaskUncheckedUpdateManyWithoutOrganizationNestedInput
+    deals?: DealUncheckedUpdateManyWithoutOrganizationNestedInput
+    dealHistories?: DealHistoryUncheckedUpdateManyWithoutOrganizationNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput
+    usage?: UsageRecordUncheckedUpdateManyWithoutOrganizationNestedInput
+    dunningStates?: DunningStateUncheckedUpdateManyWithoutOrganizationNestedInput
+    dncEntries?: DNCEntryUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailSuppressions?: EmailSuppressionUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailCampaigns?: EmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailRecipientLists?: EmailRecipientListUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailSends?: EmailSendUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailTemplates?: EmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailAutomations?: EmailAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailAutomationRuns?: EmailAutomationRunUncheckedUpdateManyWithoutOrganizationNestedInput
+    tenantWebhooks?: TenantWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+    webhookDeliveries?: WebhookDeliveryUncheckedUpdateManyWithoutOrganizationNestedInput
+    publicApiKeys?: PublicApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutVapiNumberInput = {
+    id?: string
+    name: string
+    status?: $Enums.OrgStatus
+    aiCallerName?: string
+    aiCallerCompany?: string
+    aiCallerPhone?: string
+    aiSystemPrompt?: string | null
+    onboardingStep?: string
+    vapiPhoneNumberId?: string | null
+    vapiPhoneNumber?: string | null
+    gdprDeletedAt?: Date | string | null
+    zapierTriggerToken?: string | null
+    billingMode?: $Enums.BillingMode
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    spendCap?: SpendCapCreateNestedOneWithoutOrganizationInput
+    provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
+    creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
+    creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
+    users?: UserCreateNestedManyWithoutOrganizationInput
+    campaigns?: CampaignCreateNestedManyWithoutOrganizationInput
+    leads?: LeadCreateNestedManyWithoutOrganizationInput
+    blacklist?: BlacklistCreateNestedManyWithoutOrganizationInput
+    contacts?: ContactCreateNestedManyWithoutOrganizationInput
+    notes?: NoteCreateNestedManyWithoutOrganizationInput
+    tasks?: TaskCreateNestedManyWithoutOrganizationInput
+    deals?: DealCreateNestedManyWithoutOrganizationInput
+    dealHistories?: DealHistoryCreateNestedManyWithoutOrganizationInput
+    subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput
+    usage?: UsageRecordCreateNestedManyWithoutOrganizationInput
+    dunningStates?: DunningStateCreateNestedManyWithoutOrganizationInput
+    dncEntries?: DNCEntryCreateNestedManyWithoutOrganizationInput
+    emailSuppressions?: EmailSuppressionCreateNestedManyWithoutOrganizationInput
+    emailCampaigns?: EmailCampaignCreateNestedManyWithoutOrganizationInput
+    emailRecipientLists?: EmailRecipientListCreateNestedManyWithoutOrganizationInput
+    emailSends?: EmailSendCreateNestedManyWithoutOrganizationInput
+    emailTemplates?: EmailTemplateCreateNestedManyWithoutOrganizationInput
+    emailAutomations?: EmailAutomationCreateNestedManyWithoutOrganizationInput
+    emailAutomationRuns?: EmailAutomationRunCreateNestedManyWithoutOrganizationInput
+    tenantWebhooks?: TenantWebhookCreateNestedManyWithoutOrganizationInput
+    webhookDeliveries?: WebhookDeliveryCreateNestedManyWithoutOrganizationInput
+    publicApiKeys?: PublicApiKeyCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutVapiNumberInput = {
+    id?: string
+    name: string
+    status?: $Enums.OrgStatus
+    aiCallerName?: string
+    aiCallerCompany?: string
+    aiCallerPhone?: string
+    aiSystemPrompt?: string | null
+    onboardingStep?: string
+    vapiPhoneNumberId?: string | null
+    vapiPhoneNumber?: string | null
+    gdprDeletedAt?: Date | string | null
+    zapierTriggerToken?: string | null
+    billingMode?: $Enums.BillingMode
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    spendCap?: SpendCapUncheckedCreateNestedOneWithoutOrganizationInput
+    provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
+    creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
+    creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+    users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
+    campaigns?: CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    leads?: LeadUncheckedCreateNestedManyWithoutOrganizationInput
+    blacklist?: BlacklistUncheckedCreateNestedManyWithoutOrganizationInput
+    contacts?: ContactUncheckedCreateNestedManyWithoutOrganizationInput
+    notes?: NoteUncheckedCreateNestedManyWithoutOrganizationInput
+    tasks?: TaskUncheckedCreateNestedManyWithoutOrganizationInput
+    deals?: DealUncheckedCreateNestedManyWithoutOrganizationInput
+    dealHistories?: DealHistoryUncheckedCreateNestedManyWithoutOrganizationInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput
+    usage?: UsageRecordUncheckedCreateNestedManyWithoutOrganizationInput
+    dunningStates?: DunningStateUncheckedCreateNestedManyWithoutOrganizationInput
+    dncEntries?: DNCEntryUncheckedCreateNestedManyWithoutOrganizationInput
+    emailSuppressions?: EmailSuppressionUncheckedCreateNestedManyWithoutOrganizationInput
+    emailCampaigns?: EmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    emailRecipientLists?: EmailRecipientListUncheckedCreateNestedManyWithoutOrganizationInput
+    emailSends?: EmailSendUncheckedCreateNestedManyWithoutOrganizationInput
+    emailTemplates?: EmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+    emailAutomations?: EmailAutomationUncheckedCreateNestedManyWithoutOrganizationInput
+    emailAutomationRuns?: EmailAutomationRunUncheckedCreateNestedManyWithoutOrganizationInput
+    tenantWebhooks?: TenantWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+    webhookDeliveries?: WebhookDeliveryUncheckedCreateNestedManyWithoutOrganizationInput
+    publicApiKeys?: PublicApiKeyUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutVapiNumberInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutVapiNumberInput, OrganizationUncheckedCreateWithoutVapiNumberInput>
+  }
+
+  export type OrganizationUpsertWithoutVapiNumberInput = {
+    update: XOR<OrganizationUpdateWithoutVapiNumberInput, OrganizationUncheckedUpdateWithoutVapiNumberInput>
+    create: XOR<OrganizationCreateWithoutVapiNumberInput, OrganizationUncheckedCreateWithoutVapiNumberInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutVapiNumberInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutVapiNumberInput, OrganizationUncheckedUpdateWithoutVapiNumberInput>
+  }
+
+  export type OrganizationUpdateWithoutVapiNumberInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrgStatusFieldUpdateOperationsInput | $Enums.OrgStatus
+    aiCallerName?: StringFieldUpdateOperationsInput | string
+    aiCallerCompany?: StringFieldUpdateOperationsInput | string
+    aiCallerPhone?: StringFieldUpdateOperationsInput | string
+    aiSystemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStep?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    vapiPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    gdprDeletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    zapierTriggerToken?: NullableStringFieldUpdateOperationsInput | string | null
+    billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    spendCap?: SpendCapUpdateOneWithoutOrganizationNestedInput
+    provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
+    creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
+    creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
+    users?: UserUpdateManyWithoutOrganizationNestedInput
+    campaigns?: CampaignUpdateManyWithoutOrganizationNestedInput
+    leads?: LeadUpdateManyWithoutOrganizationNestedInput
+    blacklist?: BlacklistUpdateManyWithoutOrganizationNestedInput
+    contacts?: ContactUpdateManyWithoutOrganizationNestedInput
+    notes?: NoteUpdateManyWithoutOrganizationNestedInput
+    tasks?: TaskUpdateManyWithoutOrganizationNestedInput
+    deals?: DealUpdateManyWithoutOrganizationNestedInput
+    dealHistories?: DealHistoryUpdateManyWithoutOrganizationNestedInput
+    subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput
+    usage?: UsageRecordUpdateManyWithoutOrganizationNestedInput
+    dunningStates?: DunningStateUpdateManyWithoutOrganizationNestedInput
+    dncEntries?: DNCEntryUpdateManyWithoutOrganizationNestedInput
+    emailSuppressions?: EmailSuppressionUpdateManyWithoutOrganizationNestedInput
+    emailCampaigns?: EmailCampaignUpdateManyWithoutOrganizationNestedInput
+    emailRecipientLists?: EmailRecipientListUpdateManyWithoutOrganizationNestedInput
+    emailSends?: EmailSendUpdateManyWithoutOrganizationNestedInput
+    emailTemplates?: EmailTemplateUpdateManyWithoutOrganizationNestedInput
+    emailAutomations?: EmailAutomationUpdateManyWithoutOrganizationNestedInput
+    emailAutomationRuns?: EmailAutomationRunUpdateManyWithoutOrganizationNestedInput
+    tenantWebhooks?: TenantWebhookUpdateManyWithoutOrganizationNestedInput
+    webhookDeliveries?: WebhookDeliveryUpdateManyWithoutOrganizationNestedInput
+    publicApiKeys?: PublicApiKeyUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutVapiNumberInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrgStatusFieldUpdateOperationsInput | $Enums.OrgStatus
+    aiCallerName?: StringFieldUpdateOperationsInput | string
+    aiCallerCompany?: StringFieldUpdateOperationsInput | string
+    aiCallerPhone?: StringFieldUpdateOperationsInput | string
+    aiSystemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStep?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    vapiPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    gdprDeletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    zapierTriggerToken?: NullableStringFieldUpdateOperationsInput | string | null
+    billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    spendCap?: SpendCapUncheckedUpdateOneWithoutOrganizationNestedInput
+    provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
+    creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
+    creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+    users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
+    campaigns?: CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    leads?: LeadUncheckedUpdateManyWithoutOrganizationNestedInput
+    blacklist?: BlacklistUncheckedUpdateManyWithoutOrganizationNestedInput
+    contacts?: ContactUncheckedUpdateManyWithoutOrganizationNestedInput
+    notes?: NoteUncheckedUpdateManyWithoutOrganizationNestedInput
+    tasks?: TaskUncheckedUpdateManyWithoutOrganizationNestedInput
+    deals?: DealUncheckedUpdateManyWithoutOrganizationNestedInput
+    dealHistories?: DealHistoryUncheckedUpdateManyWithoutOrganizationNestedInput
+    subscription?: SubscriptionUncheckedUpdateOneWithoutOrganizationNestedInput
+    usage?: UsageRecordUncheckedUpdateManyWithoutOrganizationNestedInput
+    dunningStates?: DunningStateUncheckedUpdateManyWithoutOrganizationNestedInput
+    dncEntries?: DNCEntryUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailSuppressions?: EmailSuppressionUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailCampaigns?: EmailCampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailRecipientLists?: EmailRecipientListUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailSends?: EmailSendUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailTemplates?: EmailTemplateUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailAutomations?: EmailAutomationUncheckedUpdateManyWithoutOrganizationNestedInput
+    emailAutomationRuns?: EmailAutomationRunUncheckedUpdateManyWithoutOrganizationNestedInput
+    tenantWebhooks?: TenantWebhookUncheckedUpdateManyWithoutOrganizationNestedInput
+    webhookDeliveries?: WebhookDeliveryUncheckedUpdateManyWithoutOrganizationNestedInput
+    publicApiKeys?: PublicApiKeyUncheckedUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationCreateWithoutSpendCapInput = {
+    id?: string
+    name: string
+    status?: $Enums.OrgStatus
+    aiCallerName?: string
+    aiCallerCompany?: string
+    aiCallerPhone?: string
+    aiSystemPrompt?: string | null
+    onboardingStep?: string
+    vapiPhoneNumberId?: string | null
+    vapiPhoneNumber?: string | null
+    gdprDeletedAt?: Date | string | null
+    zapierTriggerToken?: string | null
+    billingMode?: $Enums.BillingMode
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vapiNumber?: OrgVapiNumberCreateNestedOneWithoutOrganizationInput
+    provisioning?: TenantProvisioningCreateNestedOneWithoutOrganizationInput
+    creditLedger?: CreditLedgerCreateNestedOneWithoutOrganizationInput
+    creditTransactions?: CreditTransactionCreateNestedManyWithoutOrganizationInput
+    users?: UserCreateNestedManyWithoutOrganizationInput
+    campaigns?: CampaignCreateNestedManyWithoutOrganizationInput
+    leads?: LeadCreateNestedManyWithoutOrganizationInput
+    blacklist?: BlacklistCreateNestedManyWithoutOrganizationInput
+    contacts?: ContactCreateNestedManyWithoutOrganizationInput
+    notes?: NoteCreateNestedManyWithoutOrganizationInput
+    tasks?: TaskCreateNestedManyWithoutOrganizationInput
+    deals?: DealCreateNestedManyWithoutOrganizationInput
+    dealHistories?: DealHistoryCreateNestedManyWithoutOrganizationInput
+    subscription?: SubscriptionCreateNestedOneWithoutOrganizationInput
+    usage?: UsageRecordCreateNestedManyWithoutOrganizationInput
+    dunningStates?: DunningStateCreateNestedManyWithoutOrganizationInput
+    dncEntries?: DNCEntryCreateNestedManyWithoutOrganizationInput
+    emailSuppressions?: EmailSuppressionCreateNestedManyWithoutOrganizationInput
+    emailCampaigns?: EmailCampaignCreateNestedManyWithoutOrganizationInput
+    emailRecipientLists?: EmailRecipientListCreateNestedManyWithoutOrganizationInput
+    emailSends?: EmailSendCreateNestedManyWithoutOrganizationInput
+    emailTemplates?: EmailTemplateCreateNestedManyWithoutOrganizationInput
+    emailAutomations?: EmailAutomationCreateNestedManyWithoutOrganizationInput
+    emailAutomationRuns?: EmailAutomationRunCreateNestedManyWithoutOrganizationInput
+    tenantWebhooks?: TenantWebhookCreateNestedManyWithoutOrganizationInput
+    webhookDeliveries?: WebhookDeliveryCreateNestedManyWithoutOrganizationInput
+    publicApiKeys?: PublicApiKeyCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationUncheckedCreateWithoutSpendCapInput = {
+    id?: string
+    name: string
+    status?: $Enums.OrgStatus
+    aiCallerName?: string
+    aiCallerCompany?: string
+    aiCallerPhone?: string
+    aiSystemPrompt?: string | null
+    onboardingStep?: string
+    vapiPhoneNumberId?: string | null
+    vapiPhoneNumber?: string | null
+    gdprDeletedAt?: Date | string | null
+    zapierTriggerToken?: string | null
+    billingMode?: $Enums.BillingMode
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    vapiNumber?: OrgVapiNumberUncheckedCreateNestedOneWithoutOrganizationInput
+    provisioning?: TenantProvisioningUncheckedCreateNestedOneWithoutOrganizationInput
+    creditLedger?: CreditLedgerUncheckedCreateNestedOneWithoutOrganizationInput
+    creditTransactions?: CreditTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+    users?: UserUncheckedCreateNestedManyWithoutOrganizationInput
+    campaigns?: CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    leads?: LeadUncheckedCreateNestedManyWithoutOrganizationInput
+    blacklist?: BlacklistUncheckedCreateNestedManyWithoutOrganizationInput
+    contacts?: ContactUncheckedCreateNestedManyWithoutOrganizationInput
+    notes?: NoteUncheckedCreateNestedManyWithoutOrganizationInput
+    tasks?: TaskUncheckedCreateNestedManyWithoutOrganizationInput
+    deals?: DealUncheckedCreateNestedManyWithoutOrganizationInput
+    dealHistories?: DealHistoryUncheckedCreateNestedManyWithoutOrganizationInput
+    subscription?: SubscriptionUncheckedCreateNestedOneWithoutOrganizationInput
+    usage?: UsageRecordUncheckedCreateNestedManyWithoutOrganizationInput
+    dunningStates?: DunningStateUncheckedCreateNestedManyWithoutOrganizationInput
+    dncEntries?: DNCEntryUncheckedCreateNestedManyWithoutOrganizationInput
+    emailSuppressions?: EmailSuppressionUncheckedCreateNestedManyWithoutOrganizationInput
+    emailCampaigns?: EmailCampaignUncheckedCreateNestedManyWithoutOrganizationInput
+    emailRecipientLists?: EmailRecipientListUncheckedCreateNestedManyWithoutOrganizationInput
+    emailSends?: EmailSendUncheckedCreateNestedManyWithoutOrganizationInput
+    emailTemplates?: EmailTemplateUncheckedCreateNestedManyWithoutOrganizationInput
+    emailAutomations?: EmailAutomationUncheckedCreateNestedManyWithoutOrganizationInput
+    emailAutomationRuns?: EmailAutomationRunUncheckedCreateNestedManyWithoutOrganizationInput
+    tenantWebhooks?: TenantWebhookUncheckedCreateNestedManyWithoutOrganizationInput
+    webhookDeliveries?: WebhookDeliveryUncheckedCreateNestedManyWithoutOrganizationInput
+    publicApiKeys?: PublicApiKeyUncheckedCreateNestedManyWithoutOrganizationInput
+  }
+
+  export type OrganizationCreateOrConnectWithoutSpendCapInput = {
+    where: OrganizationWhereUniqueInput
+    create: XOR<OrganizationCreateWithoutSpendCapInput, OrganizationUncheckedCreateWithoutSpendCapInput>
+  }
+
+  export type OrganizationUpsertWithoutSpendCapInput = {
+    update: XOR<OrganizationUpdateWithoutSpendCapInput, OrganizationUncheckedUpdateWithoutSpendCapInput>
+    create: XOR<OrganizationCreateWithoutSpendCapInput, OrganizationUncheckedCreateWithoutSpendCapInput>
+    where?: OrganizationWhereInput
+  }
+
+  export type OrganizationUpdateToOneWithWhereWithoutSpendCapInput = {
+    where?: OrganizationWhereInput
+    data: XOR<OrganizationUpdateWithoutSpendCapInput, OrganizationUncheckedUpdateWithoutSpendCapInput>
+  }
+
+  export type OrganizationUpdateWithoutSpendCapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrgStatusFieldUpdateOperationsInput | $Enums.OrgStatus
+    aiCallerName?: StringFieldUpdateOperationsInput | string
+    aiCallerCompany?: StringFieldUpdateOperationsInput | string
+    aiCallerPhone?: StringFieldUpdateOperationsInput | string
+    aiSystemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStep?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    vapiPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    gdprDeletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    zapierTriggerToken?: NullableStringFieldUpdateOperationsInput | string | null
+    billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vapiNumber?: OrgVapiNumberUpdateOneWithoutOrganizationNestedInput
+    provisioning?: TenantProvisioningUpdateOneWithoutOrganizationNestedInput
+    creditLedger?: CreditLedgerUpdateOneWithoutOrganizationNestedInput
+    creditTransactions?: CreditTransactionUpdateManyWithoutOrganizationNestedInput
+    users?: UserUpdateManyWithoutOrganizationNestedInput
+    campaigns?: CampaignUpdateManyWithoutOrganizationNestedInput
+    leads?: LeadUpdateManyWithoutOrganizationNestedInput
+    blacklist?: BlacklistUpdateManyWithoutOrganizationNestedInput
+    contacts?: ContactUpdateManyWithoutOrganizationNestedInput
+    notes?: NoteUpdateManyWithoutOrganizationNestedInput
+    tasks?: TaskUpdateManyWithoutOrganizationNestedInput
+    deals?: DealUpdateManyWithoutOrganizationNestedInput
+    dealHistories?: DealHistoryUpdateManyWithoutOrganizationNestedInput
+    subscription?: SubscriptionUpdateOneWithoutOrganizationNestedInput
+    usage?: UsageRecordUpdateManyWithoutOrganizationNestedInput
+    dunningStates?: DunningStateUpdateManyWithoutOrganizationNestedInput
+    dncEntries?: DNCEntryUpdateManyWithoutOrganizationNestedInput
+    emailSuppressions?: EmailSuppressionUpdateManyWithoutOrganizationNestedInput
+    emailCampaigns?: EmailCampaignUpdateManyWithoutOrganizationNestedInput
+    emailRecipientLists?: EmailRecipientListUpdateManyWithoutOrganizationNestedInput
+    emailSends?: EmailSendUpdateManyWithoutOrganizationNestedInput
+    emailTemplates?: EmailTemplateUpdateManyWithoutOrganizationNestedInput
+    emailAutomations?: EmailAutomationUpdateManyWithoutOrganizationNestedInput
+    emailAutomationRuns?: EmailAutomationRunUpdateManyWithoutOrganizationNestedInput
+    tenantWebhooks?: TenantWebhookUpdateManyWithoutOrganizationNestedInput
+    webhookDeliveries?: WebhookDeliveryUpdateManyWithoutOrganizationNestedInput
+    publicApiKeys?: PublicApiKeyUpdateManyWithoutOrganizationNestedInput
+  }
+
+  export type OrganizationUncheckedUpdateWithoutSpendCapInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrgStatusFieldUpdateOperationsInput | $Enums.OrgStatus
+    aiCallerName?: StringFieldUpdateOperationsInput | string
+    aiCallerCompany?: StringFieldUpdateOperationsInput | string
+    aiCallerPhone?: StringFieldUpdateOperationsInput | string
+    aiSystemPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    onboardingStep?: StringFieldUpdateOperationsInput | string
+    vapiPhoneNumberId?: NullableStringFieldUpdateOperationsInput | string | null
+    vapiPhoneNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    gdprDeletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    zapierTriggerToken?: NullableStringFieldUpdateOperationsInput | string | null
+    billingMode?: EnumBillingModeFieldUpdateOperationsInput | $Enums.BillingMode
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    vapiNumber?: OrgVapiNumberUncheckedUpdateOneWithoutOrganizationNestedInput
+    provisioning?: TenantProvisioningUncheckedUpdateOneWithoutOrganizationNestedInput
+    creditLedger?: CreditLedgerUncheckedUpdateOneWithoutOrganizationNestedInput
+    creditTransactions?: CreditTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
     users?: UserUncheckedUpdateManyWithoutOrganizationNestedInput
     campaigns?: CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
     leads?: LeadUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -76366,10 +81769,6 @@ export namespace Prisma {
      */
     export type EmailLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = EmailLogDefaultArgs<ExtArgs>
     /**
-     * @deprecated Use ApiKeyDefaultArgs instead
-     */
-    export type ApiKeyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ApiKeyDefaultArgs<ExtArgs>
-    /**
      * @deprecated Use CampaignDefaultArgs instead
      */
     export type CampaignArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CampaignDefaultArgs<ExtArgs>
@@ -76485,6 +81884,26 @@ export namespace Prisma {
      * @deprecated Use CreditTransactionDefaultArgs instead
      */
     export type CreditTransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CreditTransactionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use OrgVapiNumberDefaultArgs instead
+     */
+    export type OrgVapiNumberArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrgVapiNumberDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SpendCapDefaultArgs instead
+     */
+    export type SpendCapArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SpendCapDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use DncEntryDefaultArgs instead
+     */
+    export type DncEntryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DncEntryDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use KeyAccessLogDefaultArgs instead
+     */
+    export type KeyAccessLogArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = KeyAccessLogDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PlatformSecretDefaultArgs instead
+     */
+    export type PlatformSecretArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PlatformSecretDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

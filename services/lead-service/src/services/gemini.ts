@@ -1,5 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { meterAndCharge } from "@callora/shared";
+import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
+import { meterAndCharge, timeVendorCall, logger } from "@callora/shared";
+import { getServiceSecret } from "../config.js";
+import { CircuitBreaker } from "../lib/circuitBreaker.js";
 
 export interface QualificationResult {
   sentiment: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
@@ -9,7 +11,18 @@ export interface QualificationResult {
   isQualified: boolean;
 }
 
-function tokensUsed(prompt: string, responseText: string, result: any): number {
+interface GenerateResult {
+  response: {
+    text: () => string;
+    usageMetadata?: {
+      totalTokenCount?: number;
+      promptTokenCount?: number;
+      candidatesTokenCount?: number;
+    };
+  };
+}
+
+function tokensUsed(prompt: string, responseText: string, result: GenerateResult): number {
   const meta = result?.response?.usageMetadata;
   const total =
     meta?.totalTokenCount ??
@@ -18,26 +31,34 @@ function tokensUsed(prompt: string, responseText: string, result: any): number {
   return Math.max(1, Math.ceil((prompt.length + (responseText?.length ?? 0)) / 4));
 }
 
-export class GeminiService {
-  private model: any;
-  private apiKey: string;
+const geminiBreaker = new CircuitBreaker("gemini");
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    if (this.apiKey) {
-      const genAI = new GoogleGenerativeAI(this.apiKey);
-      this.model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
-      });
-    }
+let cachedModel: GenerativeModel | null = null;
+async function getModel(): Promise<GenerativeModel> {
+  if (cachedModel) return cachedModel;
+  const key = await getServiceSecret("GEMINI_API_KEY");
+  if (!key) {
+    throw new Error("GEMINI_API_KEY is not configured for the platform.");
   }
+  const genAI = new GoogleGenerativeAI(key);
+  cachedModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  return cachedModel;
+}
 
+async function callGemini(prompt: string): Promise<{ text: string; result: GenerateResult }> {
+  const model = await getModel();
+  const result = (await geminiBreaker.exec(() =>
+    timeVendorCall("gemini", "generateContent", () => model.generateContent(prompt))
+  )) as unknown as GenerateResult;
+  const text = result.response.text();
+  return { text, result };
+}
+
+export class GeminiService {
   async generateSearchQueries(
     userPrompt: string,
     organizationId?: string
   ): Promise<string[]> {
-    if (!this.apiKey) return [userPrompt];
-
     const prompt = `
       You are a B2B Sales assistant.
       User request: "${userPrompt}"
@@ -47,8 +68,7 @@ export class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const text = result.response.text();
+      const { text, result } = await callGemini(prompt);
       if (organizationId) {
         await meterAndCharge(
           organizationId,
@@ -65,19 +85,20 @@ export class GeminiService {
       const jsonStr = jsonMatch ? jsonMatch[0] : cleanText;
 
       return JSON.parse(jsonStr);
-    } catch (error: any) {
-      if (error?.name === "QuotaExceededError") throw error;
-      console.error("Gemini Search Query Error:", error.message);
+    } catch (error) {
+      const err = error as { name?: string; message?: string };
+      if (err?.name === "QuotaExceededError" || err?.name === "VendorUnavailableError") throw error;
+      logger.error({ err: err.message }, "[lead-service] Gemini search-query error");
       return [userPrompt];
     }
   }
 
   async filterLeads(
-    leads: any[],
+    leads: Array<{ id: string; name?: string; rating?: number; userRatingCount?: number; types?: string[]; address?: string }>,
     userPrompt: string,
     organizationId?: string
   ): Promise<string[]> {
-    if (!this.apiKey || leads.length === 0) return leads.map((l) => l.id);
+    if (leads.length === 0) return [];
 
     const minimalLeads = leads.map((l) => ({
       id: l.id,
@@ -104,8 +125,7 @@ export class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const text = result.response.text();
+      const { text, result } = await callGemini(prompt);
       if (organizationId) {
         await meterAndCharge(
           organizationId,
@@ -122,9 +142,10 @@ export class GeminiService {
       const jsonStr = jsonMatch ? jsonMatch[0] : cleanText;
 
       return JSON.parse(jsonStr);
-    } catch (error: any) {
-      if (error?.name === "QuotaExceededError") throw error;
-      console.error("Gemini Filtering Error:", error.message);
+    } catch (error) {
+      const err = error as { name?: string; message?: string };
+      if (err?.name === "QuotaExceededError" || err?.name === "VendorUnavailableError") throw error;
+      logger.error({ err: err.message }, "[lead-service] Gemini filtering error");
       return leads.map((l) => l.id);
     }
   }
@@ -134,10 +155,6 @@ export class GeminiService {
     businessName: string,
     organizationId?: string
   ): Promise<QualificationResult> {
-    if (!this.apiKey) {
-      throw new Error("Gemini API Key missing.");
-    }
-
     const prompt = `
       Analyze this sales call transcript with ${businessName}.
 
@@ -162,8 +179,7 @@ export class GeminiService {
     `;
 
     try {
-      const result = await this.model.generateContent(prompt);
-      const text = result.response.text();
+      const { text, result } = await callGemini(prompt);
       if (organizationId) {
         await meterAndCharge(
           organizationId,
@@ -176,10 +192,11 @@ export class GeminiService {
         .replace(/```/g, "")
         .trim();
       return JSON.parse(cleanText);
-    } catch (error: any) {
-      if (error?.name === "QuotaExceededError") throw error;
+    } catch (error) {
+      const err = error as { name?: string; message?: string };
+      if (err?.name === "QuotaExceededError" || err?.name === "VendorUnavailableError") throw error;
       // Per project rules, qualification must fail loud — don't fabricate.
-      throw new Error(`AI service unavailable: ${error.message}`);
+      throw new Error(`AI service unavailable: ${err.message}`);
     }
   }
 }

@@ -75,8 +75,10 @@ pipeline {
                                     sleep 2
                                 done
                                 npm install --no-audit --no-fund
-                                (cd shared && npx tsc)
-                                (cd backend && npm install --no-audit --no-fund && npx prisma generate && npx prisma migrate deploy && npx vitest run)
+                                (cd shared && npm run prisma:generate && npx tsc)
+                                # Apply migrations against the throwaway CI DB so vitest suites
+                                # that hit Prisma have the schema in place.
+                                (cd shared && npx prisma migrate deploy --schema=src/prisma/schema.prisma)
                                 (cd services/campaign-service && npm install --no-audit --no-fund && npx vitest run)
                             '''
                         }
@@ -96,14 +98,14 @@ pipeline {
             steps {
                 sh '''
                     set -e
-                    cd backend
+                    cd shared
                     npm install --no-audit --no-fund
-                    npx prisma validate
+                    npx prisma validate --schema=src/prisma/schema.prisma
                     # Fails non-zero if schema.prisma and migrations are
                     # out of sync — block the pipeline before deploy.
                     npx prisma migrate diff \
-                        --from-migrations prisma/migrations \
-                        --to-schema-datamodel prisma/schema.prisma \
+                        --from-migrations src/prisma/migrations \
+                        --to-schema-datamodel src/prisma/schema.prisma \
                         --exit-code
                 '''
             }
@@ -111,10 +113,24 @@ pipeline {
 
         stage('Build Images') {
             parallel {
-                stage('Build backend') {
+                stage('Build edge bundle') {
                     steps {
                         script {
-                            docker.build("fitisol/callora-backend:${IMAGE_TAG}", "./backend")
+                            docker.build("fitisol/callora-edge:${IMAGE_TAG}", "-f bundles/edge/Dockerfile .")
+                        }
+                    }
+                }
+                stage('Build core bundle') {
+                    steps {
+                        script {
+                            docker.build("fitisol/callora-core:${IMAGE_TAG}", "-f bundles/core/Dockerfile .")
+                        }
+                    }
+                }
+                stage('Build io bundle') {
+                    steps {
+                        script {
+                            docker.build("fitisol/callora-io:${IMAGE_TAG}", "-f bundles/io/Dockerfile .")
                         }
                     }
                 }
@@ -139,7 +155,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        ['callora-backend', 'callora-frontend', 'callora-admin'].each { name ->
+                        ['callora-edge', 'callora-core', 'callora-io', 'callora-frontend', 'callora-admin'].each { name ->
                             def img = docker.image("fitisol/${name}:${IMAGE_TAG}")
                             img.push("${IMAGE_TAG}")
                             img.push('latest')
@@ -178,9 +194,10 @@ pipeline {
                                 echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
                                 docker compose pull
                                 # Apply pending Prisma migrations against the live DB before
-                                # rolling out new app containers. Uses the backend image we
-                                # just pulled so the bundled migration files match the code.
-                                docker compose run --rm --no-deps backend npx prisma migrate deploy
+                                # rolling out new app containers. Uses the campaign-service
+                                # image which bundles @callora/shared (where the canonical
+                                # schema + migrations live) inside its node_modules.
+                                docker compose run --rm --no-deps campaign-service npx prisma migrate deploy --schema=node_modules/@callora/shared/src/prisma/schema.prisma
                                 docker compose up -d --remove-orphans
                                 docker image prune -f
                                 docker logout
@@ -194,7 +211,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    echo "Waiting for backend to start..."
+                    echo "Waiting for edge bundle to start..."
                     sleep 15
                     for i in 1 2 3 4 5 6 7 8 9 10; do
                         echo "Attempt $i..."

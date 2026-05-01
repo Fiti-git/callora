@@ -1,0 +1,45 @@
+# Callora TINY deploy — Caddy reverse proxy with auto HTTPS.
+# Replace api.callora.io with your domain.
+
+{
+	email ops@callora.io
+	servers {
+		timeouts {
+			read_body   30s
+			read_header 10s
+			write       60s
+			idle        2m
+		}
+	}
+}
+
+api.callora.io {
+	encode zstd gzip
+
+	# Stripe webhook needs raw body — Caddy proxies bytes as-is, so this is safe.
+	# Just guarantee no rewrite/buffer plugin gets added here.
+
+	reverse_proxy edge:4000 {
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		transport http {
+			read_buffer 4KB
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+		level INFO
+	}
+}

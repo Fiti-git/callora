@@ -158,6 +158,23 @@ Ownership boundaries (enforced via each service's `AGENT.md`):
 - Only **platform-service** verifies `PLATFORM_JWT_SECRET`; that secret must not be set on any tenant-facing service container.
 - The Stripe webhook (`/api/billing/webhook`) keeps its raw body — the gateway must not parse JSON for that path.
 
+### Deployment Topology (planned, Wave 3)
+
+The 9-services-plus-gateway layout above is the **logical** model and stays unchanged at the
+code level. For production, services will be packed into **3 runtime bundles** to reduce
+server footprint and inter-process chatter:
+
+| Bundle | Contains | Why grouped |
+|---|---|---|
+| **edge** | `api-gateway` | Sole public ingress; terminates TLS, enforces CORS, validates JWT, applies rate limits. |
+| **core** | `auth-service`, `campaign-service`, `crm-service`, `platform-service`, `analytics-service`, `billing-service` | Stateless request/response + DB-bound services. Share a single Node process pool, all use Prisma. |
+| **io** | `lead-service`, `calling-service`, `notification-service` | Outbound vendor I/O (Places, Gemini, Vapi, SMTP). Isolated so a slow upstream never starves core API requests. |
+
+Each bundle is one container/process; services inside a bundle still register their own
+Express routers and own their own ports for in-process routing. Logical service boundaries
+(ownership in `AGENT.md`) remain authoritative — the bundling is purely a deployment concern.
+Compose / Helm definitions for the 3-bundle layout will arrive in Wave 3.
+
 ---
 
 ## Tech Stack
@@ -263,10 +280,13 @@ GET    /api/platform/metrics
 
 **Multi-tenancy root**: `Organization` — everything belongs to an org.
 
+> **Note:** Tenants no longer supply API keys. The legacy `ApiKey` model is removed.
+> All upstream credentials (Google Maps, Gemini, Vapi, Stripe, SMTP) are platform-owned
+> and accessed exclusively via `@callora/shared`'s `getSecret()`.
+
 ```
 Organization
   ├── users[]           (User: ADMIN | MEMBER | VIEWER)
-  ├── apiKeys           (ApiKey: googleMapsKey, geminiKey, vapiKey, vapiPhoneId)
   ├── campaigns[]       (Campaign: AI | CSV; DRAFT→RUNNING→COMPLETED/PAUSED_QUOTA/FAILED)
   │     └── leads[]
   ├── leads[]           (Lead: NEW→CALLED→QUALIFIED/DISQUALIFIED/PENDING_RETRY/PENDING_FOLLOWUP)
@@ -277,12 +297,16 @@ Organization
   ├── deals[]           (Deal: PROSPECT→QUALIFIED→PROPOSAL→NEGOTIATION→WON/LOST, value, probability)
   ├── blacklist[]       (Blacklist: phoneNumber, reason)
   ├── subscription      (Subscription → Plan; Stripe IDs; TRIALING→ACTIVE→PAST_DUE→CANCELED)
-  └── usage[]           (UsageRecord: monthly callsMade, leadsScraped, aiTokens)
+  ├── usage[]           (UsageRecord: monthly callsMade, leadsScraped, aiTokens)
+  ├── vapiNumber?       (OrgVapiNumber: dedicated Vapi number per paid org; trials use shared pool)
+  ├── spendCap?         (SpendCap: dailyCents, monthlyCents — hard cutoff for upstream spend)
+  └── dncEntries[]      (DncEntry: phoneNumber, source, scrubbedAt — Do-Not-Call list)
 
 Platform-level (separate from tenants):
   PlatformUser          (super-admin, separate JWT secret)
   Plan                  (FREE | STARTER | PRO | ENTERPRISE; quotas, Stripe price IDs)
   AuditLog              (actorType, actorId, action, target, metadata)
+  KeyAccessLog          (service, keyName, orgId?, accessedAt — every getSecret() call)
 ```
 
 **Org status lifecycle**: `TRIAL → ACTIVE → PAST_DUE / SUSPENDED / CANCELED`
@@ -309,23 +333,37 @@ Platform-level (separate from tenants):
 
 ## Environment Variables
 
-### Backend `.env`
+### Backend / Service `.env` (platform-owned secrets — see `docs/ops/SECRETS.md`)
 ```env
 DATABASE_URL=
-NEXTAUTH_SECRET=               # tenant JWT secret (shared with frontend)
-PLATFORM_JWT_SECRET=           # platform JWT secret (shared with admin)
+NEXTAUTH_SECRET=               # tenant JWT secret (shared with frontend) — REQUIRED
+PLATFORM_JWT_SECRET=           # platform JWT secret (admin app + platform-service ONLY) — REQUIRED
 
-GOOGLE_MAPS_API_KEY=           # platform-level (fallback if tenant has none)
-GEMINI_API_KEY=                # platform-level fallback
-VAPI_PRIVATE_KEY=              # platform-level fallback
-VAPI_PHONE_NUMBER_ID=          # platform-level fallback
+# Secret backend selector: "env" for local dev, "aws" for prod (AWS Secrets Manager)
+SECRETS_BACKEND=env
 
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
+# Upstream vendor keys — REQUIRED platform secrets. Never per-tenant. Never returned via API.
+GOOGLE_MAPS_API_KEY=           # REQUIRED — platform-owned
+GEMINI_API_KEY=                # REQUIRED — platform-owned
+VAPI_PRIVATE_KEY=              # REQUIRED — platform-owned
+VAPI_PHONE_NUMBER_ID=          # REQUIRED — shared trial pool number; paid orgs auto-provision dedicated numbers
+
+STRIPE_SECRET_KEY=             # REQUIRED
+STRIPE_WEBHOOK_SECRET=         # REQUIRED
 STRIPE_PRICE_FREE=
 STRIPE_PRICE_STARTER=
 STRIPE_PRICE_PRO=
 STRIPE_PRICE_ENTERPRISE=
+
+# Stripe metered-billing meter IDs (Model B PAYG)
+STRIPE_METER_CALL_MINUTES=
+STRIPE_METER_LEADS_QUALIFIED=
+STRIPE_METER_NUMBER_RENTAL=
+
+# Spend caps + trial limits (cents). Applied per-org unless overridden by SpendCap row.
+DAILY_SPEND_CAP_DEFAULT_CENTS=2000
+MONTHLY_SPEND_CAP_DEFAULT_CENTS=50000
+TRIAL_CALL_CAP=25
 
 TENANT_APP_ORIGIN=http://localhost:3000
 ADMIN_APP_ORIGIN=http://localhost:3001
@@ -403,7 +441,7 @@ npx prisma generate          # regenerate client after schema change
 ### TypeScript
 - Strict TypeScript throughout. No `any` unless absolutely unavoidable — prefer `unknown` + narrowing.
 - ESM imports with `.js` extension on relative imports (even for `.ts` source files): `import x from './lib/prisma.js'`
-- Services are classes (e.g. `GeminiService`, `VapiService`). Instantiate with org-specific API keys.
+- Vendor wrappers are classes (e.g. `GeminiService`, `VapiService`). Instantiate with credentials returned from `getSecret()` — never with values pulled directly from `process.env` or from any tenant-controlled field.
 
 ### Backend Patterns
 - All tenant routes must extract `req.user` from the `requireAuth` middleware — never trust client-supplied org IDs.
@@ -436,10 +474,10 @@ npx prisma generate          # regenerate client after schema change
 Two workers boot on server start via `workers/index.ts`:
 
 **`campaignWorker`** — processes `campaign:call` jobs:
-1. Loads campaign + org + API keys from DB
+1. Loads campaign + org from DB; resolves vendor credentials via `getSecret()` (platform-owned)
 2. Marks campaign `RUNNING`
-3. For each leadId: checks quota → calls Vapi → polls for result → runs Gemini summarization → updates Lead status + CallLog → sends `qualifiedLead` email if score ≥ threshold
-4. On quota exhaustion: marks campaign `PAUSED_QUOTA`
+3. For each leadId: checks quota + spend cap + DNC scrub → calls Vapi (using org's `OrgVapiNumber` if paid, else shared trial pool) → polls for result → runs Gemini summarization → updates Lead status + CallLog → sends `qualifiedLead` email if score ≥ threshold
+4. On quota or spend-cap exhaustion: marks campaign `PAUSED_QUOTA`
 5. On completion: marks campaign `COMPLETED`
 
 **`trialExpiryWorker`** — scheduled: checks orgs where trial has ended → transitions status to `PAST_DUE` → sends expiry email.
@@ -508,32 +546,48 @@ When running sub-agents in parallel, keep these boundaries clean:
 - Audit logging (platform actions)
 - Docker Compose full-stack setup
 
+### Production Hardening (Waves 1-4 — complete)
+- 3-bundle compact deploy (`edge`/`core`/`io`) under `bundles/` + `docker-compose.compact.yml`; 512 MiB / 0.75 vCPU per bundle
+- Centralized `getSecret()` in `@callora/shared/secrets` (env backend in dev, AWS Secrets Manager in prod) with TTL cache + `KeyAccessLog`
+- Per-org Vapi number auto-provisioning for paid orgs; shared trial-pool numbers
+- Stripe metered billing (Model B PAYG) with per-org daily/monthly spend caps + auto-suspend
+- Anomaly detector (rolling-baseline x `ANOMALY_MULTIPLIER`) with per-org overrides
+- Platform-wide DNC scrub on every campaign tick
+- Circuit breakers around Gemini, Vapi, Google Places (env-flag bypass for incident response)
+- Ops docs: `docs/ops/SECRETS.md`, `docs/ops/COMPACT_DEPLOY.md`, `docs/ops/INCIDENT_PLAYBOOK.md`
+
 ### Known Incomplete / TODO Areas
 - No automated test coverage beyond `tenant-isolation.test.ts`
 - Admin app is minimal (no charts, no audit log viewer)
 - No 2FA implementation (field exists in PlatformUser but unused)
 - Marketing landing page and pricing page are stubs
+- Legacy `backend/` monolith retained until Phase 4 verification completes, then deletes
 
 ---
 
 ## Security Rules (Always Follow)
 
 1. **Tenant isolation is non-negotiable** — every query must be scoped to `req.user.organizationId`. A tenant must never see another tenant's data.
-2. **API keys are tenant-owned secrets** — stored in `ApiKey` model, never logged, never returned to frontend in full.
+2. **API keys are platform secrets only** — never stored per-tenant, never returned in any API response (not even masked), and never logged. Always fetched via `@callora/shared`'s `getSecret()` (which writes to `KeyAccessLog`). Reading `process.env.GOOGLE_MAPS_API_KEY` (or any other vendor key) directly inside service business logic is forbidden — it bypasses the audit trail and the AWS-Secrets-Manager backend.
 3. **Platform routes are fully separate** — use `platformAuth` middleware, not `requireAuth`. Never mix them.
 4. **Password reset tokens** expire and are single-use (see `PasswordResetToken` model).
 5. **Stripe webhooks** must verify signature with `STRIPE_WEBHOOK_SECRET` before processing.
+6. **Spend caps are enforced server-side** — every upstream-cost action (Vapi call, Gemini token, Places query) must check the org's `SpendCap` before dispatch and abort with a clear error if exceeded.
+7. **DNC scrub is mandatory** — before any outbound dial, the calling-service must verify the target number is not in `DncEntry` for the org or globally.
 
 ---
 
 ## AI Agent Instructions
 
 - **Assume multi-tenancy by default.** Any new feature touching data must scope to `organizationId`.
-- **Check quota before adding any action that consumes calls, leads, or AI tokens.**
+- **Check quota AND spend cap** before any action that consumes calls, leads, AI tokens, or vendor spend.
+- **Always fetch upstream credentials via `getSecret()` from `@callora/shared`.** Never read `process.env` directly for vendor keys (Google Maps, Gemini, Vapi, Stripe, SMTP) inside service business logic — it bypasses the secrets backend abstraction and the `KeyAccessLog` audit trail. Reading `process.env` for non-secret config (ports, URLs, feature flags) is fine.
+- **Never expose vendor keys to the tenant API surface.** No GET endpoint may return them (even masked); no Server Action may forward them; no email/log line may include them.
 - **Never rename or migrate away from Callora branding.** EzLeadsAI is dead.
-- **When adding a new route**, register it in `backend/src/index.ts` and add the corresponding Server Action in `frontend/src/app/actions/`.
+- **When adding a new route**, register it in the owning service's `src/index.ts` and add the corresponding Server Action in `frontend/src/app/actions/`.
 - **When changing Prisma schema**, always create a migration (`npx prisma migrate dev --name <description>`) and regenerate the client.
+- **When adding a new secret**, follow the steps in `docs/ops/SECRETS.md` (env.example → service config manifest → deploy).
 - **Prefer server components** in Next.js. Only use `'use client'` when the component needs browser APIs or React hooks.
 - **When in doubt about a feature**, check `docs/setup/PLATFORM_SETUP.md` for the platform run-book.
 - **Do not introduce new dependencies without good reason.** Prefer using what's already in the stack.
-- **Keep email templates in `backend/src/emails/`** — do not create inline HTML strings in routes or workers.
+- **Keep email templates inside notification-service** — do not create inline HTML strings in routes or workers, and do not import `nodemailer` outside notification-service.
