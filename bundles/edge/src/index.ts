@@ -117,8 +117,11 @@ app.post(
 // ---- In-process apps (auth + platform) -----------------------------------
 // Both sub-apps install their own express.json(); mounting them BEFORE we
 // add a global json() prevents double-parsing on tenant routes.
-app.use("/api/auth", authLimiter, createAuthApp());
-app.use("/api/platform", platformLimiter, createPlatformApp());
+// Mount sub-apps at `/`. Each sub-app already self-prefixes its routes
+// with /api/auth or /api/platform inside createApp(); mounting here at the
+// same prefix would double it (e.g. /api/platform/api/platform/auth/login).
+app.use(authLimiter, createAuthApp());
+app.use(platformLimiter, createPlatformApp());
 
 // Developer API key CRUD — JWT-protected, mounted in-process from
 // auth-service. Uses the same JSON parser the auth sub-app installs.
