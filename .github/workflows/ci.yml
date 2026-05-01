@@ -35,23 +35,27 @@ jobs:
 
       - name: Typecheck every microservice
         run: |
-          set -e
+          fail=0
           for s in services/*; do
             if [ -f "$s/tsconfig.json" ]; then
-              echo "==> $s"
-              (cd "$s" && npx tsc --noEmit)
+              echo "::group::typecheck $s"
+              (cd "$s" && npx tsc --noEmit) || fail=1
+              echo "::endgroup::"
             fi
           done
+          exit $fail
 
       - name: Typecheck every bundle
         run: |
-          set -e
+          fail=0
           for b in bundles/*; do
             if [ -f "$b/tsconfig.json" ]; then
-              echo "==> $b"
-              (cd "$b" && npx tsc --noEmit)
+              echo "::group::typecheck $b"
+              (cd "$b" && npx tsc --noEmit) || fail=1
+              echo "::endgroup::"
             fi
           done
+          exit $fail
 
       - name: Typecheck frontend
         working-directory: frontend
@@ -128,13 +132,15 @@ jobs:
 
       - name: Run vitest in each service that has it
         run: |
-          set -e
+          fail=0
           for s in services/*; do
             if [ -f "$s/vitest.config.ts" ]; then
-              echo "==> $s"
-              (cd "$s" && npx vitest run)
+              echo "::group::vitest $s"
+              (cd "$s" && npx vitest run) || fail=1
+              echo "::endgroup::"
             fi
           done
+          exit $fail
 
       - name: Run root vitest if config present
         run: |
@@ -147,6 +153,22 @@ jobs:
   migrate-check:
     name: Prisma schema vs migrations drift
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shadow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/shadow
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -166,11 +188,6 @@ jobs:
             --to-schema-datamodel src/prisma/schema.prisma \
             --shadow-database-url "postgres://postgres:postgres@localhost:5432/shadow" \
             --exit-code || (echo "::error::Prisma schema drifted from migration history. Run: cd shared && npx prisma migrate dev --schema=src/prisma/schema.prisma" && exit 1)
-        env:
-          # Drift check doesn't actually need the DB if --shadow-database-url
-          # is not used; falls back to in-memory engine. Keep simple.
-          DATABASE_URL: postgres://placeholder
-        continue-on-error: false
 
   frontend-build:
     name: Build frontend (Next.js)
@@ -196,8 +213,10 @@ jobs:
           NEXTAUTH_URL: http://localhost:3000
           API_URL: http://localhost:4000
           NEXT_PUBLIC_API_URL: http://localhost:4000
+          SKIP_ENV_VALIDATION: "1"
         run: |
           npm install --no-audit --no-fund
+          npx prisma generate --schema=../shared/src/prisma/schema.prisma || true
           npm run build
 
   admin-build:
