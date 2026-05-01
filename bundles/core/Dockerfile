@@ -47,6 +47,8 @@ COPY --from=builder /repo/node_modules ./node_modules
 COPY --from=builder /repo/shared/package.json ./shared/package.json
 COPY --from=builder /repo/shared/dist ./shared/dist
 COPY --from=builder /repo/shared/src/prisma ./shared/src/prisma
+# Mirror Prisma generated client into dist tree (see edge Dockerfile note).
+COPY --from=builder /repo/shared/src/prisma/generated ./shared/dist/prisma/generated
 COPY --from=builder /repo/services/campaign-service/package.json ./services/campaign-service/package.json
 COPY --from=builder /repo/services/campaign-service/dist ./services/campaign-service/dist
 COPY --from=builder /repo/services/lead-service/package.json ./services/lead-service/package.json

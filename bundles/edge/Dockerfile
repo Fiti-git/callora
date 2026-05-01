@@ -51,6 +51,10 @@ COPY --from=builder /repo/node_modules ./node_modules
 COPY --from=builder /repo/shared/package.json ./shared/package.json
 COPY --from=builder /repo/shared/dist ./shared/dist
 COPY --from=builder /repo/shared/src/prisma ./shared/src/prisma
+# Prisma generator outputs to shared/src/prisma/generated/ but the compiled
+# shared/dist/prisma/index.js does `require("./generated/index.js")`. Mirror
+# the generated client into the dist tree so the require resolves at runtime.
+COPY --from=builder /repo/shared/src/prisma/generated ./shared/dist/prisma/generated
 COPY --from=builder /repo/services/api-gateway/package.json ./services/api-gateway/package.json
 COPY --from=builder /repo/services/api-gateway/dist ./services/api-gateway/dist
 COPY --from=builder /repo/services/auth-service/package.json ./services/auth-service/package.json
