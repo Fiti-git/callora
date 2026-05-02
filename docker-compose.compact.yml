@@ -184,30 +184,13 @@ services:
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
       API_URL: http://edge:4000
       NEXT_PUBLIC_API_URL: http://${PUBLIC_HOST}:4000
+      # Admin section (/admin) lives inside the frontend now. It POSTs to the
+      # platform API server-side via PLATFORM_API_URL and stores a separate
+      # platform JWT in an httpOnly cookie.
+      PLATFORM_API_URL: http://edge:4000/api/platform
     depends_on:
       edge: { condition: service_started }
     mem_limit: 256m
-    cpus: 0.5
-
-  admin:
-    build:
-      context: ./admin
-      dockerfile: Dockerfile
-    image: callora/admin:latest
-    container_name: callora-admin
-    restart: unless-stopped
-    logging: *default-logging
-    ports:
-      - "3001:3001"
-    environment:
-      NODE_ENV: production
-      NEXTAUTH_URL: ${ADMIN_APP_ORIGIN}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      PLATFORM_API_URL: http://edge:4000/api/platform
-      NEXT_PUBLIC_PLATFORM_API_URL: http://${PUBLIC_HOST}:4000/api/platform
-    depends_on:
-      edge: { condition: service_started }
-    mem_limit: 192m
     cpus: 0.5
 
 volumes:
